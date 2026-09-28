@@ -1,0 +1,45 @@
+@startuml submit-sequence
+title Submitting a course application
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+actor Employee
+participant "Browser" as B
+participant "EmployeeApplicationController" as C
+participant "ApplicationCommandService" as S
+participant "ApplicationEvaluator" as E
+participant "EntitlementService" as L
+participant "AuditService" as A
+participant "NotificationService" as N
+database "MySQL" as DB
+participant "OutboxWorker" as W
+participant "SMTP" as M
+
+Employee -> B : fill in the form
+B -> B : live eligibility check\n(POST /api/v1/applications/preview)
+Employee -> B : Submit application
+B -> C : POST /employee/applications (CSRF, clientRequestId)
+C -> S : submit(actor, details, clientRequestId)
+activate S
+note over S, DB : one READ COMMITTED transaction
+S -> DB : SELECT employee FOR UPDATE
+S -> DB : replayed request? (employee + clientRequestId)
+S -> E : evaluate(details)\n(dates, holidays, overlap, days, budget)
+S -> L : lockAccounts(years, ascending)
+L -> DB : SELECT training_account FOR UPDATE
+S -> E : re-check inside the locks
+S -> DB : INSERT course_application, application_day
+S -> A : record SUBMITTED
+A -> DB : INSERT audit_event
+S -> L : post RESERVE per year
+L -> DB : INSERT training_ledger
+S -> N : enqueue APPLICATION_SUBMITTED
+N -> DB : INSERT email_outbox (PENDING)
+S --> C : reference number
+deactivate S
+C --> B : redirect to the application page
+... later ...
+W -> DB : lease due rows (FOR UPDATE SKIP LOCKED)
+W -> M : send plain-text mail with sign-in link
+W -> DB : mark SENT, or schedule a retry
+@enduml
