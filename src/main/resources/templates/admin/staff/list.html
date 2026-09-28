@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Staff', 'staff', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Staff</h1>
+      <div class="ut-subtitle">People, their sign-in accounts and roles. Records with history are deactivated, never deleted.</div>
+    </div>
+    <div class="ut-actions"><a class="btn btn-primary" th:href="@{/admin/staff/new}">Add staff member</a></div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-body">
+      <form class="ut-filters" method="get" th:action="@{/admin/staff}">
+        <div class="ut-filter-grow">
+          <label class="form-label" for="q">Search</label>
+          <input class="form-control" id="q" name="q" type="search" th:value="${q}" placeholder="Name, staff number or department">
+        </div>
+        <div class="ut-filter">
+          <label class="form-label" for="status">Status</label>
+          <select class="form-select" id="status" name="status">
+            <option value="active" th:selected="${status == 'active'}">Active</option>
+            <option value="inactive" th:selected="${status == 'inactive'}">Inactive</option>
+            <option value="all" th:selected="${status == 'all'}">All</option>
+          </select>
+        </div>
+        <div><button class="btn btn-secondary" type="submit">Apply filters</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Staff no.</th><th>Name</th><th>Department</th><th>Designation</th><th>Roles</th>
+          <th>Approver</th><th>Status</th></tr></thead>
+        <tbody>
+        <tr th:each="s : ${view.content}">
+          <td class="mono" th:text="${s.staffNo}">S1001</td>
+          <td><a th:href="@{/admin/staff/{id}(id=${s.id})}" th:text="${s.fullName}">Name</a>
+            <div class="small-ut text-muted-ut" th:text="${s.username}">username</div></td>
+          <td th:text="${s.department}">Dept</td>
+          <td th:text="${s.designation.label()}">Professional</td>
+          <td th:text="${s.rolesLabel()}">Employee</td>
+          <td th:text="${s.approverName != null} ? ${s.approverName} : '—'">Manager</td>
+          <td><span th:replace="~{fragments/messages :: status(${s.active} ? 'active' : 'inactive', ${s.active} ? 'Active' : 'Inactive')}"></span></td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="7">No staff match these filters.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'staff')}"></div>
+  </div>
+</div>
+</body>
+</html>

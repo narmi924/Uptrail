@@ -60,4 +60,30 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
               and not exists (select 1 from TrainingAccount t where t.employeeId = e.id and t.calendarYear = :year)
             """)
     long countActiveApplicantsWithoutAccount(@Param("year") int year);
+
+    /** Active staff who can apply for courses (EMPLOYEE role), for routing and entitlement pages. */
+    @Query(value = """
+            select e from Employee e, UserAccount u join u.roles r
+            where u.employeeId = e.id and e.active = true and r = com.uptrail.identity.domain.Role.EMPLOYEE
+              and (:query = '' or lower(e.fullName) like concat('%', :query, '%')
+                   or lower(e.staffNo) like concat('%', :query, '%')
+                   or lower(e.department) like concat('%', :query, '%'))
+            order by e.fullName, e.id
+            """, countQuery = """
+            select count(e) from Employee e, UserAccount u join u.roles r
+            where u.employeeId = e.id and e.active = true and r = com.uptrail.identity.domain.Role.EMPLOYEE
+              and (:query = '' or lower(e.fullName) like concat('%', :query, '%')
+                   or lower(e.staffNo) like concat('%', :query, '%')
+                   or lower(e.department) like concat('%', :query, '%'))
+            """)
+    Page<Employee> findActiveApplicants(@Param("query") String query, Pageable pageable);
+
+    /** Active employees holding the MANAGER role. */
+    @Query("""
+            select e from Employee e, UserAccount u join u.roles r
+            where u.employeeId = e.id and e.active = true and u.enabled = true
+              and r = com.uptrail.identity.domain.Role.MANAGER
+            order by e.fullName, e.id
+            """)
+    List<Employee> findActiveManagers();
 }

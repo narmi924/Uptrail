@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Confirm holiday change', 'holidays', ~{::#page})}">
+<body>
+<div id="page" th:with="i=${impact}">
+  <div class="ut-breadcrumb"><a th:href="@{/admin/holidays(year=${i.date.year})}">Public Holidays</a></div>
+  <div class="ut-page-header">
+    <div>
+      <h1 th:text="${action == 'add'} ? |Add a holiday on ${@formats.date(i.date)}?| : |Remove the holiday on ${@formats.date(i.date)}?|">Confirm</h1>
+    </div>
+  </div>
+
+  <div class="ut-strip state-critical" th:if="${i.yearConfirmed}">
+    The <span th:text="${i.date.year}">2026</span> calendar is confirmed. This change sets it back to draft:
+    no application with days in that year can be submitted or approved until you confirm the calendar again.
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-header"><h2>Applications that include this date</h2></div>
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Reference</th><th>Staff member</th><th>Course</th><th>Period</th><th>Status</th><th>What happens</th></tr></thead>
+        <tbody>
+        <tr th:each="a : ${i.applications}">
+          <td class="mono" th:text="${a.referenceNo}">ref</td>
+          <td th:text="${a.employeeName}">Name</td>
+          <td th:text="${a.courseTitle}">Course</td>
+          <td th:text="${@formats.date(a.startDate)} + ' – ' + ${@formats.date(a.endDate)}">period</td>
+          <td><span th:replace="~{fragments/messages :: status(${a.status.name()}, ${a.status.label()})}"></span></td>
+          <td class="small-ut" th:text="${a.status.isPending()} ? 'Approval will ask the applicant to update the schedule first.' : 'Already approved: the approved schedule is kept. Contact the staff member if the course dates must change.'">x</td>
+        </tr>
+        <tr class="ut-empty" th:if="${#lists.isEmpty(i.applications)}"><td colspan="6">No waiting or approved application includes this date.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <form method="post" th:action="${action == 'add'} ? @{/admin/holidays/add} : @{/admin/holidays/{d}/remove(d=${i.date})}">
+    <input type="hidden" name="confirmed" value="true">
+    <th:block th:if="${action == 'add'}">
+      <input type="hidden" name="date" th:value="${i.date}">
+      <input type="hidden" name="name" th:value="${name}">
+      <input type="hidden" name="sourceNote" th:value="${sourceNote}">
+    </th:block>
+    <div class="ut-form-actions">
+      <button class="btn btn-primary" type="submit" th:text="${action == 'add'} ? 'Add holiday' : 'Remove holiday'">Confirm</button>
+      <a class="btn btn-secondary" th:href="@{/admin/holidays(year=${i.date.year})}">Cancel</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

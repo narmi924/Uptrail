@@ -27,4 +27,6 @@ public interface AuditEventRepository extends JpaRepository<AuditEvent, Long> {
     Page<AuditEvent> search(@Param("type") AggregateType type, @Param("key") String key,
             @Param("eventType") String eventType, @Param("from") Instant from, @Param("to") Instant to,
             Pageable pageable);
+
+    long countByActorEmployeeId(Long actorEmployeeId);
 }

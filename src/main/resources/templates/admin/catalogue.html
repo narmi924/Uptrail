@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Catalogue', 'catalogue', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Catalogue</h1>
+      <div class="ut-subtitle">Common courses and providers offered as shortcuts on the application form. Staff can still apply for courses that are not listed.</div>
+    </div>
+  </div>
+
+  <nav class="ut-tabs" aria-label="Catalogue sections">
+    <a th:href="@{/admin/catalogue(tab='courses')}" th:classappend="${tab == 'courses'} ? 'active'">Courses</a>
+    <a th:href="@{/admin/catalogue(tab='providers')}" th:classappend="${tab == 'providers'} ? 'active'">Providers</a>
+    <a th:href="@{/admin/catalogue(tab='categories')}" th:classappend="${tab == 'categories'} ? 'active'">Categories</a>
+  </nav>
+
+  <th:block th:if="${tab == 'courses'}">
+    <div class="ut-card">
+      <div class="ut-card-header"><h2>Add a course</h2></div>
+      <div class="ut-card-body">
+        <form class="row g-2 align-items-end" method="post" th:action="@{/admin/catalogue/courses}">
+          <div class="col-md-2"><label class="form-label" for="new-category">Category</label>
+            <select class="form-select" id="new-category" name="category" required>
+              <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.displayName}">Internal</option>
+            </select></div>
+          <div class="col-md-3"><label class="form-label" for="new-title">Title</label>
+            <input class="form-control" id="new-title" name="title" maxlength="200" required></div>
+          <div class="col-md-2"><label class="form-label" for="new-provider">Provider</label>
+            <select class="form-select" id="new-provider" name="providerId">
+              <option value="">None (internal)</option>
+              <option th:each="p : ${providers}" th:if="${p.active}" th:value="${p.id}" th:text="${p.name}">Provider</option>
+            </select></div>
+          <div class="col-md-2"><label class="form-label" for="new-fee">Default fee (SGD)</label>
+            <input class="form-control" id="new-fee" name="defaultFee" type="number" min="0" step="0.01" value="0.00" required></div>
+          <div class="col-md-2"><label class="form-label" for="new-description">Description</label>
+            <input class="form-control" id="new-description" name="description" maxlength="1000"></div>
+          <div class="col-md-1"><button class="btn btn-primary w-100" type="submit">Add</button></div>
+        </form>
+        <p class="ut-help mt-2 mb-0">Internal training has no fee; external courses and certifications need one.</p>
+      </div>
+    </div>
+    <div class="ut-card">
+      <div class="ut-table-wrap">
+        <table class="ut-table">
+          <thead><tr><th>Category</th><th>Title</th><th>Provider</th><th class="num">Fee (SGD)</th><th>Description</th>
+            <th>On the form</th><th></th></tr></thead>
+          <tbody>
+          <tr th:each="c : ${courses}">
+            <td th:text="${c.categoryName}">Category</td>
+            <td th:text="${c.title}">Title</td>
+            <td th:text="${c.providerName != null} ? ${c.providerName} : 'ISS (In-house)'">Provider</td>
+            <td class="num" th:text="${@formats.amount(c.defaultFee)}">0.00</td>
+            <td class="small-ut text-muted-ut" th:text="${c.description}">Description</td>
+            <td><span th:replace="~{fragments/messages :: status(${c.active} ? 'active' : 'inactive', ${c.active} ? 'Listed' : 'Hidden')}"></span></td>
+            <td class="num">
+              <details class="ut-inline-edit">
+                <summary class="btn btn-ghost btn-sm">Edit</summary>
+                <form class="ut-inline-edit-form" method="post" th:action="@{/admin/catalogue/courses/{id}(id=${c.id})}">
+                  <label class="form-label" th:for="${'cat-' + c.id}">Category</label>
+                  <select class="form-select form-select-sm mb-2" th:id="${'cat-' + c.id}" name="category">
+                    <option th:each="cat : ${categories}" th:value="${cat.code}" th:text="${cat.displayName}" th:selected="${cat.code == c.category}">x</option>
+                  </select>
+                  <label class="form-label" th:for="${'title-' + c.id}">Title</label>
+                  <input class="form-control form-control-sm mb-2" th:id="${'title-' + c.id}" name="title" maxlength="200" th:value="${c.title}" required>
+                  <label class="form-label" th:for="${'prov-' + c.id}">Provider</label>
+                  <select class="form-select form-select-sm mb-2" th:id="${'prov-' + c.id}" name="providerId">
+                    <option value="">None (internal)</option>
+                    <option th:each="p : ${providers}" th:value="${p.id}" th:text="${p.name}" th:selected="${p.id == c.providerId}">x</option>
+                  </select>
+                  <label class="form-label" th:for="${'fee-' + c.id}">Default fee (SGD)</label>
+                  <input class="form-control form-control-sm mb-2" th:id="${'fee-' + c.id}" name="defaultFee" type="number" min="0" step="0.01" th:value="${c.defaultFee}" required>
+                  <label class="form-label" th:for="${'desc-' + c.id}">Description</label>
+                  <input class="form-control form-control-sm mb-2" th:id="${'desc-' + c.id}" name="description" maxlength="1000" th:value="${c.description}">
+                  <label class="small-ut d-block mb-2"><input type="checkbox" name="active" value="true" th:checked="${c.active}"> Offer on the application form</label>
+                  <button class="btn btn-secondary btn-sm" type="submit">Save course</button>
+                </form>
+              </details>
+            </td>
+          </tr>
+          <tr class="ut-empty" th:if="${#lists.isEmpty(courses)}"><td colspan="7">No catalogue courses yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </th:block>
+
+  <th:block th:if="${tab == 'providers'}">
+    <div class="ut-card">
+      <div class="ut-card-body">
+        <form class="ut-filters" method="post" th:action="@{/admin/catalogue/providers}">
+          <div class="ut-filter-grow"><label class="form-label" for="provider-name">New provider</label>
+            <input class="form-control" id="provider-name" name="name" maxlength="160" required></div>
+          <div><button class="btn btn-primary" type="submit">Add provider</button></div>
+        </form>
+      </div>
+    </div>
+    <div class="ut-card">
+      <div class="ut-table-wrap">
+        <table class="ut-table">
+          <thead><tr><th>Provider</th></tr></thead>
+          <tbody>
+          <tr th:each="p : ${providers}">
+            <td>
+              <form class="d-flex flex-wrap gap-2 align-items-center" method="post" th:action="@{/admin/catalogue/providers/{id}(id=${p.id})}">
+                <input class="form-control form-control-sm ut-w-name" name="name" maxlength="160" th:value="${p.name}" th:attr="aria-label='Provider name'" required>
+                <label class="small-ut"><input type="checkbox" name="active" value="true" th:checked="${p.active}"> offered on the form</label>
+                <button class="btn btn-secondary btn-sm" type="submit">Save</button>
+              </form>
+            </td>
+          </tr>
+          <tr class="ut-empty" th:if="${#lists.isEmpty(providers)}"><td>No providers yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </th:block>
+
+  <th:block th:if="${tab == 'categories'}">
+    <div class="ut-strip">The three categories are fixed by the course brief. Their fee and half-day rules cannot be changed here; only the display name and description can.</div>
+    <div class="ut-card" th:each="c : ${categories}">
+      <div class="ut-card-header"><h2 class="mono" th:text="${c.code}">INTERNAL</h2></div>
+      <div class="ut-card-body">
+        <form class="row g-2 align-items-end" method="post" th:action="@{/admin/catalogue/categories/{code}(code=${c.code})}">
+          <div class="col-md-4"><label class="form-label" th:for="${'name-' + c.code}">Display name</label>
+            <input class="form-control" th:id="${'name-' + c.code}" name="displayName" maxlength="80" th:value="${c.displayName}" required></div>
+          <div class="col-md-6"><label class="form-label" th:for="${'desc-' + c.code}">Description</label>
+            <input class="form-control" th:id="${'desc-' + c.code}" name="description" maxlength="400" th:value="${c.description}"></div>
+          <div class="col-md-2"><button class="btn btn-secondary w-100" type="submit">Save</button></div>
+        </form>
+      </div>
+    </div>
+  </th:block>
+</div>
+</body>
+</html>

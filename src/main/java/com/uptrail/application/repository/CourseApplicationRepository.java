@@ -97,4 +97,17 @@ public interface CourseApplicationRepository extends JpaRepository<CourseApplica
             @Param("end") LocalDate end);
 
     List<CourseApplication> findByApproverIdAndStatusIn(Long approverId, Collection<ApplicationStatus> statuses);
+
+    long countByEmployeeIdOrApproverIdOrReviewedBy(Long employeeId, Long approverId, Long reviewedBy);
+
+    List<CourseApplication> findByEmployeeIdAndStatusIn(Long employeeId, Collection<ApplicationStatus> statuses);
+
+    /** Pending or approved-but-not-completed applications whose period contains the date. */
+    @Query("""
+            select a from CourseApplication a
+            where a.status in :statuses and a.startDate <= :date and a.endDate >= :date
+            order by a.startDate, a.id
+            """)
+    List<CourseApplication> findActiveOn(@Param("date") LocalDate date,
+            @Param("statuses") Collection<ApplicationStatus> statuses);
 }
