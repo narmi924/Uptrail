@@ -177,6 +177,11 @@ a.ut-tile:hover { border-color: var(--ut-primary); color: var(--ut-ink); }
 .ut-table tfoot td { padding: 8px var(--ut-space-3); font-weight: 600; border-top: 1px solid var(--ut-hairline); background: var(--ut-surface-soft); }
 .ut-table .ut-empty td { color: var(--ut-ink-muted); text-align: center; padding: var(--ut-space-5); height: auto; }
 .ut-table-compact tbody td { height: 34px; padding-top: 4px; padding-bottom: 4px; }
+/* Wide numeric reports: grouped headings and tighter cells so all columns fit a laptop screen. */
+.ut-table-dense thead th, .ut-table-dense tbody td, .ut-table-dense tfoot td { padding-left: 8px; padding-right: 8px; }
+.ut-table thead tr.ut-head-group th { height: 28px; text-align: center; color: var(--ut-ink); border-bottom: 0; }
+.ut-table .ut-group-start { border-left: 1px solid var(--ut-hairline); }
+.ut-nowrap { white-space: nowrap; }
 
 /* ---------- Status badges ---------- */
 .ut-badge {
@@ -332,7 +337,7 @@ form.ut-inline { display: inline; }
 
 /* ---------- Print ---------- */
 @media print {
-  .ut-topbar, .ut-sidenav, .ut-actions, .ut-pager, .ut-filters, .ut-no-print, .btn { display: none !important; }
+  .ut-topbar, .ut-sidenav, .ut-actions, .ut-pager, .ut-filters, .ut-tabs, .ut-no-print, .btn { display: none !important; }
   .ut-content { padding: 0; }
   .ut-card { box-shadow: none; border-color: #999; break-inside: avoid; }
   body { background: #fff; }

@@ -95,8 +95,16 @@
     });
   }
 
+  /* Print buttons (inline handlers are not allowed by the content security policy). */
+  function initPrintButtons() {
+    document.querySelectorAll('[data-ut-print]').forEach(function (button) {
+      button.addEventListener('click', function () { window.print(); });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initNavToggle();
+    initPrintButtons();
     initPasswordToggles();
     initConfirmations();
     initAutoSubmit();

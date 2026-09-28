@@ -17,12 +17,12 @@ Conventions:
 
 | Field | Value |
 | --- | --- |
-| Plan version | 0.6.0 |
+| Plan version | 0.7.0 |
 | Last updated | 2026-09-28 (Asia/Singapore) |
 | Approval status | **APPROVED** — owner message of 2026-09-28 approving plan 0.1.1 with amendments A1–A7 below |
 | Approved scope | Sections 3–8 of this version: the complete system (all mandatory features R01–R19, all eight optional features O01–O08, enhancements D01–D07, `training_calendar_year`). Presentation, demo script, delivery packaging and team distribution are out of scope. |
-| Current phase | Phase B — M0–M4 complete; M5 calendar, pagination, reports and CSV next |
-| Next concrete action | M5-T1: training calendar API and page |
+| Current phase | Phase B — M0–M5 complete; M6 fee claims next |
+| Next concrete action | M6-T1: private document storage for claim receipts and payment proofs |
 | Real blockers | None known. Docker availability is verified in M0-T3. |
 
 ### Amendments given with the approval
@@ -136,7 +136,7 @@ Q17 (submission platform) and Q18 (presentation timing) are out of scope under A
 
 A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual accounts + append-only ledger; A04 READ_COMMITTED and lock order employee → accounts (ascending year) → target record; A05 catalogue as template with application snapshots; A06 transactional outbox; A07 private file storage; A08 versions locked after a smoke build.
 
-### 4.3 Implementation decisions (I01–I42)
+### 4.3 Implementation decisions (I01–I45)
 
 | ID | Decision | Rationale |
 | --- | --- | --- |
@@ -182,6 +182,9 @@ A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual a
 | I40 | Milestones M2 and M3 were delivered in one branch and pull request, because the application detail page needs the M3 actions to avoid inactive buttons | Git workflow (I31) adjusted |
 | I41 | Administration services live in `com.uptrail.admin.service` because they orchestrate identity, organisation, entitlement and application data; this avoids dependency cycles between modules | Extends I34 |
 | I42 | Holiday date changes are two-step on the page: the first POST shows the affected applications and the draft consequence; only a confirmed second POST applies the change. Renaming a holiday keeps the year confirmed | Q15 |
+| I43 | The training calendar is open to every signed-in user in both workspaces. The page renders the month on the server as a no-script fallback and the browser then loads months from `GET /api/v1/calendar`; the month picker offers a year either side of today plus the selected month | Q14; bounded page size |
+| I44 | Participation report: APPROVED and COMPLETED courses of current direct reports that overlap the period; training days count only days inside the period; fees are summed once per course and only for courses starting in the period. Budget report: balances from the ledger for the selected year (previous, current or next), claim amounts grouped by the year the course started, totals over staff with an account | Q04, Q05; no double counting |
+| I45 | Short administrative lists (catalogue courses and providers) are paginated in memory with the shared pager; the holiday list is bounded by one calendar year and dashboard panels show at most five rows, so they are not paginated | O06 |
 
 ---
 
@@ -361,7 +364,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | M2 Rules, accounts, ledger, submission | VERIFIED | Evaluator shared by preview and submit; lock protocol; idempotency; preview and catalogue APIs; employee pages. The administrator side of M2-T2 (holiday maintenance) moves to M4-T5 |
 | M3 Manager review and lifecycle | VERIFIED | Update/delete/cancel/complete/approve/reject with ledger effects; approval-time schedule re-check (I07); grouped worklist, review page, team history; sample activity in every status; concurrency tests |
 | M4 Administration | VERIFIED | Staff and roles with deactivation guards and session expiry, routing with explicit audited reassignment and team moves, entitlements with lower bounds and defaults, catalogue, holiday calendars with impact confirmation, bundled list import |
-| M5 Calendar, pagination, reports, CSV | PLANNED | — |
+| M5 Calendar, pagination, reports, CSV | VERIFIED | Calendar API and page (I43), participation and budget reports with print view (I44), CSV exports sharing the report queries, pager on the remaining long lists (I45) |
 | M6 Fee claims | PLANNED | — |
 | M7 Email, audit, operations | PLANNED | — |
 | M8 Hardening | PLANNED | — |
@@ -502,11 +505,11 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | ID | Feature | Pages / endpoints | Modules / data | Tests | Status |
 | --- | --- | --- | --- | --- | --- |
 | O01 | Administration | `/admin/staff`, `/admin/routing`, `/admin/entitlements`, `/admin/catalogue`, `/admin/holidays` | admin services over organisation, identity, catalogue, entitlement | T09, T32, AdministrationIT (16) | VERIFIED |
-| O02 | REST + client | `/api/v1/applications/preview`, `/api/v1/calendar`, `/api/v1/catalogue`; JS modules | application/api, reporting/api, catalogue/api | API IT, e2e | PLANNED |
+| O02 | REST + client | `/api/v1/applications/preview`, `/api/v1/calendar`, `/api/v1/catalogue`; JS modules | application/api, reporting/api, catalogue/api | API IT, e2e | IN_PROGRESS (all three APIs verified by IT and in the browser; e2e in M8) |
 | O03 | Fee claims + ledger | `/employee/claims…`, `/manager/claims/{id}`, `/admin/reimbursements` | claim, ledger | T51–T60, T71–T73, AC-D | PLANNED |
-| O04 | Reporting + CSV | `/manager/reports` | reporting, CSV | T66–T69 | PLANNED |
-| O05 | Training calendar | `/calendar`, `/api/v1/calendar` | reporting | T63–T65 | PLANNED |
-| O06 | Pagination | all lists | shared | T62, T70 | PLANNED |
+| O04 | Reporting + CSV | `/manager/reports`, `/manager/reports/training.csv`, `/manager/reports/budget.csv` | reporting, `shared.csv` | T66–T69 (CalendarAndReportIT, CsvWriterTest) | VERIFIED |
+| O05 | Training calendar | `/calendar`, `/api/v1/calendar` | reporting | T63–T65 (CalendarAndReportIT) | VERIFIED |
+| O06 | Pagination | all lists (I45) | shared | T62, T70 (team history, report and catalogue paging tests) | VERIFIED |
 | O07 | Email | outbox, templates, operations page | notification | T74–T76 | PLANNED |
 | O08 | Spring Security | chains, scope policy, CSRF, private files | identity, shared | T01–T09, T71, T72 | IN_PROGRESS (sign-in, roles, workspaces, CSRF, session expiry, headers verified; private files in M6) |
 
@@ -555,6 +558,9 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | 2026-09-28 | `docker compose down -v` (this project's dev volume only), dev JAR, `agent-browser` | 18 sample applications created through the services; form with catalogue search (`GET /api/v1/catalogue`) and live preview (`POST /api/v1/applications/preview`) seen in the browser network log; dashboard, manager worklist and review page checked | Found and fixed: dates in the browser locale (UI locale fixed to English), wrapped reference numbers, side-navigation background |
 | 2026-09-28 | `./mvnw verify` (M4) | First run: 1 failure (test expected 3 applicants, correct value 2). Final: BUILD SUCCESS, unit 41/41, IT 83/83 (AdministrationIT 16 plus earlier suites) | T09, T32, routing, catalogue snapshot, holiday rules |
 | 2026-09-28 | Restart of the dev JAR on the existing database; `agent-browser` on all admin pages | Seeder skipped because data existed (restart persistence); staff, routing, entitlements, catalogue, holidays pages render with real data and no page errors | Found and fixed: cluttered inline editors on holidays and catalogue (moved into per-row edit popovers); inline styles blocked by CSP replaced with classes; approver selection by id |
+| 2026-09-28 | `./mvnw verify -Dit.test=CalendarAndReportIT -Dtest=CsvWriterTest` (M5, first run) | 11 IT, 1 failure | The budget CSV printed empty claim totals as `0` instead of `0.00`; report totals now start from a two-decimal zero |
+| 2026-09-28 | `./mvnw verify` (M5) | BUILD SUCCESS: unit 50/50 (CsvWriterTest 9 added), IT 95/95 (CalendarAndReportIT 11, AdministrationIT 17 plus earlier suites) | T63–T70 |
+| 2026-09-28 | Dev JAR on the existing database; `agent-browser` as a manager and as the administrator | Calendar month grid, list view, previous/next, month and category filters load through `GET /api/v1/calendar` without page errors; both report tabs render with sample data; both CSV downloads return `attachment` with `text/csv;charset=UTF-8` and the page rows | Found and fixed: the budget table overflowed the screen (regrouped into day, budget and claim column groups); tabs hidden when printing; unencoded category in calendar links |
 
 Rules: failures recorded with output; skipped or blocked runs marked `NOT_VERIFIED`/`BLOCKED`; no pre-filled counts, coverage or timings.
 
@@ -608,10 +614,10 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 
 | Field | Value |
 | --- | --- |
-| Completed | Phase A; approval; M0–M4 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration) |
-| Last verified | `./mvnw verify` green (124 tests); browser check of the administration pages |
-| Next task | M5: training calendar (API + page), pagination on remaining lists, reports and CSV |
-| Open issues | Navigation links to later milestones' pages (claims, entitlement, reports, calendar, admin sections) return 404 until implemented |
+| Completed | Phase A; approval; M0–M5 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration, training calendar, reports, CSV, pagination) |
+| Last verified | `./mvnw verify` green (145 tests); browser check of the calendar and reports |
+| Next task | M6: fee claims (document storage, submit and revise, manager decision, reimbursement registration) |
+| Open issues | Navigation links to later milestones' pages (employee claims, employee entitlement, manager claims tab, admin reimbursements and operations) return 404 until implemented; claim columns in the budget report stay zero until M6 creates claims |
 | How to resume | Read sections 1, 7, 9, 12; `git status`, `git log --oneline -20`, `gh pr list`; run `./mvnw verify`; continue with the first task not `VERIFIED` |
 
 ---
@@ -627,3 +633,4 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 | 0.4.0 | 2026-09-28 | M1 done: identity, entry points, scope policy, sample organisation; calculator | No scope change | `./mvnw verify` 49 tests green; browser check (9.2) |
 | 0.5.0 | 2026-09-28 | M2 and M3 done in one PR (I40): submission, preview, lifecycle, manager review, concurrency, sample activity; decisions I38–I40 | No scope change | `./mvnw verify` 108 tests green; browser check (9.2) |
 | 0.6.0 | 2026-09-28 | M4 administration done; decisions I41–I42 | No scope change | `./mvnw verify` 124 tests green; browser check (9.2) |
+| 0.7.0 | 2026-09-28 | M5 done: training calendar, participation and budget reports, CSV exports, pagination of the remaining lists; decisions I43–I45 | No scope change | `./mvnw verify` 145 tests green; browser check (9.2) |
