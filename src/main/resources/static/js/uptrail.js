@@ -79,8 +79,25 @@
     });
   }
 
+  /* Show/hide password buttons on the sign-in pages. */
+  function initPasswordToggles() {
+    document.querySelectorAll('[data-ut-toggle-password]').forEach(function (button) {
+      var input = document.getElementById(button.getAttribute('data-ut-toggle-password'));
+      if (!input) {
+        return;
+      }
+      button.addEventListener('click', function () {
+        var show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        button.textContent = show ? 'Hide' : 'Show';
+        button.setAttribute('aria-pressed', show ? 'true' : 'false');
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initNavToggle();
+    initPasswordToggles();
     initConfirmations();
     initAutoSubmit();
   });
