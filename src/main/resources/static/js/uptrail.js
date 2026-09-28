@@ -102,9 +102,26 @@
     });
   }
 
+  /* File inputs with a size limit: refuse an oversized file before the upload starts. */
+  function initFileLimits() {
+    document.querySelectorAll('input[type="file"][data-ut-max-bytes]').forEach(function (input) {
+      input.addEventListener('change', function () {
+        var max = Number(input.getAttribute('data-ut-max-bytes'));
+        var file = input.files && input.files[0];
+        var message = file && file.size > max
+          ? 'The file is larger than ' + Math.floor(max / 1048576) + ' MB. Choose a smaller file.' : '';
+        input.setCustomValidity(message);
+        if (message) {
+          input.reportValidity();
+        }
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initNavToggle();
     initPrintButtons();
+    initFileLimits();
     initPasswordToggles();
     initConfirmations();
     initAutoSubmit();

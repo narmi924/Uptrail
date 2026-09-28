@@ -106,6 +106,19 @@ public class SampleActivity {
                 "1200.00"), today.plusDays(45), 2);
         completed(created, "priya-reviews", staff, "priya", "grace", internal("Effective Code Reviews"),
                 today.minusDays(60), 1, "Adopted the checklist for the analytics team.");
+
+        // Completed fee-paying courses for the fee claim samples (see SampleClaims); Farid's stays unclaimed.
+        completed(created, "weiling-data", staff, "weiling", "daniel", external("Data Engineering with Python",
+                "Merlion Tech Academy", "700.00"), today.minusDays(150), 2,
+                "Built a prototype of the new ingestion pipeline.");
+        completed(created, "farid-testing", staff, "farid", "daniel", external("Test Automation Essentials",
+                "Harbourline Training", "400.00"), today.minusDays(55), 1,
+                "Automated the regression suite of the billing module.");
+        completed(created, "aisha-cert", staff, "aisha", "priya", certification("Certified Data Analyst",
+                "Kestrel Professional Institute", "500.00"), today.minusDays(110), 1,
+                "Passed the exam and shared revision notes with the team.");
+        completed(created, "rahul-bi", staff, "rahul", "priya", external("Business Intelligence Dashboards",
+                "Harbourline Training", "400.00"), today.minusDays(80), 2, "Rebuilt the monthly KPI dashboard.");
         return new Created(created);
     }
 

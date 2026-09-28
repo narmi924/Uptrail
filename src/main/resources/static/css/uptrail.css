@@ -163,6 +163,7 @@ a.ut-tile:hover { border-color: var(--ut-primary); color: var(--ut-ink); }
 .ut-dl { display: grid; grid-template-columns: minmax(140px, 200px) 1fr; gap: var(--ut-space-2) var(--ut-space-4); margin: 0; }
 .ut-dl dt { font-size: 12px; font-weight: 600; color: var(--ut-ink-muted); padding-top: 2px; }
 .ut-dl dd { margin: 0; white-space: pre-line; word-break: break-word; }
+.ut-dl.ut-dl-narrow { grid-template-columns: 7.5rem 1fr; }
 
 /* ---------- Tables ---------- */
 .ut-table-wrap { overflow-x: auto; }
@@ -182,6 +183,7 @@ a.ut-tile:hover { border-color: var(--ut-primary); color: var(--ut-ink); }
 .ut-table thead tr.ut-head-group th { height: 28px; text-align: center; color: var(--ut-ink); border-bottom: 0; }
 .ut-table .ut-group-start { border-left: 1px solid var(--ut-hairline); }
 .ut-nowrap { white-space: nowrap; }
+.ut-truncate { max-width: 18rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- Status badges ---------- */
 .ut-badge {
@@ -349,6 +351,7 @@ form.ut-inline { display: inline; }
 /* Compact inline editors in administration tables */
 .ut-w-days { width: 5.5rem; }
 .ut-w-money { width: 7.5rem; }
+.ut-w-money-input { max-width: 12rem; }
 .ut-w-reason { width: 11rem; }
 .ut-w-name { min-width: 12rem; }
 

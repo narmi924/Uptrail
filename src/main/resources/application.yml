@@ -26,8 +26,9 @@ spring:
     cache: true
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 12MB
+      # Slightly above the 5 MB document limit, so that the claim form can explain an oversized file itself.
+      max-file-size: 6MB
+      max-request-size: 13MB
   mail:
     host: ${UPTRAIL_MAIL_HOST:localhost}
     port: ${UPTRAIL_MAIL_PORT:1025}
@@ -72,6 +73,9 @@ uptrail:
   documents:
     root: ${UPTRAIL_DOCUMENTS_ROOT:var/documents}
     max-bytes: 5242880
+    sweep:
+      enabled: true
+      interval: PT6H
   mail:
     transport: ${UPTRAIL_MAIL_TRANSPORT:smtp}
     from: "Uptrail <no-reply@uptrail.example.com>"

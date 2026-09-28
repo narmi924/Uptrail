@@ -1,4 +1,4 @@
-package com.uptrail.approval.web;
+package com.uptrail.claim.web;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.uptrail.application.service.ApplicationCommandService;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
 import com.uptrail.approval.service.ManagerApplicationService;
+import com.uptrail.claim.service.ClaimCommandService;
+import com.uptrail.claim.service.ClaimCommandService.Decision;
 import com.uptrail.claim.service.ClaimQueryService;
 import com.uptrail.identity.service.UptrailUserPrincipal;
 import com.uptrail.shared.error.BusinessException;
@@ -21,62 +21,58 @@ import com.uptrail.shared.error.NotFoundException;
 import com.uptrail.shared.web.Paging;
 
 /**
- * Manager worklist and review page. Decisions are POSTs with a mandatory reason and the version the manager
- * reviewed; a changed application is refused rather than approved on outdated information.
+ * The fee-claims tab of the manager worklist and the claim review page. Like application decisions, a
+ * claim decision needs a reason and the version the manager reviewed.
  */
 @Controller
-public class ManagerApprovalController {
+public class ManagerClaimController {
 
+    private final ClaimQueryService queries;
+    private final ClaimCommandService commands;
     private final ManagerApplicationService managerApplications;
-    private final ApplicationCommandService commands;
-    private final ClaimQueryService claims;
 
-    public ManagerApprovalController(ManagerApplicationService managerApplications,
-            ApplicationCommandService commands, ClaimQueryService claims) {
-        this.managerApplications = managerApplications;
+    public ManagerClaimController(ClaimQueryService queries, ClaimCommandService commands,
+            ManagerApplicationService managerApplications) {
+        this.queries = queries;
         this.commands = commands;
-        this.claims = claims;
+        this.managerApplications = managerApplications;
     }
 
-    @GetMapping("/manager/approvals")
-    public String approvals(@AuthenticationPrincipal UptrailUserPrincipal principal,
+    @GetMapping("/manager/claims")
+    public String claims(@AuthenticationPrincipal UptrailUserPrincipal principal,
             @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size,
             HttpServletRequest request, Model model) {
-        var groups = managerApplications.pendingGroups(principal.actor(), Paging.request(page, size));
-        model.addAttribute("view", Paging.view(groups, request));
+        model.addAttribute("view",
+                Paging.view(queries.pendingForManager(principal.actor(), Paging.request(page, size)), request));
         model.addAttribute("pendingCount", managerApplications.pendingCount(principal.actor()));
-        model.addAttribute("claimCount", claims.pendingCount(principal.actor()));
-        model.addAttribute("tab", "applications");
-        return "manager/approvals";
+        model.addAttribute("claimCount", queries.pendingCount(principal.actor()));
+        model.addAttribute("tab", "claims");
+        return "manager/claims";
     }
 
-    @GetMapping("/manager/applications/{id}")
+    @GetMapping("/manager/claims/{id}")
     public String review(@AuthenticationPrincipal UptrailUserPrincipal principal, @PathVariable Long id, Model model) {
-        model.addAttribute("review", managerApplications.review(principal.actor(), id));
-        return "manager/review";
+        model.addAttribute("claim", queries.managerDetail(principal.actor(), id));
+        return "manager/claim-review";
     }
 
-    @PostMapping("/manager/applications/{id}/decision")
+    @PostMapping("/manager/claims/{id}/decision")
     public String decide(@AuthenticationPrincipal UptrailUserPrincipal principal, @PathVariable Long id,
             @RequestParam(required = false) Decision decision, @RequestParam(required = false) String reason,
             @RequestParam(required = false) Long expectedVersion, RedirectAttributes redirect) {
         try {
-            if (decision == null) {
-                throw new BusinessException(com.uptrail.shared.error.ErrorCode.VALIDATION_FAILED,
-                        "Choose Approve or Reject.");
-            }
             commands.decide(principal.actor(), id, decision, reason, expectedVersion);
             redirect.addFlashAttribute("flashSuccess", decision == Decision.APPROVE
-                    ? "Application approved. The applicant will be notified by email with your reason."
-                    : "Application rejected. The applicant will be notified by email with your reason.");
-            return "redirect:/manager/approvals";
+                    ? "Claim approved. The claimant is notified by email; an administrator registers the reimbursement."
+                    : "Claim rejected. The claimant is notified by email with your reason and can revise the claim.");
+            return "redirect:/manager/claims";
         } catch (NotFoundException e) {
             throw e;
         } catch (BusinessException e) {
             redirect.addFlashAttribute("flashError", e.getMessage());
             redirect.addFlashAttribute("reasonDraft", reason);
             redirect.addFlashAttribute("decisionDraft", decision);
-            return "redirect:/manager/applications/" + id;
+            return "redirect:/manager/claims/" + id;
         }
     }
 }

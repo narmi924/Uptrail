@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Reimbursements', 'reimbursements', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Reimbursements</h1>
+      <div class="ut-subtitle">Approved fee claims to be registered as reimbursed. Registration is recorded in Uptrail only; no payment is initiated.</div>
+    </div>
+  </div>
+
+  <nav class="ut-tabs" aria-label="Reimbursement status">
+    <a th:href="@{/admin/reimbursements}" th:classappend="${tab == 'awaiting'} ? 'active'"
+       th:text="|Awaiting registration (${awaitingCount})|">Awaiting registration</a>
+    <a th:href="@{/admin/reimbursements(tab='registered')}" th:classappend="${tab == 'registered'} ? 'active'">Registered</a>
+  </nav>
+
+  <div class="ut-card">
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead>
+        <tr><th>Staff member</th><th>Course</th><th class="num">Amount (SGD)</th><th>Approved by</th>
+          <th th:if="${tab == 'awaiting'}">Approved</th>
+          <th th:if="${tab == 'registered'}">Reference</th><th th:if="${tab == 'registered'}">Registered</th><th></th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${view.content}">
+          <td><span th:text="${c.employeeName}">Name</span><div class="small-ut text-muted-ut" th:text="${c.department}">Dept</div></td>
+          <td><span th:text="${c.courseTitle}">Course</span><div class="small-ut text-muted-ut mono" th:text="${c.applicationReference}">ref</div></td>
+          <td class="num" th:text="${@formats.amount(c.amount)}">0.00</td>
+          <td><span th:text="${c.reviewerName}">Manager</span>
+            <div class="small-ut text-muted-ut ut-truncate" th:text="${c.reviewComment}" th:title="${c.reviewComment}">Reason</div></td>
+          <td th:if="${tab == 'awaiting'}" th:text="${@formats.dateTime(c.reviewedAt)}">date</td>
+          <td th:if="${tab == 'registered'}" class="mono" th:text="${c.reimbursementReference}">SIM-</td>
+          <td th:if="${tab == 'registered'}" th:text="${@formats.dateTime(c.reimbursedAt)}">date</td>
+          <td class="num"><a class="btn btn-sm" th:classappend="${tab == 'awaiting'} ? 'btn-primary' : 'btn-secondary'"
+                             th:href="@{/admin/claims/{id}(id=${c.id})}" th:text="${tab == 'awaiting'} ? 'Check and register' : 'View'">Open</a></td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}">
+          <td colspan="6" th:text="${tab == 'awaiting'} ? 'No approved claims are waiting for registration.' : 'No reimbursements have been registered yet.'">None</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'claims')}"></div>
+  </div>
+</div>
+</body>
+</html>
