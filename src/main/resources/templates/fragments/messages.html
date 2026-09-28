@@ -11,10 +11,10 @@
 
 <!-- Form-level summary of a failed submission; field messages are shown next to the fields. -->
 <th:block th:fragment="formErrors(form)">
-  <div class="ut-strip state-negative" role="alert" th:if="${#fields.hasErrors(form + '.*') or businessError != null}">
+  <div class="ut-strip state-negative" role="alert" th:if="${#fields.hasAnyErrors() or businessError != null}">
     <div class="ut-strip-title" th:text="${businessError != null} ? ${businessError} : 'Some fields need attention.'">Some fields need attention.</div>
-    <ul th:if="${#fields.hasGlobalErrors(form)}">
-      <li th:each="err : ${#fields.globalErrors(form)}" th:text="${err}">Error</li>
+    <ul th:if="${#fields.hasGlobalErrors()}">
+      <li th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</li>
     </ul>
   </div>
 </th:block>

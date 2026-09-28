@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Review ' + ${review.application.referenceNo}, 'approvals', ~{::#page})}">
+<body>
+<div id="page" th:with="app=${review.application}">
+  <div class="ut-breadcrumb"><a th:href="@{/manager/approvals}">Approvals</a></div>
+  <div th:replace="~{fragments/application :: header(${app})}"></div>
+
+  <div class="ut-strip state-negative" th:if="${review.scheduleWarning != null}">
+    <div class="ut-strip-title">Schedule needs updating</div>
+    <span th:text="${review.scheduleWarning}">warning</span>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <th:block th:replace="~{fragments/application :: details(${app})}"></th:block>
+
+      <div class="ut-card" id="decision">
+        <div class="ut-card-header"><h2>Decision</h2></div>
+        <div class="ut-card-body">
+          <p class="mb-0 text-muted-ut" th:if="${!review.canDecide}" th:text="${review.decisionNote}">No decision needed.</p>
+          <form th:if="${review.canDecide}" method="post"
+                th:action="@{/manager/applications/{id}/decision(id=${app.id})}"
+                data-ut-confirm="Record this decision? The applicant is notified by email with your reason.">
+            <input type="hidden" name="expectedVersion" th:value="${app.version}">
+            <fieldset class="mb-3">
+              <legend class="form-label">Decision <span class="ut-required">(required)</span></legend>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="decision" id="decision-approve" value="APPROVE"
+                       required th:checked="${decisionDraft != null and decisionDraft.name() == 'APPROVE'}">
+                <label class="form-check-label" for="decision-approve">Approve</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="decision" id="decision-reject" value="REJECT"
+                       th:checked="${decisionDraft != null and decisionDraft.name() == 'REJECT'}">
+                <label class="form-check-label" for="decision-reject">Reject</label>
+              </div>
+            </fieldset>
+            <label class="form-label" for="reason">Reason <span class="ut-required">(required for both decisions)</span></label>
+            <textarea class="form-control mb-2" id="reason" name="reason" rows="3" maxlength="2000" required
+                      th:text="${reasonDraft}"
+                      placeholder="Approving: justification and any conditions. Rejecting: what the applicant should know."></textarea>
+            <div class="ut-form-actions mt-2">
+              <button type="submit" class="btn btn-primary">Record decision</button>
+              <span class="ut-action-note">If the applicant changed the application after you opened this page, the decision is refused and you see the new version.</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="ut-card" th:each="u : ${review.usage}" th:with="b=${u.balance}">
+        <div class="ut-card-header"><h2 th:text="|${app.employeeName}: ${u.year}|">Usage</h2></div>
+        <div class="ut-card-body">
+          <p class="mb-0 ut-value-negative" th:if="${!b.configured}">No training entitlement configured for this year.</p>
+          <th:block th:if="${b.configured}">
+            <div class="ut-check-row"><span class="ut-check-label">Entitlement</span>
+              <span class="ut-check-value" th:text="|${@formats.days(b.entitledUnits)} · ${@formats.money(b.budget)}|">x</span></div>
+            <div class="ut-check-row"><span class="ut-check-label">Pending reservations</span>
+              <span class="ut-check-value" th:text="|${@formats.days(b.reservedUnits)} · ${@formats.money(b.reservedAmount)}|">x</span></div>
+            <div class="ut-check-row"><span class="ut-check-label">Approved commitments</span>
+              <span class="ut-check-value" th:text="|${@formats.days(b.committedUnits)} · ${@formats.money(b.committedAmount)}|">x</span></div>
+            <div class="ut-check-row"><span class="ut-check-label">Available</span>
+              <span class="ut-check-value ut-balance-available" th:classappend="${b.availableUnits() < 0 or b.availableBudget().signum() < 0} ? 'ut-value-negative'"
+                    th:text="|${@formats.days(b.availableUnits())} · ${@formats.money(b.availableBudget())}|">x</span></div>
+            <div class="ut-check-row"><span class="ut-check-label">Completed (already counted above)</span>
+              <span class="ut-check-value" th:text="${@formats.days(u.completedUnits)}">x</span></div>
+          </th:block>
+          <p class="small-ut text-muted-ut mt-2 mb-0" th:if="${app.status.isPending()}">Pending reservations include this application.</p>
+        </div>
+      </div>
+
+      <div class="ut-card">
+        <div class="ut-card-header"><h2>Your other staff in this period</h2></div>
+        <div class="ut-table-wrap">
+          <table class="ut-table ut-table-compact">
+            <tbody>
+            <tr th:each="row : ${review.teamInPeriod}">
+              <td><strong th:text="${row.employeeName}">Name</strong>
+                <div class="small-ut" th:text="${row.courseTitle}">Course</div>
+                <div class="small-ut text-muted-ut" th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">Period</div></td>
+              <td><span th:replace="~{fragments/messages :: status(${row.status.name()}, ${row.status.label()})}"></span></td>
+            </tr>
+            <tr class="ut-empty" th:if="${#lists.isEmpty(review.teamInPeriod)}">
+              <td colspan="2">No other staff reporting to you have approved courses in this period.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div th:replace="~{fragments/application :: timeline(${app.timeline})}"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

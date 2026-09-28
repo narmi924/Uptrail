@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Team History', 'team', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Team History</h1>
+      <div class="ut-subtitle" th:text="|Course history of the staff who report to you, for ${year}.|">History</div>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-body">
+      <p class="mb-0 text-muted-ut" th:if="${#lists.isEmpty(reports)}">Nobody reports to you at the moment.</p>
+      <form class="ut-filters" method="get" th:action="@{/manager/team/history}" th:if="${!#lists.isEmpty(reports)}">
+        <div class="ut-filter-grow">
+          <label class="form-label" for="employeeId">Staff member</label>
+          <select class="form-select" id="employeeId" name="employeeId" required>
+            <option value="">Choose a staff member</option>
+            <option th:each="r : ${reports}" th:value="${r.id}" th:selected="${r.id == employeeId}"
+                    th:text="${r.fullName} + ' · ' + ${r.department} + (${r.active} ? '' : ' (inactive)')">Name</option>
+          </select>
+        </div>
+        <div class="ut-filter">
+          <label class="form-label" for="status">Status</label>
+          <select class="form-select" id="status" name="status">
+            <option value="">All statuses</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label()}" th:selected="${s == status}">Applied</option>
+          </select>
+        </div>
+        <div><button class="btn btn-secondary" type="submit">Show history</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="ut-card" th:if="${view != null}">
+    <div class="ut-card-header"><h2 th:text="${selected != null} ? ${selected.fullName} : 'History'">Name</h2></div>
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead>
+        <tr><th>Reference</th><th>Course</th><th>Category</th><th>Period</th><th class="num">Training days</th>
+          <th class="num">Fee (SGD)</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${view.content}">
+          <td class="mono"><a th:href="@{/manager/team/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">ref</a></td>
+          <td><a th:href="@{/manager/team/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a></td>
+          <td th:text="${row.categoryName}">Category</td>
+          <td th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">Period</td>
+          <td class="num" th:text="${@formats.days(row.units)}">1 day</td>
+          <td class="num" th:text="${@formats.amount(row.fee)}">0.00</td>
+          <td><span th:replace="~{fragments/messages :: status(${row.status.name()}, ${row.status.label()})}"></span></td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="7">No applications with training days this year.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'applications')}"></div>
+  </div>
+</div>
+</body>
+</html>

@@ -2,11 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: page('Dashboard', 'dashboard', ~{::#page})}">
 <body>
-<div id="page">
+<div id="page" th:with="b=${dash.balance}">
   <div class="ut-page-header">
     <div>
       <h1 th:text="'Welcome, ' + ${profile.fullName}">Welcome</h1>
-      <div class="ut-subtitle" th:text="${profile.department} + ' · ' + ${profile.designation.label()}">Department</div>
+      <div class="ut-subtitle" th:text="|${profile.department} · ${profile.designation.label()} · Training year ${dash.year}|">Department</div>
     </div>
     <div class="ut-actions">
       <a class="btn btn-primary" th:href="@{/employee/applications/new}">Apply for a Course</a>
@@ -17,16 +17,85 @@
     <div class="ut-strip-title">No approver is configured for you.</div>
     Applications cannot be submitted until an administrator assigns your approving manager.
   </div>
+  <div class="ut-strip state-critical" th:if="${!b.configured}">
+    <div class="ut-strip-title" th:text="|No training entitlement is configured for ${dash.year}.|">No entitlement.</div>
+    Ask an administrator to set up your annual training days and budget.
+  </div>
+
+  <div class="ut-tiles" th:if="${b.configured}">
+    <a class="ut-tile" th:href="@{/employee/entitlement}">
+      <div class="ut-tile-label">Training days available</div>
+      <div class="ut-tile-value" th:text="${@formats.days(b.availableUnits())}">5 days</div>
+      <div class="ut-tile-note" th:text="|of ${@formats.days(b.entitledUnits)}: ${@formats.days(b.reservedUnits)} pending, ${@formats.days(b.committedUnits)} approved|">note</div>
+    </a>
+    <a class="ut-tile" th:href="@{/employee/entitlement}">
+      <div class="ut-tile-label">Budget available</div>
+      <div class="ut-tile-value" th:text="${@formats.money(b.availableBudget())}">SGD</div>
+      <div class="ut-tile-note" th:text="|of ${@formats.money(b.budget)}: ${@formats.money(b.reservedAmount)} pending, ${@formats.money(b.committedAmount)} approved|">note</div>
+    </a>
+    <a class="ut-tile" th:href="@{/employee/applications}">
+      <div class="ut-tile-label">Waiting for a decision</div>
+      <div class="ut-tile-value" th:text="${dash.pendingCount}">0</div>
+      <div class="ut-tile-note">Applied or updated applications</div>
+    </a>
+    <div class="ut-tile">
+      <div class="ut-tile-label">Completed this year</div>
+      <div class="ut-tile-value" th:text="${@formats.days(dash.completedUnits)}">0 days</div>
+      <div class="ut-tile-note">Attendance confirmed; already counted in approved days</div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="ut-card">
+        <div class="ut-card-header"><h2>Needs your action</h2></div>
+        <div class="ut-table-wrap">
+          <table class="ut-table">
+            <tbody>
+            <tr th:each="row : ${dash.readyToComplete}">
+              <td><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a>
+                <div class="small-ut text-muted-ut" th:text="|Ended ${@formats.date(row.endDate)}. Confirm attendance to complete it.|">Ended</div></td>
+              <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/employee/applications/{id}(id=${row.id})}">Confirm attendance</a></td>
+            </tr>
+            <tr class="ut-empty" th:if="${#lists.isEmpty(dash.readyToComplete)}"><td>Nothing needs your action.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="ut-card">
+        <div class="ut-card-header"><h2>Your profile</h2></div>
+        <div class="ut-card-body">
+          <dl class="ut-dl">
+            <dt>Staff number</dt><dd class="mono" th:text="${profile.staffNo}">S0001</dd>
+            <dt>Email</dt><dd th:text="${profile.email}">email</dd>
+            <dt>Approving manager</dt>
+            <dd th:text="${profile.approverName != null} ? ${profile.approverName} : 'Not configured'">Manager</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="ut-card">
-    <div class="ut-card-header"><h2>Your profile</h2></div>
-    <div class="ut-card-body">
-      <dl class="ut-dl">
-        <dt>Staff number</dt><dd class="mono" th:text="${profile.staffNo}">S0001</dd>
-        <dt>Email</dt><dd th:text="${profile.email}">email</dd>
-        <dt>Approving manager</dt>
-        <dd th:text="${profile.approverName != null} ? ${profile.approverName} : 'Not configured'">Manager</dd>
-      </dl>
+    <div class="ut-card-header"><h2>Recent applications</h2>
+      <div class="ut-card-actions"><a th:href="@{/employee/applications}">All applications this year</a></div></div>
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Reference</th><th>Course</th><th>Period</th><th>Status</th></tr></thead>
+        <tbody>
+        <tr th:each="row : ${dash.recent}">
+          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">ref</a></td>
+          <td th:text="${row.courseTitle}">Course</td>
+          <td th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">Period</td>
+          <td><span th:replace="~{fragments/messages :: status(${row.status.name()}, ${row.status.label()})}"></span></td>
+        </tr>
+        <tr class="ut-empty" th:if="${#lists.isEmpty(dash.recent)}">
+          <td colspan="4">No applications yet. <a th:href="@{/employee/applications/new}">Apply for a course.</a></td>
+        </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

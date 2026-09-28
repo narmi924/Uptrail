@@ -26,6 +26,7 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -134,6 +135,7 @@ public class CourseApplication {
     private String createRequestHash;
 
     @ElementCollection(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     @CollectionTable(name = "application_day", joinColumns = @JoinColumn(name = "application_id"))
     @OrderBy("trainingDate")
     private List<ScheduledDay> days = new ArrayList<>();
