@@ -1,0 +1,15 @@
+@startuml calendar-year-states
+!pragma layout smetana
+title Training calendar year states
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+[*] --> DRAFT : administrator creates the year\nor imports the bundled list
+DRAFT --> CONFIRMED : administrator confirms\n(at least one holiday and a source)
+CONFIRMED --> DRAFT : a holiday date is added, moved\nor removed (after the impact list)
+CONFIRMED --> CONFIRMED : a holiday is renamed
+note right of DRAFT
+  Applications with training days
+  in a DRAFT year are refused.
+end note
+@enduml

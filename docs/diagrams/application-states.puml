@@ -1,0 +1,22 @@
+@startuml application-states
+!pragma layout smetana
+title Course application states
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+[*] --> APPLIED : submit\n(+reserved)
+APPLIED --> UPDATED : update\n(net change)
+UPDATED --> UPDATED : update\n(net change)
+APPLIED --> DELETED : delete\n(-reserved)
+UPDATED --> DELETED : delete\n(-reserved)
+APPLIED --> APPROVED : approve with reason\n(reserved to committed)
+UPDATED --> APPROVED : approve with reason\n(reserved to committed)
+APPLIED --> REJECTED : reject with reason\n(-reserved)
+UPDATED --> REJECTED : reject with reason\n(-reserved)
+APPROVED --> CANCELLED : cancel with reason\n(-committed)
+APPROVED --> COMPLETED : after the end date,\nwith comments\n(no ledger change)
+DELETED --> [*]
+REJECTED --> [*]
+CANCELLED --> [*]
+COMPLETED --> [*]
+@enduml

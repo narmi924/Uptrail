@@ -17,12 +17,12 @@ Conventions:
 
 | Field | Value |
 | --- | --- |
-| Plan version | 0.10.0 |
+| Plan version | 1.0.0 |
 | Last updated | 2026-09-28 (Asia/Singapore) |
 | Approval status | **APPROVED** — owner message of 2026-09-28 approving plan 0.1.1 with amendments A1–A7 below |
 | Approved scope | Sections 3–8 of this version: the complete system (all mandatory features R01–R19, all eight optional features O01–O08, enhancements D01–D07, `training_calendar_year`). Presentation, demo script, delivery packaging and team distribution are out of scope. |
-| Current phase | Phase B — M0–M8 complete; M9 documentation and final verification next |
-| Next concrete action | M9-T1: README with accounts, commands and troubleshooting |
+| Current phase | Phase B complete — M0–M9 VERIFIED |
+| Next concrete action | None planned. Owner action H1 (re-check the bundled holiday lists) remains open |
 | Real blockers | None known. Docker availability is verified in M0-T3. |
 
 ### Amendments given with the approval
@@ -247,16 +247,16 @@ A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual a
 
 ```text
 uptrail/
-  Plan.md  CLAUDE.md  DESIGN.md  README.md
+  Plan.md  CLAUDE.md  DESIGN.md  README.md  THIRD-PARTY-NOTICES.md
   pom.xml  mvnw  mvnw.cmd  .mvn/  .gitignore  .gitattributes  .editorconfig  .env.example
   docker-compose.yml                 # mysql:8.4 on 3307, mailpit on 1025/8025
-  docs/                              # architecture.md, data-model.md, api.md, diagrams/*.puml (+ compiled svg)
+  docs/                              # architecture.md, data-model.md, api.md, diagrams/*.puml + diagrams/svg/*.svg
   src/main/java/com/uptrail/
     UptrailApplication.java
-    shared/{config,error,time,web,csv}
+    shared/{config,csv,error,time,tx,web}
     identity/{domain,repository,service,web}
-    organisation/{domain,repository,service,web}
-    catalogue/{domain,repository,service,web,api}
+    organisation/{domain,repository,service}
+    catalogue/{domain,repository,service,api}
     entitlement/{domain,repository,service,web}
     application/{domain,repository,service,web,api}
     approval/{service,web}
@@ -264,17 +264,21 @@ uptrail/
     reporting/{service,web,api}
     notification/{domain,repository,service}
     audit/{domain,repository,service}
-    admin/web
+    admin/{service,web}
     sample/
   src/main/resources/
     application.yml  application-dev.yml
     db/migration/V1__…V5__*.sql
     templates/{layout,fragments,auth,employee,manager,admin,shared,error}
-    static/{css/uptrail.css, js/*.js}
-    sample/ (holiday data with source notes, sample receipt/certificate files marked SAMPLE)
-  src/test/java/com/uptrail/…        # unit, integration (MySQL), e2e (Playwright), architecture
+    static/{css,js,img}
+    mail/*.txt                       # plain-text email templates
+    holidays/sg-public-holidays.csv  # bundled holiday data with source note
+  src/test/java/com/uptrail/…        # unit, integration (MySQL), architecture
+  src/e2e/java/com/uptrail/e2e/      # Playwright (profile e2e)
   tmp/docs/  References/  var/       # git-ignored
 ```
+
+Sample documents are generated as small PDF files labelled SAMPLE at seeding time (I50) rather than stored as resources.
 
 ### 6.2 Module responsibilities and call rules
 
@@ -343,7 +347,7 @@ Ledger deltas: Submit +reserved; Update new − old per account; Approve −rese
 
 ### 6.7 Front end
 
-Follows `DESIGN.md`: one Thymeleaf layout (top bar, side navigation, content), fragments for pagination, status badges, message strips, timeline, balance panel and confirmation dialogs; Bootstrap 5.3.8 from the webjar plus `uptrail.css`; vanilla JS modules `csrf.js`, `preview.js`, `calendar.js`, `catalogue-search.js`, `confirm.js`; no CDN. Every page handles normal, empty, validation, load-failed, forbidden, not-found and stale-version states.
+Follows `DESIGN.md`: one Thymeleaf layout (top bar, side navigation, content), fragments for pagination, status badges, message strips, timeline, application and claim parts; Bootstrap 5.3.8 from the webjar plus `uptrail.css`; three vanilla JS files: `uptrail.js` (CSRF-aware fetch, confirmations, navigation, print, file-size checks), `application-form.js` (live eligibility check and catalogue search) and `calendar.js`; no CDN; confirmations use the browser dialog. Every page handles normal, empty, validation, load-failed, forbidden, not-found and stale-version states.
 
 ### 6.8 Endpoints
 
@@ -380,7 +384,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | M6 Fee claims | VERIFIED | Private document store (I46, I49), submit and revise, manager decisions, reimbursement registration with REIMBURSE ledger rows (I48), employee, manager and administrator pages, authorised downloads (I47), sample claims (I50) |
 | M7 Email, audit, operations | VERIFIED | Outbox worker with SMTP and file transports and plain-text templates (I51–I53), operations page with audit search, outbox retry and ledger check (I54), My Entitlement with ledger movements (I55); timelines on application and claim pages since M3/M6 |
 | M8 Hardening | VERIFIED | Authorization matrix (pages, APIs, CSV, downloads, CSRF, GET on state changes), concurrency and reconciliation suites, Playwright flow over all three roles (I56), clean rebuild and restart, UI state review at phone width and in print; one security defect found and fixed (I57) |
-| M9 Documentation and final verification | PLANNED | — |
+| M9 Documentation and final verification | VERIFIED | README with accounts, configuration and troubleshooting; `docs/architecture.md`, `docs/data-model.md`, `docs/api.md`; six PlantUML diagrams compiled to SVG; third-party notices from the resolved dependencies; Chinese mirrors; final test, e2e, packaging and start-up runs |
 
 ### M0 — Engineering baseline
 
@@ -585,6 +589,9 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | 2026-09-28 | `docker compose down -v`; `docker compose up -d`; dev JAR (M8-T5) | Empty database: 5 migrations applied, sample data loaded (21 staff accounts, 22 applications, 5 claims, 12 documents, 41 ledger rows); 48 emails delivered to Mailpit; pages reference only `/css`, `/js`, `/img` and `/webjars` assets. Restart: schema up to date, seeder skipped, counts unchanged, sign-in works | T77, T78 |
 | 2026-09-28 | `agent-browser` at 390 px and 1366 px (M8-T6) | No horizontal page scroll on eight staff and manager pages (also asserted in the e2e run); wide tables scroll inside their card; 403, 404 and stale-version messages render; print view hides navigation, filters and buttons | Fixed: mobile menu label alignment, empty-state text on narrow screens, print background |
 | 2026-09-28 | `./mvnw verify`; `./mvnw -Pe2e verify` (M8 final) | BUILD SUCCESS: unit 77/77, IT 134/134 (AuthorizationMatrixIT 4 added); e2e 7/7 | — |
+| 2026-09-28 | `./mvnw -Pdiagrams generate-resources` (M9-T2) | Six diagrams compiled to `docs/diagrams/svg/` with the built-in layout engine; no syntax errors | Checked visually in a browser |
+| 2026-09-28 | `./mvnw dependency:list` for runtime and test scope; licences read from the POM files | 110 runtime and 56 test-only artifacts listed in `THIRD-PARTY-NOTICES.md` | M9-T1 |
+| 2026-09-28 | README commands (M9-T3): `./mvnw test`; `./mvnw verify`; `./mvnw -Pe2e verify`; `./mvnw -DskipTests package`; `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`; `java -jar target/uptrail-1.0.0-SNAPSHOT.jar --spring.profiles.active=dev`; health and sign-in with `curl` | Unit 77/77; unit 77/77 and IT 134/134; e2e 7/7; JAR built (66 MB); both start commands reach health `UP`; administrator sign-in redirects to the dashboard; Mailpit web UI answers | Final verification |
 
 Rules: failures recorded with output; skipped or blocked runs marked `NOT_VERIFIED`/`BLOCKED`; no pre-filled counts, coverage or timings.
 
@@ -638,9 +645,9 @@ At-least-once email delivery; no antivirus scanning; an upload above 6 MB ends o
 
 | Field | Value |
 | --- | --- |
-| Completed | Phase A; approval; M0–M8 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration, training calendar, reports, CSV, pagination, fee claims with documents and reimbursement, email outbox, operations, entitlement ledger, hardening) |
-| Last verified | `./mvnw verify` green (211 tests), `./mvnw -Pe2e verify` green (7 tests), clean rebuild and restart |
-| Next task | M9: README, architecture and data-model documents, diagrams, third-party notices, Chinese mirrors, final verification |
+| Completed | Phase A; approval; M0–M9 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration, training calendar, reports, CSV, pagination, fee claims with documents and reimbursement, email outbox, operations, entitlement ledger, hardening, documentation) |
+| Last verified | `./mvnw verify` green (211 tests), `./mvnw -Pe2e verify` green (7 tests), JAR and quick-start runs healthy (9.2) |
+| Next task | None planned; see 11.1 for owner actions |
 | Open issues | None known |
 | How to resume | Read sections 1, 7, 9, 12; `git status`, `git log --oneline -20`, `gh pr list`; run `./mvnw verify`; continue with the first task not `VERIFIED` |
 
@@ -661,3 +668,4 @@ At-least-once email delivery; no antivirus scanning; an upload above 6 MB ends o
 | 0.8.0 | 2026-09-28 | M6 done: fee claims with private documents, revisions, manager decisions, reimbursement registration, sample claims; decisions I46–I50 | No scope change | `./mvnw verify` 185 tests green; browser and curl checks (9.2) |
 | 0.9.0 | 2026-09-28 | M7 done: email outbox worker, transports and templates, operations page, My Entitlement; decisions I51–I55 | No scope change | `./mvnw verify` 207 tests green; Mailpit and browser checks (9.2) |
 | 0.10.0 | 2026-09-28 | M8 done: authorization matrix, Playwright e2e, clean rebuild and restart, UI state review; access-denied fix; decisions I56–I57 | No scope change | `./mvnw verify` 211 tests and `./mvnw -Pe2e verify` 7 tests green (9.2) |
+| 1.0.0 | 2026-09-28 | M9 done: README, architecture, data model, API, diagrams, third-party notices, Chinese mirrors; layout and front-end sections updated to the code; final verification | Scope complete | Unit 77, IT 134, e2e 7 green; diagrams compiled; JAR and quick start healthy (9.2) |
