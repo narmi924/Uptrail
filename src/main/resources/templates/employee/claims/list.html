@@ -12,7 +12,10 @@
 
   <div class="ut-card">
     <div class="ut-card-header"><h2>Courses you can claim</h2></div>
-    <div class="ut-table-wrap">
+    <div class="ut-card-body text-muted-ut" th:if="${#lists.isEmpty(claimable)}">
+      No completed fee-paying course is waiting for a claim. Mark a course as completed on its application page first.
+    </div>
+    <div class="ut-table-wrap" th:if="${!#lists.isEmpty(claimable)}">
       <table class="ut-table">
         <thead><tr><th>Reference</th><th>Course</th><th>Category</th><th>Period</th><th class="num">Course fee (SGD)</th><th></th></tr></thead>
         <tbody>
@@ -24,8 +27,6 @@
           <td class="num" th:text="${@formats.amount(a.fee)}">0.00</td>
           <td class="num"><a class="btn btn-primary btn-sm" th:href="@{/employee/claims/new(applicationId=${a.id})}">Claim fee</a></td>
         </tr>
-        <tr class="ut-empty" th:if="${#lists.isEmpty(claimable)}">
-          <td colspan="6">No completed fee-paying course is waiting for a claim. Mark a course as completed on its application page first.</td></tr>
         </tbody>
       </table>
     </div>

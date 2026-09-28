@@ -17,12 +17,12 @@ Conventions:
 
 | Field | Value |
 | --- | --- |
-| Plan version | 0.9.0 |
+| Plan version | 0.10.0 |
 | Last updated | 2026-09-28 (Asia/Singapore) |
 | Approval status | **APPROVED** — owner message of 2026-09-28 approving plan 0.1.1 with amendments A1–A7 below |
 | Approved scope | Sections 3–8 of this version: the complete system (all mandatory features R01–R19, all eight optional features O01–O08, enhancements D01–D07, `training_calendar_year`). Presentation, demo script, delivery packaging and team distribution are out of scope. |
-| Current phase | Phase B — M0–M7 complete; M8 hardening next |
-| Next concrete action | M8-T1: authorization matrix tests over pages, APIs, CSV and downloads |
+| Current phase | Phase B — M0–M8 complete; M9 documentation and final verification next |
+| Next concrete action | M9-T1: README with accounts, commands and troubleshooting |
 | Real blockers | None known. Docker availability is verified in M0-T3. |
 
 ### Amendments given with the approval
@@ -136,7 +136,7 @@ Q17 (submission platform) and Q18 (presentation timing) are out of scope under A
 
 A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual accounts + append-only ledger; A04 READ_COMMITTED and lock order employee → accounts (ascending year) → target record; A05 catalogue as template with application snapshots; A06 transactional outbox; A07 private file storage; A08 versions locked after a smoke build.
 
-### 4.3 Implementation decisions (I01–I55)
+### 4.3 Implementation decisions (I01–I57)
 
 | ID | Decision | Rationale |
 | --- | --- | --- |
@@ -195,6 +195,8 @@ A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual a
 | I53 | The transport is chosen with `uptrail.mail.transport`: `smtp` (default; Mailpit on port 1025 locally) or `file` (text files in `var/mail-capture/`) | Offline use |
 | I54 | The operations page only reads, except the retry of a FAILED email, which resets its attempts and is audited as `OUTBOX` / `RETRY_REQUESTED`. The audit search defaults to the last 30 days; the ledger check runs on demand | M7-T2 |
 | I55 | My Entitlement shows the previous, current and next year: the balance and every ledger movement of the year, newest first, linked to its application or claim | M7-T3 |
+| I56 | Browser end-to-end tests (`src/e2e/java`, `*E2E`, profile `e2e`) start the application on a random port against the Testcontainers MySQL with the sample organisation and the real clock, and drive headless Chromium through Playwright; screenshots go to `target/e2e/` | M8-T4 |
+| I57 | Denied page requests in the staff workspace get the HTML 403 page and denied API requests get JSON. Two explicit handler mappings are needed because Spring Security applies a single mapping to every request | Found in M8-T6 |
 
 ---
 
@@ -377,7 +379,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | M5 Calendar, pagination, reports, CSV | VERIFIED | Calendar API and page (I43), participation and budget reports with print view (I44), CSV exports sharing the report queries, pager on the remaining long lists (I45) |
 | M6 Fee claims | VERIFIED | Private document store (I46, I49), submit and revise, manager decisions, reimbursement registration with REIMBURSE ledger rows (I48), employee, manager and administrator pages, authorised downloads (I47), sample claims (I50) |
 | M7 Email, audit, operations | VERIFIED | Outbox worker with SMTP and file transports and plain-text templates (I51–I53), operations page with audit search, outbox retry and ledger check (I54), My Entitlement with ledger movements (I55); timelines on application and claim pages since M3/M6 |
-| M8 Hardening | PLANNED | — |
+| M8 Hardening | VERIFIED | Authorization matrix (pages, APIs, CSV, downloads, CSRF, GET on state changes), concurrency and reconciliation suites, Playwright flow over all three roles (I56), clean rebuild and restart, UI state review at phone width and in print; one security defect found and fixed (I57) |
 | M9 Documentation and final verification | PLANNED | — |
 
 ### M0 — Engineering baseline
@@ -488,7 +490,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 
 | ID | Requirement (PDF) | Pages / endpoints | Modules / data | Tests | Status |
 | --- | --- | --- | --- | --- | --- |
-| R01 | Three categories (p3, p5) | form, catalogue admin | catalogue, `course_category` | category rules, catalogue IT | PLANNED |
+| R01 | Three categories (p3, p5) | form, catalogue admin | catalogue, `course_category` | category rules (ApplicationSubmissionIT), catalogue IT (AdministrationIT) | VERIFIED |
 | R02 | Internal free/half-day; others fee/full-day | form, preview | calculator, evaluator | T18–T21 (TrainingDayCalculatorTest, ApplicationSubmissionIT) | VERIFIED |
 | R03 | Two entry points, DB credentials (p5) | `/login`, `/admin/login` | identity, security | T01–T03 (AuthenticationIT) | VERIFIED |
 | R04 | Form, validation, Applied (p6) | `/employee/applications/new` | application | T10–T32, AC-A (ApplicationSubmissionIT) | VERIFIED |
@@ -505,8 +507,8 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | R15 | Reason mandatory for both decisions | `/manager/applications/{id}/decision` | command service | T35, T36 | VERIFIED |
 | R16 | Used days/budget and same-period team courses on review | `/manager/applications/{id}` | entitlement, team query | review page test | VERIFIED |
 | R17 | Subordinate history | `/manager/team/history` | query service | T07, T61 | VERIFIED |
-| R18 | Spring, database, sufficient test data | all | Flyway, sample seeder | T77, seeder IT | PLANNED |
-| R19 | Layering, encapsulation, exceptions, validation, tests, utilities | all | ArchUnit, handlers | architecture test, suite | PLANNED |
+| R18 | Spring, database, sufficient test data | all | Flyway, sample seeder | T77 clean start (9.2), SampleOrganisationIT, SampleActivityIT | VERIFIED |
+| R19 | Layering, encapsulation, exceptions, validation, tests, utilities | all | ArchUnit, handlers | ArchitectureTest, full suite (9.2) | VERIFIED |
 | R20 | Team contribution, peer evaluation | — | — | — | OUT_OF_SCOPE (A4) |
 | R21 | Presentation and deliverable packaging | — | — | — | OUT_OF_SCOPE (A3) |
 
@@ -515,13 +517,13 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | ID | Feature | Pages / endpoints | Modules / data | Tests | Status |
 | --- | --- | --- | --- | --- | --- |
 | O01 | Administration | `/admin/staff`, `/admin/routing`, `/admin/entitlements`, `/admin/catalogue`, `/admin/holidays` | admin services over organisation, identity, catalogue, entitlement | T09, T32, AdministrationIT (16) | VERIFIED |
-| O02 | REST + client | `/api/v1/applications/preview`, `/api/v1/calendar`, `/api/v1/catalogue`; JS modules | application/api, reporting/api, catalogue/api | API IT, e2e | IN_PROGRESS (all three APIs verified by IT and in the browser; e2e in M8) |
+| O02 | REST + client | `/api/v1/applications/preview`, `/api/v1/calendar`, `/api/v1/catalogue`; JS modules | application/api, reporting/api, catalogue/api | API IT, AuthorizationMatrixIT, TrainingFlowE2E | VERIFIED |
 | O03 | Fee claims + ledger | `/employee/claims…`, `/manager/claims…`, `/admin/reimbursements`, `/admin/claims/{id}`, `/claims/documents/{id}`, `/admin/claims/documents/{id}` | claim, ledger | T51–T60, T71–T73, AC-D (ClaimLifecycleIT, ClaimWebIT, DocumentRulesTest) | VERIFIED |
 | O04 | Reporting + CSV | `/manager/reports`, `/manager/reports/training.csv`, `/manager/reports/budget.csv` | reporting, `shared.csv` | T66–T69 (CalendarAndReportIT, CsvWriterTest) | VERIFIED |
 | O05 | Training calendar | `/calendar`, `/api/v1/calendar` | reporting | T63–T65 (CalendarAndReportIT) | VERIFIED |
 | O06 | Pagination | all lists (I45) | shared | T62, T70 (team history, report and catalogue paging tests) | VERIFIED |
 | O07 | Email | outbox, templates, operations page | notification | T74–T76 (MailDeliveryIT with GreenMail, MailRenderingTest, OperationsIT) | VERIFIED |
-| O08 | Spring Security | chains, scope policy, CSRF, private files | identity, shared, claim | T01–T09, T71, T72 | IN_PROGRESS (sign-in, roles, workspaces, CSRF, session expiry, headers and private document downloads verified; full authorization matrix in M8) |
+| O08 | Spring Security | chains, scope policy, CSRF, private files | identity, shared, claim | T01–T09, T71, T72, AuthorizationMatrixIT | VERIFIED |
 
 ### 8.3 Enhancements
 
@@ -533,7 +535,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | D04 | Outbox and retry | M7-T1 | T74–T76 incl. concurrent workers and expired leases | VERIFIED |
 | D05 | Audit timeline | M3, M6, M7-T2/T3 | timelines on application and claim pages, audit search (OperationsIT) | VERIFIED |
 | D06 | Reimbursement registration | M6-T4 | T59, T60 incl. concurrent registration | VERIFIED |
-| D07 | Clean start, restart persistence | M8-T5 | T77, T78 | PLANNED |
+| D07 | Clean start, restart persistence | M8-T5 | T77 (empty database start, restart), T78 (pages reference only assets served by the application; not tested with the network physically disconnected) | VERIFIED |
 | N01 | `training_calendar_year` | M2-T2, M4-T5 | confirm/reopen, DRAFT blocks submission, `SCHEDULE_OUTDATED` (AdministrationIT, ApplicationLifecycleIT) | VERIFIED |
 
 ---
@@ -577,6 +579,12 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | 2026-09-28 | `./mvnw verify -Dit.test=OperationsIT,MailDeliveryIT -Dtest=MailRenderingTest` (M7, first runs) | Test compile error, then 11 errors | The form-login test builder has no `param` (plain POST used); the plain Thymeleaf engine needs OGNL, so the mail renderer uses the Spring template engine |
 | 2026-09-28 | `./mvnw verify` (M7) | BUILD SUCCESS: unit 77/77 (MailRenderingTest 12 added), IT 130/130 (MailDeliveryIT 5, OperationsIT 5 added) | T74–T76, M7-T2, M7-T3 |
 | 2026-09-28 | Dev JAR with the worker enabled, Mailpit API, `agent-browser` | All 34 outbox rows of the existing database sent to Mailpit within one poll; a rejection email shows subject, reason and deep link; operations tabs render; ledger check consistent over 37 accounts including the reimbursed claim; My Entitlement lists the reimbursement movement | None found |
+| 2026-09-28 | `./mvnw verify -Dit.test=AuthorizationMatrixIT` (M8-T1) | 4/4 passed | 35 paths × 4 roles, CSRF and GET-on-POST checks |
+| 2026-09-28 | `agent-browser` UI state review (M8-T6) | Defect: an employee opening a manager page received the JSON error of the API instead of the 403 page (also for page forms without a CSRF token) | Fixed (I57); the matrix test now fails on JSON answers to page requests, and was seen failing without the fix |
+| 2026-09-28 | `./mvnw -Pe2e verify` (M8-T4) | First run 6/6, final run 7/7 (phone-width and print checks added); Playwright 1.63.0 with headless Chromium | Screenshots in `target/e2e/` (not committed) |
+| 2026-09-28 | `docker compose down -v`; `docker compose up -d`; dev JAR (M8-T5) | Empty database: 5 migrations applied, sample data loaded (21 staff accounts, 22 applications, 5 claims, 12 documents, 41 ledger rows); 48 emails delivered to Mailpit; pages reference only `/css`, `/js`, `/img` and `/webjars` assets. Restart: schema up to date, seeder skipped, counts unchanged, sign-in works | T77, T78 |
+| 2026-09-28 | `agent-browser` at 390 px and 1366 px (M8-T6) | No horizontal page scroll on eight staff and manager pages (also asserted in the e2e run); wide tables scroll inside their card; 403, 404 and stale-version messages render; print view hides navigation, filters and buttons | Fixed: mobile menu label alignment, empty-state text on narrow screens, print background |
+| 2026-09-28 | `./mvnw verify`; `./mvnw -Pe2e verify` (M8 final) | BUILD SUCCESS: unit 77/77, IT 134/134 (AuthorizationMatrixIT 4 added); e2e 7/7 | — |
 
 Rules: failures recorded with output; skipped or blocked runs marked `NOT_VERIFIED`/`BLOCKED`; no pre-filled counts, coverage or timings.
 
@@ -630,10 +638,10 @@ At-least-once email delivery; no antivirus scanning; an upload above 6 MB ends o
 
 | Field | Value |
 | --- | --- |
-| Completed | Phase A; approval; M0–M7 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration, training calendar, reports, CSV, pagination, fee claims with documents and reimbursement, email outbox, operations, entitlement ledger) |
-| Last verified | `./mvnw verify` green (207 tests); mail delivery to Mailpit and browser check of operations and entitlement pages |
-| Next task | M8: authorization matrix, Playwright e2e, clean rebuild and restart, UI state review |
-| Open issues | The existing dev database has no sample claims (the seeder runs on an empty database only; a clean rebuild is part of M8-T5) |
+| Completed | Phase A; approval; M0–M8 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration, training calendar, reports, CSV, pagination, fee claims with documents and reimbursement, email outbox, operations, entitlement ledger, hardening) |
+| Last verified | `./mvnw verify` green (211 tests), `./mvnw -Pe2e verify` green (7 tests), clean rebuild and restart |
+| Next task | M9: README, architecture and data-model documents, diagrams, third-party notices, Chinese mirrors, final verification |
+| Open issues | None known |
 | How to resume | Read sections 1, 7, 9, 12; `git status`, `git log --oneline -20`, `gh pr list`; run `./mvnw verify`; continue with the first task not `VERIFIED` |
 
 ---
@@ -652,3 +660,4 @@ At-least-once email delivery; no antivirus scanning; an upload above 6 MB ends o
 | 0.7.0 | 2026-09-28 | M5 done: training calendar, participation and budget reports, CSV exports, pagination of the remaining lists; decisions I43–I45 | No scope change | `./mvnw verify` 145 tests green; browser check (9.2) |
 | 0.8.0 | 2026-09-28 | M6 done: fee claims with private documents, revisions, manager decisions, reimbursement registration, sample claims; decisions I46–I50 | No scope change | `./mvnw verify` 185 tests green; browser and curl checks (9.2) |
 | 0.9.0 | 2026-09-28 | M7 done: email outbox worker, transports and templates, operations page, My Entitlement; decisions I51–I55 | No scope change | `./mvnw verify` 207 tests green; Mailpit and browser checks (9.2) |
+| 0.10.0 | 2026-09-28 | M8 done: authorization matrix, Playwright e2e, clean rebuild and restart, UI state review; access-denied fix; decisions I56–I57 | No scope change | `./mvnw verify` 211 tests and `./mvnw -Pe2e verify` 7 tests green (9.2) |
