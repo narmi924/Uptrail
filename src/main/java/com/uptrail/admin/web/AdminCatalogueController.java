@@ -1,6 +1,9 @@
 package com.uptrail.admin.web;
 
 import java.math.BigDecimal;
+import java.util.List;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -15,6 +18,7 @@ import com.uptrail.admin.service.CatalogueAdminService;
 import com.uptrail.admin.service.CatalogueAdminService.CourseInput;
 import com.uptrail.catalogue.domain.CategoryCode;
 import com.uptrail.identity.service.UptrailUserPrincipal;
+import com.uptrail.shared.web.Paging;
 
 @Controller
 public class AdminCatalogueController {
@@ -26,16 +30,23 @@ public class AdminCatalogueController {
     }
 
     @GetMapping("/admin/catalogue")
-    public String page(@RequestParam(defaultValue = "courses") String tab, Model model) {
+    public String page(@RequestParam(defaultValue = "courses") String tab, @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size, HttpServletRequest request, Model model) {
         String selected = switch (tab) {
             case "providers", "categories" -> tab;
             default -> "courses";
         };
+        List<CatalogueAdminService.ProviderRow> providers = catalogue.providers();
         model.addAttribute("tab", selected);
         model.addAttribute("categories", catalogue.categories());
-        model.addAttribute("providers", catalogue.providers());
-        model.addAttribute("courses", catalogue.courses());
+        model.addAttribute("providers", providers);
         model.addAttribute("categoryCodes", CategoryCode.values());
+        if (selected.equals("courses")) {
+            model.addAttribute("courseView",
+                    Paging.view(Paging.slice(catalogue.courses(), Paging.request(page, size)), request));
+        } else if (selected.equals("providers")) {
+            model.addAttribute("providerView", Paging.view(Paging.slice(providers, Paging.request(page, size)), request));
+        }
         return "admin/catalogue";
     }
 

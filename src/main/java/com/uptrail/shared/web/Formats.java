@@ -47,6 +47,12 @@ public class Formats {
         return value + (Math.abs(units) == 2 ? " day" : " days");
     }
 
+    /** Training days as a bare number for columns whose header states the unit: 3 units -> "1.5". */
+    public String dayValue(int units) {
+        String value = (Math.abs(units) / 2) + (units % 2 != 0 ? ".5" : "");
+        return units < 0 ? "-" + value : value;
+    }
+
     /** Signed training time for ledger movements. */
     public String signedDays(int units) {
         return (units > 0 ? "+" : "") + days(units);

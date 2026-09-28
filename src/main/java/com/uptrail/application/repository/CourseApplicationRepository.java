@@ -110,4 +110,13 @@ public interface CourseApplicationRepository extends JpaRepository<CourseApplica
             """)
     List<CourseApplication> findActiveOn(@Param("date") LocalDate date,
             @Param("statuses") Collection<ApplicationStatus> statuses);
+
+    /** Applications in the given statuses overlapping [from, to], ordered for calendar display. */
+    @Query("""
+            select a from CourseApplication a
+            where a.status in :statuses and a.startDate <= :to and a.endDate >= :from
+            order by a.startDate, a.endDate, a.id
+            """)
+    List<CourseApplication> findShownInPeriod(@Param("statuses") Collection<ApplicationStatus> statuses,
+            @Param("from") LocalDate from, @Param("to") LocalDate to);
 }

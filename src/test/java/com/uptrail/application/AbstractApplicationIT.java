@@ -25,10 +25,10 @@ import com.uptrail.support.Fixtures.Person;
  * manager, confirmed synthetic calendars for 2026 (holiday on Wed 14 Oct) and 2027 (holiday on 1 Jan),
  * and accounts of 20 half-day units and SGD 2,000 per year. Business date: Monday 5 October 2026.
  */
-abstract class AbstractApplicationIT extends AbstractMySqlIT {
+public abstract class AbstractApplicationIT extends AbstractMySqlIT {
 
-    static final LocalDate MON_12_OCT = LocalDate.of(2026, 10, 12);
-    static final LocalDate FIXTURE_HOLIDAY = LocalDate.of(2026, 10, 14);
+    protected static final LocalDate MON_12_OCT = LocalDate.of(2026, 10, 12);
+    protected static final LocalDate FIXTURE_HOLIDAY = LocalDate.of(2026, 10, 14);
 
     @Autowired
     protected ApplicationCommandService commands;
@@ -52,34 +52,34 @@ abstract class AbstractApplicationIT extends AbstractMySqlIT {
         fixtures.account(employee, 2027, 20, "2000.00");
     }
 
-    static ApplicationDetails external(LocalDate start, LocalDate end, String fee) {
+    protected static ApplicationDetails external(LocalDate start, LocalDate end, String fee) {
         return new ApplicationDetails(CategoryCode.EXTERNAL, null, "Spring Application Development",
                 "Sample Provider", start, end, Session.AM, Session.PM, new BigDecimal(fee),
                 "Use Spring in our internal applications.", null);
     }
 
-    static ApplicationDetails internal(LocalDate start, Session startSession, LocalDate end, Session endSession) {
+    protected static ApplicationDetails internal(LocalDate start, Session startSession, LocalDate end, Session endSession) {
         return new ApplicationDetails(CategoryCode.INTERNAL, null, "Secure Coding Fundamentals", null, start, end,
                 startSession, endSession, BigDecimal.ZERO, "Improve code quality in my team.", null);
     }
 
-    SubmitResult submit(Person person, ApplicationDetails details) {
+    protected SubmitResult submit(Person person, ApplicationDetails details) {
         return commands.submit(person.actor(), details, UUID.randomUUID().toString());
     }
 
-    long version(Long applicationId) {
+    protected long version(Long applicationId) {
         return jdbc.queryForObject("SELECT version FROM course_application WHERE id = ?", Long.class, applicationId);
     }
 
-    String statusOf(Long applicationId) {
+    protected String statusOf(Long applicationId) {
         return jdbc.queryForObject("SELECT status FROM course_application WHERE id = ?", String.class, applicationId);
     }
 
-    long count(String sql, Object... args) {
+    protected long count(String sql, Object... args) {
         return jdbc.queryForObject(sql, Long.class, args);
     }
 
-    MockHttpSession staffSession(Person person) throws Exception {
+    protected MockHttpSession staffSession(Person person) throws Exception {
         return (MockHttpSession) mvc.perform(formLogin("/login").user(person.username()).password(Fixtures.PASSWORD))
                 .andReturn().getRequest().getSession(false);
     }

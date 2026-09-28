@@ -267,6 +267,22 @@ class AdministrationIT extends AbstractMySqlIT {
                 applicationId)).isEqualByComparingTo("300.00");
     }
 
+    @Test
+    void catalogueCourseListIsPaginated() throws Exception {
+        for (int i = 1; i <= 12; i++) {
+            catalogue.addCourse(admin.actor(), new CatalogueAdminService.CourseInput(CategoryCode.EXTERNAL, null,
+                    String.format("Course %02d", i), new BigDecimal("100.00"), null));
+        }
+        MockHttpSession adminSession = (MockHttpSession) mvc.perform(formLogin("/admin/login").user("admin")
+                .password(Fixtures.PASSWORD)).andReturn().getRequest().getSession(false);
+
+        String secondPage = mvc.perform(get("/admin/catalogue").param("tab", "courses").param("page", "2")
+                .session(adminSession)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        assertThat(secondPage).contains("Showing 11–12 of 12 courses").contains("tab=courses");
+        assertThat(secondPage).doesNotContain(">Course 01<");
+    }
+
     // ------------------------------------------------------------------ holidays
 
     @Test

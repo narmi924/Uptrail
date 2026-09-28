@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Training Calendar', 'calendar', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Training Calendar</h1>
+      <div class="ut-subtitle">Approved and completed courses of all staff. Only names, courses, categories and dates are shown.</div>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-body">
+      <form class="ut-filters" method="get" th:action="@{/calendar}" id="calendar-toolbar">
+        <div>
+          <a class="btn btn-secondary" id="calendar-prev" th:href="@{/calendar(month=${month.minusMonths(1)},category=${category})}">Previous</a>
+        </div>
+        <div class="ut-filter">
+          <label class="form-label" for="calendar-month">Month</label>
+          <select class="form-select" id="calendar-month" name="month">
+            <option th:each="m : ${months}" th:value="${m.value}" th:text="${m.label}" th:selected="${m.value == month.toString()}">October 2026</option>
+          </select>
+        </div>
+        <div>
+          <a class="btn btn-secondary" id="calendar-next" th:href="@{/calendar(month=${month.plusMonths(1)},category=${category})}">Next</a>
+        </div>
+        <div class="ut-filter">
+          <label class="form-label" for="calendar-category">Category</label>
+          <select class="form-select" id="calendar-category" name="category">
+            <option value="">All categories</option>
+            <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.displayName}" th:selected="${c.code == category}">Internal</option>
+          </select>
+        </div>
+        <noscript><button class="btn btn-secondary" type="submit">Show</button></noscript>
+        <div class="ms-auto" role="group" aria-label="View">
+          <button type="button" class="btn btn-secondary" data-calendar-view="grid" aria-pressed="true">Month</button>
+          <button type="button" class="btn btn-secondary" data-calendar-view="list" aria-pressed="false">List</button>
+        </div>
+      </form>
+      <div class="ut-legend mt-3">
+        <span class="cat-internal">Internal Training</span>
+        <span class="cat-external">External Course</span>
+        <span class="cat-certification">Professional Certification</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-header"><h2 id="calendar-title" th:text="${monthLabel}">October 2026</h2>
+      <span class="small-ut text-muted-ut" id="calendar-count"></span></div>
+    <div class="ut-card-body" id="calendar" th:attr="data-api=@{/api/v1/calendar},data-month=${month},data-category=${category},data-today=${today}"
+         aria-live="polite">
+      <noscript>
+        <table class="ut-table">
+          <thead><tr><th>Staff member</th><th>Course</th><th>Category</th><th>Dates</th></tr></thead>
+          <tbody>
+          <tr th:each="e : ${data.entries}">
+            <td th:text="${e.employeeName}">Name</td>
+            <td th:text="${e.courseTitle}">Course</td>
+            <td th:text="${e.categoryName}">Category</td>
+            <td th:text="${@formats.period(e.startDate, e.startSession.name(), e.endDate, e.endSession.name())}">dates</td>
+          </tr>
+          <tr class="ut-empty" th:if="${#lists.isEmpty(data.entries)}"><td colspan="4">No approved courses this month.</td></tr>
+          </tbody>
+        </table>
+      </noscript>
+    </div>
+  </div>
+  <script defer th:src="@{/js/calendar.js}"></script>
+</div>
+</body>
+</html>

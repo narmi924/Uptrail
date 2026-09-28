@@ -47,7 +47,7 @@
           <thead><tr><th>Category</th><th>Title</th><th>Provider</th><th class="num">Fee (SGD)</th><th>Description</th>
             <th>On the form</th><th></th></tr></thead>
           <tbody>
-          <tr th:each="c : ${courses}">
+          <tr th:each="c : ${courseView.content}">
             <td th:text="${c.categoryName}">Category</td>
             <td th:text="${c.title}">Title</td>
             <td th:text="${c.providerName != null} ? ${c.providerName} : 'ISS (In-house)'">Provider</td>
@@ -79,10 +79,11 @@
               </details>
             </td>
           </tr>
-          <tr class="ut-empty" th:if="${#lists.isEmpty(courses)}"><td colspan="7">No catalogue courses yet.</td></tr>
+          <tr class="ut-empty" th:if="${courseView.isEmpty()}"><td colspan="7">No catalogue courses yet.</td></tr>
           </tbody>
         </table>
       </div>
+      <div th:replace="~{fragments/paging :: pager(${courseView}, 'courses')}"></div>
     </div>
   </th:block>
 
@@ -101,7 +102,7 @@
         <table class="ut-table">
           <thead><tr><th>Provider</th></tr></thead>
           <tbody>
-          <tr th:each="p : ${providers}">
+          <tr th:each="p : ${providerView.content}">
             <td>
               <form class="d-flex flex-wrap gap-2 align-items-center" method="post" th:action="@{/admin/catalogue/providers/{id}(id=${p.id})}">
                 <input class="form-control form-control-sm ut-w-name" name="name" maxlength="160" th:value="${p.name}" th:attr="aria-label='Provider name'" required>
@@ -110,10 +111,11 @@
               </form>
             </td>
           </tr>
-          <tr class="ut-empty" th:if="${#lists.isEmpty(providers)}"><td>No providers yet.</td></tr>
+          <tr class="ut-empty" th:if="${providerView.isEmpty()}"><td>No providers yet.</td></tr>
           </tbody>
         </table>
       </div>
+      <div th:replace="~{fragments/paging :: pager(${providerView}, 'providers')}"></div>
     </div>
   </th:block>
 
