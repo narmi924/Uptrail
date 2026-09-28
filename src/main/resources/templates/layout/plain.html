@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, content)">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' · Uptrail'">Uptrail</title>
+  <link rel="icon" th:href="@{/img/favicon.svg}" type="image/svg+xml">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/dist/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/uptrail.css}">
+  <script defer th:src="@{/js/uptrail.js}"></script>
+</head>
+<body>
+<main class="ut-auth" id="main">
+  <th:block th:replace="${content}"></th:block>
+</main>
+</body>
+</html>

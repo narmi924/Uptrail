@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="view(code, heading, text)">
+  <div class="ut-auth-card" style="max-width: 560px">
+    <div class="ut-error-code" th:text="${'Error ' + (status != null ? status : code)}">Error</div>
+    <h1 th:text="${heading}">Something went wrong</h1>
+    <p class="ut-auth-sub" th:text="${message != null ? message : text}">Details.</p>
+    <p class="small-ut text-muted-ut" th:if="${correlationId != null}">
+      Reference: <span class="mono" th:text="${correlationId}">id</span>
+    </p>
+    <div class="ut-form-actions">
+      <a class="btn btn-primary" th:href="@{/}">Go to your dashboard</a>
+      <a class="btn btn-secondary" href="javascript:history.back()">Go back</a>
+    </div>
+  </div>
+</th:block>
+</body>
+</html>

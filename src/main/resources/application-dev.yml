@@ -1,0 +1,10 @@
+# Local development: Docker Compose MySQL on port 3307, Mailpit SMTP capture, sample data.
+spring:
+  datasource:
+    password: ${UPTRAIL_DB_PASSWORD:uptrail_dev_password}
+  thymeleaf:
+    cache: false
+
+uptrail:
+  sample-data:
+    enabled: true
