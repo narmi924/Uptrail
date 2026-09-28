@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Table footer with row range, page-size choice (keeps filters) and page links. -->
+<div th:fragment="pager(view, label)" class="ut-pager">
+  <span class="ut-pager-summary" th:if="${view.totalElements > 0}"
+        th:text="|Showing ${view.firstRow()}–${view.lastRow()} of ${view.totalElements} ${label}|">Showing 1–10 of 57</span>
+  <span class="ut-pager-summary" th:if="${view.totalElements == 0}" th:text="|No ${label}|">No rows</span>
+  <form class="ut-pager-size" method="get" th:action="${view.path}">
+    <input type="hidden" th:each="p : ${view.params}" th:name="${p.name}" th:value="${p.value}">
+    <label class="small-ut text-muted-ut" th:for="${'page-size-' + #strings.replace(label, ' ', '-')}">Rows per page</label>
+    <select class="form-select" name="size" th:id="${'page-size-' + #strings.replace(label, ' ', '-')}" data-ut-autosubmit>
+      <option th:each="s : ${view.sizes()}" th:value="${s}" th:text="${s}" th:selected="${s == view.size}">10</option>
+    </select>
+    <noscript><button type="submit" class="btn btn-secondary btn-sm">Apply</button></noscript>
+  </form>
+  <nav th:if="${view.totalPages > 1}" aria-label="Pagination">
+    <ul class="pagination pagination-sm">
+      <li class="page-item" th:classappend="${!view.hasPrevious()} ? 'disabled'">
+        <a class="page-link" th:href="${view.hasPrevious()} ? ${view.url(view.page - 1)} : '#'">Previous</a>
+      </li>
+      <li class="page-item" th:if="${view.pageNumbers[0] > 1}">
+        <a class="page-link" th:href="${view.url(1)}">1</a>
+      </li>
+      <li class="page-item disabled" th:if="${view.pageNumbers[0] > 2}"><span class="page-link">…</span></li>
+      <li class="page-item" th:each="n : ${view.pageNumbers}" th:classappend="${n == view.page} ? 'active'">
+        <a class="page-link" th:href="${view.url(n)}" th:text="${n}">1</a>
+      </li>
+      <li class="page-item disabled" th:if="${view.lastPageNumber() < view.totalPages - 1}">
+        <span class="page-link">…</span>
+      </li>
+      <li class="page-item" th:if="${view.lastPageNumber() < view.totalPages}">
+        <a class="page-link" th:href="${view.url(view.totalPages)}" th:text="${view.totalPages}">9</a>
+      </li>
+      <li class="page-item" th:classappend="${!view.hasNext()} ? 'disabled'">
+        <a class="page-link" th:href="${view.hasNext()} ? ${view.url(view.page + 1)} : '#'">Next</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

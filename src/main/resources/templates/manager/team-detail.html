@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page(${app.referenceNo}, 'team', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-breadcrumb">
+    <a th:href="@{/manager/team/history(employeeId=${app.employeeId})}" th:text="'Team History · ' + ${app.employeeName}">Team History</a>
+  </div>
+  <div th:replace="~{fragments/application :: header(${app})}"></div>
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <th:block th:replace="~{fragments/application :: details(${app})}"></th:block>
+    </div>
+    <div class="col-lg-4">
+      <div class="ut-card" th:if="${app.status.isPending()}">
+        <div class="ut-card-body">
+          <a class="btn btn-primary w-100" th:href="@{/manager/applications/{id}(id=${app.id})}">Open review</a>
+        </div>
+      </div>
+      <div th:replace="~{fragments/application :: timeline(${app.timeline})}"></div>
+      <div th:replace="~{fragments/application :: ledger(${app.ledger})}"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -17,12 +17,12 @@ Conventions:
 
 | Field | Value |
 | --- | --- |
-| Plan version | 0.4.0 |
+| Plan version | 0.5.0 |
 | Last updated | 2026-09-28 (Asia/Singapore) |
 | Approval status | **APPROVED** — owner message of 2026-09-28 approving plan 0.1.1 with amendments A1–A7 below |
 | Approved scope | Sections 3–8 of this version: the complete system (all mandatory features R01–R19, all eight optional features O01–O08, enhancements D01–D07, `training_calendar_year`). Presentation, demo script, delivery packaging and team distribution are out of scope. |
-| Current phase | Phase B — M0 and M1 complete; M2 (calendar rules, accounts, ledger, submission) in progress |
-| Next concrete action | M2-T5: application evaluator, submission and preview services |
+| Current phase | Phase B — M0–M3 complete; M4 administration next |
+| Next concrete action | M4-T1: staff and roles administration |
 | Real blockers | None known. Docker availability is verified in M0-T3. |
 
 ### Amendments given with the approval
@@ -136,7 +136,7 @@ Q17 (submission platform) and Q18 (presentation timing) are out of scope under A
 
 A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual accounts + append-only ledger; A04 READ_COMMITTED and lock order employee → accounts (ascending year) → target record; A05 catalogue as template with application snapshots; A06 transactional outbox; A07 private file storage; A08 versions locked after a smoke build.
 
-### 4.3 Implementation decisions (I01–I35)
+### 4.3 Implementation decisions (I01–I40)
 
 | ID | Decision | Rationale |
 | --- | --- | --- |
@@ -177,6 +177,9 @@ A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual a
 | I35 | Routing admin page at `/admin/routing` (not `/admin/approvals`) | Avoids confusion with manager approvals |
 | I36 | The mail health indicator is disabled | SMTP availability must not mark the application DOWN; mail goes through the outbox |
 | I37 | MySQL CHECK violations (error 3819) are not categorised by Spring; services validate every rule before writing, so a CHECK violation reaching the handlers is treated as a defect (500) | Database constraints are a second line of defence |
+| I38 | Current-year history uses the date range (start on or before 31 Dec and end on or after 1 Jan): start and end are always counted working days, so this equals "has a training day in the year" (Q05) | Index-friendly query |
+| I39 | A training provider is required for external courses and certifications; internal training defaults to "ISS (In-house)" | The course form captures the provider; claims need it |
+| I40 | Milestones M2 and M3 were delivered in one branch and pull request, because the application detail page needs the M3 actions to avoid inactive buttons | Git workflow (I31) adjusted |
 
 ---
 
@@ -353,8 +356,8 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | --- | --- | --- |
 | M0 Engineering baseline | VERIFIED (except M0-T5 API error JSON, verified with the first REST endpoint in M2) | Evidence in 9.2 |
 | M1 Identity, roles, entry points | VERIFIED | Two chains with entry-bound sessions (I29), CSP, session expiry, safe redirects, scope policy, sample organisation; evidence in 9.2 |
-| M2 Rules, accounts, ledger, submission | IN_PROGRESS | M2-T1 calculator VERIFIED (unit); M2-T3/T4 services written |
-| M3 Manager review and lifecycle | PLANNED | — |
+| M2 Rules, accounts, ledger, submission | VERIFIED | Evaluator shared by preview and submit; lock protocol; idempotency; preview and catalogue APIs; employee pages. The administrator side of M2-T2 (holiday maintenance) moves to M4-T5 |
+| M3 Manager review and lifecycle | VERIFIED | Update/delete/cancel/complete/approve/reject with ledger effects; approval-time schedule re-check (I07); grouped worklist, review page, team history; sample activity in every status; concurrency tests |
 | M4 Administration | PLANNED | — |
 | M5 Calendar, pagination, reports, CSV | PLANNED | — |
 | M6 Fee claims | PLANNED | — |
@@ -471,22 +474,22 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | ID | Requirement (PDF) | Pages / endpoints | Modules / data | Tests | Status |
 | --- | --- | --- | --- | --- | --- |
 | R01 | Three categories (p3, p5) | form, catalogue admin | catalogue, `course_category` | category rules, catalogue IT | PLANNED |
-| R02 | Internal free/half-day; others fee/full-day | form, preview | calculator, evaluator | T18–T21 | PLANNED |
+| R02 | Internal free/half-day; others fee/full-day | form, preview | calculator, evaluator | T18–T21 (TrainingDayCalculatorTest, ApplicationSubmissionIT) | VERIFIED |
 | R03 | Two entry points, DB credentials (p5) | `/login`, `/admin/login` | identity, security | T01–T03 (AuthenticationIT) | VERIFIED |
-| R04 | Form, validation, Applied (p6) | `/employee/applications/new` | application | T10–T32, AC-A | PLANNED |
-| R05 | Update → Updated | `/{id}/edit`, `/{id}/update` | application | T29, T34, T49, AC-B | PLANNED |
-| R06 | Delete → Deleted | `/{id}/delete` | application, ledger | T40 | PLANNED |
-| R07 | Cancel → Cancelled | `/{id}/cancel` | application, ledger | T39 | PLANNED |
-| R08 | Complete after end with comments | `/{id}/complete` | application | T37, T38 | PLANNED |
-| R09 | Mandatory fields, future start, date order | form, preview | evaluator, calculator | T10–T13 | PLANNED |
-| R10 | Working days, holidays, boundaries, entitlement | preview, admin entitlements/holidays | calculator, entitlement, catalogue | T14–T19, T24, T30, T31 | PLANNED |
-| R11 | Fee within remaining budget | submit/update | entitlement, ledger | T22, T23, T42 | PLANNED |
-| R12 | No overlap with own active applications | submit/update | overlap query | T25–T29, T43 | PLANNED |
-| R13 | Current-year personal history with decision/reason | `/employee/applications`, `/{id}` | query service | T61 | PLANNED |
-| R14 | Pending grouped by subordinate | `/manager/approvals` | approval queue | T62 | PLANNED |
-| R15 | Reason mandatory for both decisions | `/manager/applications/{id}/decision` | command service | T35, T36 | PLANNED |
-| R16 | Used days/budget and same-period team courses on review | `/manager/applications/{id}` | entitlement, team query | IT | PLANNED |
-| R17 | Subordinate history | `/manager/team/history` | query service | T07, T61 | PLANNED |
+| R04 | Form, validation, Applied (p6) | `/employee/applications/new` | application | T10–T32, AC-A (ApplicationSubmissionIT) | VERIFIED |
+| R05 | Update → Updated | `/{id}/edit`, `/{id}/update` | application | T29, T34, T49, AC-B (ApplicationLifecycleIT) | VERIFIED |
+| R06 | Delete → Deleted | `/{id}/delete` | application, ledger | T40 | VERIFIED |
+| R07 | Cancel → Cancelled | `/{id}/cancel` | application, ledger | T39 | VERIFIED |
+| R08 | Complete after end with comments | `/{id}/complete` | application | T37, T38 | VERIFIED |
+| R09 | Mandatory fields, future start, date order | form, preview | evaluator, calculator | T10–T13 | VERIFIED |
+| R10 | Working days, holidays, boundaries, entitlement | preview, admin entitlements/holidays | calculator, entitlement, catalogue | T14–T19, T24, T30, T31 | IN_PROGRESS (rules verified; admin maintenance pages in M4) |
+| R11 | Fee within remaining budget | submit/update | entitlement, ledger | T22, T23, T42 (ConcurrencyIT) | VERIFIED |
+| R12 | No overlap with own active applications | submit/update | overlap query | T25–T29, T43 | VERIFIED |
+| R13 | Current-year personal history with decision/reason | `/employee/applications`, `/{id}` | query service | T61 (page tests) | VERIFIED |
+| R14 | Pending grouped by subordinate | `/manager/approvals` | approval queue | T62 (page test) | VERIFIED |
+| R15 | Reason mandatory for both decisions | `/manager/applications/{id}/decision` | command service | T35, T36 | VERIFIED |
+| R16 | Used days/budget and same-period team courses on review | `/manager/applications/{id}` | entitlement, team query | review page test | VERIFIED |
+| R17 | Subordinate history | `/manager/team/history` | query service | T07, T61 | VERIFIED |
 | R18 | Spring, database, sufficient test data | all | Flyway, sample seeder | T77, seeder IT | PLANNED |
 | R19 | Layering, encapsulation, exceptions, validation, tests, utilities | all | ArchUnit, handlers | architecture test, suite | PLANNED |
 | R20 | Team contribution, peer evaluation | — | — | — | OUT_OF_SCOPE (A4) |
@@ -509,9 +512,9 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 
 | ID | Item | Tasks | Tests | Status |
 | --- | --- | --- | --- | --- |
-| D01 | Eligibility preview | M2-T5/T6 | preview IT | PLANNED |
+| D01 | Eligibility preview | M2-T5/T6 | preview IT, browser check | VERIFIED |
 | D02 | Separate reserved/committed/reimbursed | M2-T3/T4 | T50 | PLANNED |
-| D03 | Versions and serialised writes | M2-T5, M3-T2, M8-T2 | T42–T48 | PLANNED |
+| D03 | Versions and serialised writes | M2-T5, M3-T2, M8-T2 | T42–T48 (ConcurrencyIT, lifecycle, idempotency) | VERIFIED |
 | D04 | Outbox and retry | M7-T1 | T74–T76 | PLANNED |
 | D05 | Audit timeline | M7-T3 | IT | PLANNED |
 | D06 | Reimbursement registration | M6-T4 | T59, T60 | PLANNED |
@@ -546,6 +549,8 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | 2026-09-28 | `docker compose up -d`; `java -jar target/uptrail-1.0.0-SNAPSHOT.jar --spring.profiles.active=dev`; `curl /actuator/health` | Compose MySQL and Mailpit healthy; 5 migrations applied; health `UP`; `/employee/dashboard` → 403 under the baseline lock | M0-T4 |
 | 2026-09-28 | `./mvnw verify` (M1) | First runs: 2 failures (non-HTML requests got the JSON entry point; test URL pattern) fixed by an explicit login entry point for non-API paths. Final: BUILD SUCCESS, unit 20/20 (ArchitectureTest 6, TrainingDayCalculatorTest 14), IT 29/29 (AuthenticationIT 14, AccessScopePolicyIT 4, SampleOrganisationIT 2, RuntimeBaselineIT 3, SchemaMigrationIT 6) | T01–T04, T08, T09, T13–T21, T30 |
 | 2026-09-28 | JAR with `dev` profile + `agent-browser` at 1366×768 | Sample data loaded (21 accounts); staff sign-in → staff dashboard; admin sign-in → admin dashboard with real counts; screenshots in `target/screens/` (not committed) | Found and fixed: grey input background |
+| 2026-09-28 | `./mvnw verify` (M2–M3) | First runs: test compile errors, a fragment named `body` clashing with the `<body>` selector, a test using a Sunday date; all fixed. Final: BUILD SUCCESS, unit 41/41, IT 67/67 (ApplicationSubmissionIT 18, ApplicationLifecycleIT 15, ConcurrencyIT 4, SampleActivityIT 1, earlier suites) | T10–T31, T33–T45, T47–T50, AC-A–AC-E |
+| 2026-09-28 | `docker compose down -v` (this project's dev volume only), dev JAR, `agent-browser` | 18 sample applications created through the services; form with catalogue search (`GET /api/v1/catalogue`) and live preview (`POST /api/v1/applications/preview`) seen in the browser network log; dashboard, manager worklist and review page checked | Found and fixed: dates in the browser locale (UI locale fixed to English), wrapped reference numbers, side-navigation background |
 
 Rules: failures recorded with output; skipped or blocked runs marked `NOT_VERIFIED`/`BLOCKED`; no pre-filled counts, coverage or timings.
 
@@ -599,10 +604,10 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 
 | Field | Value |
 | --- | --- |
-| Completed | Phase A; approval; M0; M1 (identity, two entry points, workspace separation, scope policy, sample organisation); M2-T1 calculator |
-| Last verified | `./mvnw verify` green (49 tests); browser check of sign-in and both dashboards |
-| Next task | M2-T2..T6: holiday service, accounts/ledger, audit/outbox primitives, submission and preview, employee pages |
-| Open issues | API business-error JSON verified with the preview endpoint (M2); 401/403 JSON already verified |
+| Completed | Phase A; approval; M0–M3 (identity, submission with preview, full application lifecycle, manager review, sample activity, reconciliation check) |
+| Last verified | `./mvnw verify` green (108 tests); browser check of form, dashboard, worklist and review |
+| Next task | M4 administration: staff and roles, routing with reassignment, entitlements, catalogue, holidays and calendar years, admin dashboard |
+| Open issues | Navigation links to later milestones' pages (claims, entitlement, reports, calendar, admin sections) return 404 until implemented |
 | How to resume | Read sections 1, 7, 9, 12; `git status`, `git log --oneline -20`, `gh pr list`; run `./mvnw verify`; continue with the first task not `VERIFIED` |
 
 ---
@@ -616,3 +621,4 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 | 0.2.0 | 2026-09-28 | Approval recorded with amendments A1–A7; demo/delivery/team scope removed; public repository and git workflow; new `DESIGN.md`; decisions I29–I35; personal details removed for the public repository | APPROVED; system-only scope | `docker info` |
 | 0.3.0 | 2026-09-28 | M0 engineering baseline done; milestone status table; decisions I36–I37 | No scope change | `./mvnw verify` green; JAR health UP (9.2) |
 | 0.4.0 | 2026-09-28 | M1 done: identity, entry points, scope policy, sample organisation; calculator | No scope change | `./mvnw verify` 49 tests green; browser check (9.2) |
+| 0.5.0 | 2026-09-28 | M2 and M3 done in one PR (I40): submission, preview, lifecycle, manager review, concurrency, sample activity; decisions I38–I40 | No scope change | `./mvnw verify` 108 tests green; browser check (9.2) |

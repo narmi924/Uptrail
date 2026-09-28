@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page(${editing != null} ? 'Edit application' : 'Apply for a Course', ${editing != null} ? 'applications' : 'apply', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-breadcrumb" th:if="${editing != null}">
+    <a th:href="@{/employee/applications/{id}(id=${editing.id})}" th:text="${editing.referenceNo}">CATS</a>
+  </div>
+  <div class="ut-page-header">
+    <div>
+      <h1 th:text="${editing != null} ? 'Edit application' : 'Apply for a Course'">Apply for a Course</h1>
+      <div class="ut-subtitle" th:if="${editing == null}">Your approving manager receives the application after you submit it.</div>
+      <div class="ut-subtitle" th:if="${editing != null}">Saving changes sets the status to Updated and replaces the previous reservation.</div>
+    </div>
+  </div>
+
+  <div class="ut-strip state-critical" th:if="${approverName == null}">
+    <div class="ut-strip-title">No approving manager is configured for you.</div>
+    You can fill in the form, but submission will be refused until an administrator sets up your approval routing.
+  </div>
+
+  <form method="post" th:object="${form}"
+        th:action="${editing != null} ? @{/employee/applications/{id}/update(id=${editing.id})} : @{/employee/applications}"
+        id="application-form" novalidate>
+    <div th:replace="~{fragments/messages :: formErrors('form')}"></div>
+    <input type="hidden" th:field="*{clientRequestId}">
+    <input type="hidden" th:field="*{expectedVersion}">
+    <input type="hidden" th:field="*{catalogueId}">
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="ut-card">
+          <div class="ut-card-body">
+            <section class="ut-form-section">
+              <h3>Course details</h3>
+              <div class="mb-3" id="catalogue-picker">
+                <label class="form-label" for="catalogue-search">Find a common course (optional)</label>
+                <input class="form-control" id="catalogue-search" type="search" autocomplete="off"
+                       placeholder="Type part of a course title" th:attr="data-api=@{/api/v1/catalogue}"
+                       aria-describedby="catalogue-help">
+                <div class="ut-help" id="catalogue-help">Choosing a catalogue course fills the fields below; you can still change them.</div>
+                <div class="list-group mt-1" id="catalogue-results" role="listbox" aria-label="Catalogue courses"></div>
+                <div class="ut-help" id="catalogue-selected" th:if="*{catalogueId != null}">Based on a catalogue course.</div>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <label class="form-label" for="category">Category <span class="ut-required">(required)</span></label>
+                  <select class="form-select" th:field="*{category}" th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'" required>
+                    <option value="">Choose a category</option>
+                    <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.displayName}">Internal Training</option>
+                  </select>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}" th:errors="*{category}">Error</div>
+                </div>
+                <div class="col-md-7">
+                  <label class="form-label" for="courseTitle">Course title <span class="ut-required">(required)</span></label>
+                  <input class="form-control" type="text" maxlength="200" th:field="*{courseTitle}"
+                         th:classappend="${#fields.hasErrors('courseTitle')} ? 'is-invalid'" required>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('courseTitle')}" th:errors="*{courseTitle}">Error</div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="providerName">Training provider</label>
+                  <input class="form-control" type="text" maxlength="160" list="providers-list" th:field="*{providerName}"
+                         th:classappend="${#fields.hasErrors('providerName')} ? 'is-invalid'">
+                  <datalist id="providers-list">
+                    <option th:each="p : ${providers}" th:value="${p}"></option>
+                  </datalist>
+                  <div class="ut-help">Required for external courses and certifications. Internal training defaults to ISS (In-house).</div>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('providerName')}" th:errors="*{providerName}">Error</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="ut-form-section">
+              <h3>Schedule and fee</h3>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="startDate">Start date <span class="ut-required">(required)</span></label>
+                  <input class="form-control" type="date" th:field="*{startDate}" th:attr="min=${today.plusDays(1)}"
+                         th:classappend="${#fields.hasErrors('startDate')} ? 'is-invalid'" required>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}">Error</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="endDate">End date <span class="ut-required">(required)</span></label>
+                  <input class="form-control" type="date" th:field="*{endDate}" th:attr="min=${today.plusDays(1)}"
+                         th:classappend="${#fields.hasErrors('endDate')} ? 'is-invalid'" required>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}">Error</div>
+                </div>
+                <div class="col-md-6" data-half-day-field>
+                  <label class="form-label" for="startSession">First day starts</label>
+                  <select class="form-select" th:field="*{startSession}" th:classappend="${#fields.hasErrors('startSession')} ? 'is-invalid'">
+                    <option value="AM">Morning (full first day)</option>
+                    <option value="PM">Afternoon (half day)</option>
+                  </select>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('startSession')}" th:errors="*{startSession}">Error</div>
+                </div>
+                <div class="col-md-6" data-half-day-field>
+                  <label class="form-label" for="endSession">Last day ends</label>
+                  <select class="form-select" th:field="*{endSession}" th:classappend="${#fields.hasErrors('endSession')} ? 'is-invalid'">
+                    <option value="PM">Afternoon (full last day)</option>
+                    <option value="AM">Morning (half day)</option>
+                  </select>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('endSession')}" th:errors="*{endSession}">Error</div>
+                </div>
+                <div class="col-12 ut-help">
+                  Weekends and public holidays inside the period are not counted, and the first and last day must be working days.
+                  Half days are allowed for internal training only.
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="courseFee">Course fee (SGD)</label>
+                  <input class="form-control" type="number" min="0" step="0.01" inputmode="decimal" th:field="*{courseFee}"
+                         th:classappend="${#fields.hasErrors('courseFee')} ? 'is-invalid'">
+                  <div class="ut-help">Internal training carries no fee. External courses and certifications are charged to your annual training budget.</div>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('courseFee')}" th:errors="*{courseFee}">Error</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="ut-form-section">
+              <h3>Work justification</h3>
+              <div class="mb-3">
+                <label class="form-label" for="justification">How does the course benefit your work? <span class="ut-required">(required)</span></label>
+                <textarea class="form-control" rows="4" maxlength="2000" th:field="*{justification}"
+                          th:classappend="${#fields.hasErrors('justification')} ? 'is-invalid'" required></textarea>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('justification')}" th:errors="*{justification}">Error</div>
+              </div>
+              <div>
+                <label class="form-label" for="workDissemination">Work arrangements during the course (optional)</label>
+                <textarea class="form-control" rows="3" maxlength="2000" th:field="*{workDissemination}"
+                          th:classappend="${#fields.hasErrors('workDissemination')} ? 'is-invalid'"></textarea>
+                <div class="ut-help">Who covers your duties while you attend.</div>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('workDissemination')}" th:errors="*{workDissemination}">Error</div>
+              </div>
+            </section>
+
+            <div class="ut-form-actions">
+              <button type="submit" class="btn btn-primary"
+                      th:text="${editing != null} ? 'Save changes' : 'Submit application'">Submit application</button>
+              <a class="btn btn-secondary"
+                 th:href="${editing != null} ? @{/employee/applications/{id}(id=${editing.id})} : @{/employee/applications}">Cancel</a>
+              <span class="ut-action-note">The server checks every rule again when you submit.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <aside class="ut-card ut-sticky" aria-live="polite">
+          <div class="ut-card-header"><h2>Eligibility check</h2></div>
+          <div class="ut-card-body" id="eligibility"
+               th:attr="data-preview-url=@{/api/v1/applications/preview},data-application-id=${editing != null ? editing.id : ''}">
+            <p class="text-muted-ut mb-0">Enter the category and dates to see the training days counted, excluded dates and your remaining balance.</p>
+            <noscript><p class="text-muted-ut">The live check needs JavaScript. The server checks everything when you submit.</p></noscript>
+          </div>
+          <div class="ut-card-footer small-ut text-muted-ut">
+            Approving manager: <span th:text="${approverName != null} ? ${approverName} : 'not configured'">Manager</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </form>
+  <script defer th:src="@{/js/application-form.js}"></script>
+</div>
+</body>
+</html>
