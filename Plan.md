@@ -17,12 +17,12 @@ Conventions:
 
 | Field | Value |
 | --- | --- |
-| Plan version | 0.8.0 |
+| Plan version | 0.9.0 |
 | Last updated | 2026-09-28 (Asia/Singapore) |
 | Approval status | **APPROVED** — owner message of 2026-09-28 approving plan 0.1.1 with amendments A1–A7 below |
 | Approved scope | Sections 3–8 of this version: the complete system (all mandatory features R01–R19, all eight optional features O01–O08, enhancements D01–D07, `training_calendar_year`). Presentation, demo script, delivery packaging and team distribution are out of scope. |
-| Current phase | Phase B — M0–M6 complete; M7 email, audit and operations next |
-| Next concrete action | M7-T1: outbox worker with SMTP and file transports |
+| Current phase | Phase B — M0–M7 complete; M8 hardening next |
+| Next concrete action | M8-T1: authorization matrix tests over pages, APIs, CSV and downloads |
 | Real blockers | None known. Docker availability is verified in M0-T3. |
 
 ### Amendments given with the approval
@@ -136,7 +136,7 @@ Q17 (submission platform) and Q18 (presentation timing) are out of scope under A
 
 A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual accounts + append-only ledger; A04 READ_COMMITTED and lock order employee → accounts (ascending year) → target record; A05 catalogue as template with application snapshots; A06 transactional outbox; A07 private file storage; A08 versions locked after a smoke build.
 
-### 4.3 Implementation decisions (I01–I50)
+### 4.3 Implementation decisions (I01–I55)
 
 | ID | Decision | Rationale |
 | --- | --- | --- |
@@ -190,6 +190,11 @@ A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual a
 | I48 | A repeated reimbursement registration is refused with 409 `ALREADY_PROCESSED` naming the existing reference; the single REIMBURSE ledger row goes to the account of the course's start year | Q13, T60 |
 | I49 | Files written inside a transaction are deleted when it rolls back; a scheduled sweep (every 6 hours) deletes unreferenced files older than one hour | I09, T73 |
 | I50 | Sample claims (every status, one revision) are created through the claim service with small synthetic PDF files labelled SAMPLE; this part of M7-T4 moved to M6 | Sample data rules |
+| I51 | Emails are plain text rendered from `classpath:mail/<template>.txt` by a separate Thymeleaf engine in TEXT mode; the first line is the subject, from which line breaks are removed; every message carries a sign-in deep link (`/login?next=…`) and never record contents beyond the reference, names, course title, amount and reason | T76 |
+| I52 | The outbox worker leases a batch with `FOR UPDATE SKIP LOCKED` in a short transaction, sends outside any transaction and records each result in its own transaction only while its lease is still current. Retry delays 1, 2, 4, 8 minutes (at most one hour); after 5 attempts the message is FAILED. An expired SENDING lease makes the message due again (at-least-once delivery) | D04, T74, T75 |
+| I53 | The transport is chosen with `uptrail.mail.transport`: `smtp` (default; Mailpit on port 1025 locally) or `file` (text files in `var/mail-capture/`) | Offline use |
+| I54 | The operations page only reads, except the retry of a FAILED email, which resets its attempts and is audited as `OUTBOX` / `RETRY_REQUESTED`. The audit search defaults to the last 30 days; the ledger check runs on demand | M7-T2 |
+| I55 | My Entitlement shows the previous, current and next year: the balance and every ledger movement of the year, newest first, linked to its application or claim | M7-T3 |
 
 ---
 
@@ -371,7 +376,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | M4 Administration | VERIFIED | Staff and roles with deactivation guards and session expiry, routing with explicit audited reassignment and team moves, entitlements with lower bounds and defaults, catalogue, holiday calendars with impact confirmation, bundled list import |
 | M5 Calendar, pagination, reports, CSV | VERIFIED | Calendar API and page (I43), participation and budget reports with print view (I44), CSV exports sharing the report queries, pager on the remaining long lists (I45) |
 | M6 Fee claims | VERIFIED | Private document store (I46, I49), submit and revise, manager decisions, reimbursement registration with REIMBURSE ledger rows (I48), employee, manager and administrator pages, authorised downloads (I47), sample claims (I50) |
-| M7 Email, audit, operations | PLANNED | — |
+| M7 Email, audit, operations | VERIFIED | Outbox worker with SMTP and file transports and plain-text templates (I51–I53), operations page with audit search, outbox retry and ledger check (I54), My Entitlement with ledger movements (I55); timelines on application and claim pages since M3/M6 |
 | M8 Hardening | PLANNED | — |
 | M9 Documentation and final verification | PLANNED | — |
 
@@ -515,7 +520,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | O04 | Reporting + CSV | `/manager/reports`, `/manager/reports/training.csv`, `/manager/reports/budget.csv` | reporting, `shared.csv` | T66–T69 (CalendarAndReportIT, CsvWriterTest) | VERIFIED |
 | O05 | Training calendar | `/calendar`, `/api/v1/calendar` | reporting | T63–T65 (CalendarAndReportIT) | VERIFIED |
 | O06 | Pagination | all lists (I45) | shared | T62, T70 (team history, report and catalogue paging tests) | VERIFIED |
-| O07 | Email | outbox, templates, operations page | notification | T74–T76 | PLANNED |
+| O07 | Email | outbox, templates, operations page | notification | T74–T76 (MailDeliveryIT with GreenMail, MailRenderingTest, OperationsIT) | VERIFIED |
 | O08 | Spring Security | chains, scope policy, CSRF, private files | identity, shared, claim | T01–T09, T71, T72 | IN_PROGRESS (sign-in, roles, workspaces, CSRF, session expiry, headers and private document downloads verified; full authorization matrix in M8) |
 
 ### 8.3 Enhancements
@@ -525,8 +530,8 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | D01 | Eligibility preview | M2-T5/T6 | preview IT, browser check | VERIFIED |
 | D02 | Separate reserved/committed/reimbursed | M2-T3/T4, M6-T4 | T50, registration test (reimbursed total grows, available budget unchanged) | VERIFIED |
 | D03 | Versions and serialised writes | M2-T5, M3-T2, M8-T2 | T42–T48 (ConcurrencyIT, lifecycle, idempotency) | VERIFIED |
-| D04 | Outbox and retry | M7-T1 | T74–T76 | PLANNED |
-| D05 | Audit timeline | M7-T3 | IT | PLANNED |
+| D04 | Outbox and retry | M7-T1 | T74–T76 incl. concurrent workers and expired leases | VERIFIED |
+| D05 | Audit timeline | M3, M6, M7-T2/T3 | timelines on application and claim pages, audit search (OperationsIT) | VERIFIED |
 | D06 | Reimbursement registration | M6-T4 | T59, T60 incl. concurrent registration | VERIFIED |
 | D07 | Clean start, restart persistence | M8-T5 | T77, T78 | PLANNED |
 | N01 | `training_calendar_year` | M2-T2, M4-T5 | confirm/reopen, DRAFT blocks submission, `SCHEDULE_OUTDATED` (AdministrationIT, ApplicationLifecycleIT) | VERIFIED |
@@ -569,6 +574,9 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | 2026-09-28 | `./mvnw verify -Dit.test=ClaimLifecycleIT,ClaimWebIT` (M6, first run) | 25 IT, 3 errors | A model attribute named `application` clashed with the Thymeleaf servlet-context variable (renamed); an expression inside `th:attr`/`th:data-*` for a confirmation text was refused by Thymeleaf's restricted mode (static text now) |
 | 2026-09-28 | `./mvnw verify` (M6) | BUILD SUCCESS: unit 65/65 (DocumentRulesTest 15 added), IT 120/120 (ClaimLifecycleIT 18, ClaimWebIT 7, SampleActivityIT extended to claims) | T05, T51–T60, T71–T73, AC-D |
 | 2026-09-28 | Dev JAR on the existing database; `agent-browser` and `curl` against the running server | Real multipart submission with CSRF; invalid receipt and 5.5 MB file refused with field messages; browser-side size check; 7 MB upload answered 413 (first a whitelabel page, fixed with `error/413`, `4xx`, `5xx` templates); claim rejected, revised to revision 2, approved and registered as `SIM-20260928-000001`; one REIMBURSE ledger row of 580.00; downloads return `attachment`, `application/pdf`, `nosniff`; files stored under `var/documents/` (git-ignored) | Found and fixed: receipt ordering, narrow side panel, confirmation checkbox now required in the browser, clearer invalid-file message |
+| 2026-09-28 | `./mvnw verify -Dit.test=OperationsIT,MailDeliveryIT -Dtest=MailRenderingTest` (M7, first runs) | Test compile error, then 11 errors | The form-login test builder has no `param` (plain POST used); the plain Thymeleaf engine needs OGNL, so the mail renderer uses the Spring template engine |
+| 2026-09-28 | `./mvnw verify` (M7) | BUILD SUCCESS: unit 77/77 (MailRenderingTest 12 added), IT 130/130 (MailDeliveryIT 5, OperationsIT 5 added) | T74–T76, M7-T2, M7-T3 |
+| 2026-09-28 | Dev JAR with the worker enabled, Mailpit API, `agent-browser` | All 34 outbox rows of the existing database sent to Mailpit within one poll; a rejection email shows subject, reason and deep link; operations tabs render; ledger check consistent over 37 accounts including the reimbursed claim; My Entitlement lists the reimbursement movement | None found |
 
 Rules: failures recorded with output; skipped or blocked runs marked `NOT_VERIFIED`/`BLOCKED`; no pre-filled counts, coverage or timings.
 
@@ -622,10 +630,10 @@ At-least-once email delivery; no antivirus scanning; an upload above 6 MB ends o
 
 | Field | Value |
 | --- | --- |
-| Completed | Phase A; approval; M0–M6 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration, training calendar, reports, CSV, pagination, fee claims with documents and reimbursement) |
-| Last verified | `./mvnw verify` green (185 tests); browser check of the claim lifecycle on the running server |
-| Next task | M7: outbox worker and mail transports, operations page, employee entitlement page with ledger, timelines |
-| Open issues | Navigation links to `/employee/entitlement` and `/admin/operations` return 404 until M7; outbox rows stay PENDING until the M7 worker exists; the existing dev database has no sample claims (the seeder runs on an empty database only; a clean rebuild is part of M8-T5) |
+| Completed | Phase A; approval; M0–M7 (identity, submission with preview, application lifecycle, manager review, sample activity, reconciliation, administration, training calendar, reports, CSV, pagination, fee claims with documents and reimbursement, email outbox, operations, entitlement ledger) |
+| Last verified | `./mvnw verify` green (207 tests); mail delivery to Mailpit and browser check of operations and entitlement pages |
+| Next task | M8: authorization matrix, Playwright e2e, clean rebuild and restart, UI state review |
+| Open issues | The existing dev database has no sample claims (the seeder runs on an empty database only; a clean rebuild is part of M8-T5) |
 | How to resume | Read sections 1, 7, 9, 12; `git status`, `git log --oneline -20`, `gh pr list`; run `./mvnw verify`; continue with the first task not `VERIFIED` |
 
 ---
@@ -643,3 +651,4 @@ At-least-once email delivery; no antivirus scanning; an upload above 6 MB ends o
 | 0.6.0 | 2026-09-28 | M4 administration done; decisions I41–I42 | No scope change | `./mvnw verify` 124 tests green; browser check (9.2) |
 | 0.7.0 | 2026-09-28 | M5 done: training calendar, participation and budget reports, CSV exports, pagination of the remaining lists; decisions I43–I45 | No scope change | `./mvnw verify` 145 tests green; browser check (9.2) |
 | 0.8.0 | 2026-09-28 | M6 done: fee claims with private documents, revisions, manager decisions, reimbursement registration, sample claims; decisions I46–I50 | No scope change | `./mvnw verify` 185 tests green; browser and curl checks (9.2) |
+| 0.9.0 | 2026-09-28 | M7 done: email outbox worker, transports and templates, operations page, My Entitlement; decisions I51–I55 | No scope change | `./mvnw verify` 207 tests green; Mailpit and browser checks (9.2) |

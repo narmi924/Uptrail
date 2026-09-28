@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Operations', 'operations', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Operations</h1>
+      <div class="ut-subtitle">Audit trail, email delivery and ledger consistency. Nothing here changes business records; only failed emails can be queued again.</div>
+    </div>
+  </div>
+
+  <nav class="ut-tabs" aria-label="Operations">
+    <a th:href="@{/admin/operations(tab='audit')}" th:classappend="${tab == 'audit'} ? 'active'">Audit trail</a>
+    <a th:href="@{/admin/operations(tab='outbox')}" th:classappend="${tab == 'outbox'} ? 'active'"
+       th:text="|Email outbox (${outboxCounts['FAILED']} failed)|">Email outbox</a>
+    <a th:href="@{/admin/operations(tab='ledger')}" th:classappend="${tab == 'ledger'} ? 'active'">Ledger check</a>
+  </nav>
+
+  <!-- Audit trail -->
+  <th:block th:if="${tab == 'audit'}">
+    <div class="ut-card">
+      <div class="ut-card-body">
+        <form class="ut-filters" method="get" th:action="@{/admin/operations}">
+          <input type="hidden" name="tab" value="audit">
+          <div class="ut-filter"><label class="form-label" for="type">Record type</label>
+            <select class="form-select" id="type" name="type">
+              <option value="">All</option>
+              <option th:each="t : ${types}" th:value="${t}" th:text="${#strings.capitalize(#strings.toLowerCase(t.name()))}"
+                      th:selected="${t == filter.type}">Application</option>
+            </select></div>
+          <div class="ut-filter"><label class="form-label" for="key">Record id</label>
+            <input class="form-control" id="key" name="key" th:value="${filter.key}" maxlength="64" inputmode="numeric"></div>
+          <div class="ut-filter"><label class="form-label" for="eventType">Event</label>
+            <input class="form-control" id="eventType" name="eventType" th:value="${filter.eventType}" maxlength="40"
+                   placeholder="e.g. APPROVED"></div>
+          <div class="ut-filter"><label class="form-label" for="from">From</label>
+            <input class="form-control" id="from" name="from" type="date" th:value="${filter.from}"></div>
+          <div class="ut-filter"><label class="form-label" for="to">To</label>
+            <input class="form-control" id="to" name="to" type="date" th:value="${filter.to}"></div>
+          <div><button class="btn btn-secondary" type="submit">Search</button></div>
+        </form>
+      </div>
+    </div>
+    <div class="ut-card" th:if="${view != null}">
+      <div class="ut-table-wrap">
+        <table class="ut-table ut-table-compact">
+          <thead><tr><th>Time</th><th>Record</th><th>Event</th><th>By</th><th>Change</th><th>Reason and details</th></tr></thead>
+          <tbody>
+          <tr th:each="e : ${view.content}">
+            <td class="ut-nowrap" th:text="${@formats.dateTime(e.at)}">date</td>
+            <td class="ut-nowrap"><span th:text="${#strings.capitalize(#strings.toLowerCase(e.type.name()))}">Application</span>
+              <span class="mono" th:text="${'#' + e.key}">#1</span></td>
+            <td class="mono" th:text="${e.eventType}">APPROVED</td>
+            <td th:text="${e.actorName}">Name</td>
+            <td class="small-ut ut-nowrap" th:text="${(e.fromState != null ? e.fromState : '–') + ' → ' + (e.toState != null ? e.toState : '–')}">A → B</td>
+            <td class="small-ut">
+              <div th:if="${e.reason != null}" th:text="${e.reason}">Reason</div>
+              <details th:if="${e.snapshotJson != null}" class="ut-inline-details">
+                <summary>Snapshot</summary>
+                <pre class="ut-json" th:text="${e.snapshotJson}">{}</pre>
+              </details>
+              <div class="text-muted-ut mono" th:if="${e.correlationId != null}" th:text="'Request ' + ${e.correlationId}">id</div>
+            </td>
+          </tr>
+          <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="6">No audit events match these filters.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div th:replace="~{fragments/paging :: pager(${view}, 'events')}"></div>
+    </div>
+  </th:block>
+
+  <!-- Email outbox -->
+  <th:block th:if="${tab == 'outbox'}">
+    <nav class="ut-chips mb-3" aria-label="Email status">
+      <a class="ut-chip" th:href="@{/admin/operations(tab='outbox')}" th:classappend="${status == null} ? 'active'">All</a>
+      <a class="ut-chip" th:each="s : ${statuses}" th:href="@{/admin/operations(tab='outbox',status=${s})}"
+         th:classappend="${status == s} ? 'active'" th:text="|${#strings.capitalize(#strings.toLowerCase(s.name()))} (${outboxCounts[s.name()]})|">Pending</a>
+    </nav>
+    <div class="ut-card">
+      <div class="ut-card-body small-ut text-muted-ut">
+        Emails are sent by a background worker after the business change is saved. A failed attempt is retried with
+        growing delays; after the last attempt the email is marked failed and can be queued again here. Delivery is
+        at least once, so a recipient may occasionally receive a message twice.
+      </div>
+      <div class="ut-table-wrap">
+        <table class="ut-table ut-table-compact">
+          <thead><tr><th>Created</th><th>Email</th><th>Recipient</th><th>Status</th><th class="num">Attempts</th>
+            <th>Sent or next attempt</th><th>Last error</th><th></th></tr></thead>
+          <tbody>
+          <tr th:each="m : ${view.content}">
+            <td class="ut-nowrap" th:text="${@formats.dateTime(m.createdAt)}">date</td>
+            <td class="mono small-ut" th:text="${m.template}">TEMPLATE</td>
+            <td><span th:text="${m.recipientName}">Name</span><div class="small-ut text-muted-ut" th:text="${m.recipientEmail}">mail</div></td>
+            <td><span th:replace="~{fragments/messages :: status(${m.status.name()}, ${#strings.capitalize(#strings.toLowerCase(m.status.name()))})}"></span></td>
+            <td class="num" th:text="${m.attempts}">0</td>
+            <td class="ut-nowrap small-ut" th:text="${m.sentAt != null} ? ${@formats.dateTime(m.sentAt)} : (${m.status.name() == 'FAILED'} ? '–' : ${@formats.dateTime(m.nextAttemptAt)})">date</td>
+            <td class="small-ut"><span class="ut-truncate d-inline-block" th:text="${m.lastError}" th:title="${m.lastError}">error</span></td>
+            <td class="num">
+              <form th:if="${m.status.name() == 'FAILED'}" method="post" th:action="@{/admin/outbox/{id}/retry(id=${m.id})}">
+                <button class="btn btn-secondary btn-sm" type="submit">Retry</button>
+              </form>
+            </td>
+          </tr>
+          <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="8">No emails in this list.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div th:replace="~{fragments/paging :: pager(${view}, 'emails')}"></div>
+    </div>
+  </th:block>
+
+  <!-- Ledger check -->
+  <th:block th:if="${tab == 'ledger'}" th:with="r=${ledger.result}">
+    <div class="ut-card">
+      <div class="ut-card-header"><h2>Ledger consistency</h2>
+        <a class="btn btn-secondary btn-sm" th:href="@{/admin/operations(tab='ledger')}">Check again</a></div>
+      <div class="ut-card-body">
+        <p class="small-ut text-muted-ut">Every annual balance is recomputed from the applications and reimbursed claims
+          and compared with the sums of its ledger rows. The check only reads data.</p>
+        <div class="ut-facts">
+          <div><div class="ut-fact-label">Checked</div><div class="ut-fact-value" th:text="${@formats.dateTime(ledger.checkedAt)}">now</div></div>
+          <div><div class="ut-fact-label">Accounts</div><div class="ut-fact-value" th:text="${r.accountsChecked}">0</div></div>
+          <div><div class="ut-fact-label">Result</div>
+            <span class="ut-badge" th:classappend="${r.consistent()} ? 'state-positive' : 'status-failed'"
+                  th:text="${r.consistent()} ? 'Consistent' : |${#lists.size(r.mismatches)} mismatches|">Consistent</span></div>
+        </div>
+      </div>
+      <div class="ut-table-wrap" th:if="${!r.consistent()}">
+        <table class="ut-table ut-table-compact">
+          <thead><tr><th>Staff member</th><th class="num">Year</th><th>Expected (from records)</th><th>Ledger</th></tr></thead>
+          <tbody>
+          <tr th:each="m : ${r.mismatches}">
+            <td th:text="${ledger.names[m.employeeId]}">Name</td>
+            <td class="num" th:text="${m.year}">2026</td>
+            <td class="small-ut" th:text="|reserved ${@formats.days(m.expected.reservedUnits)} / ${@formats.amount(m.expected.reservedAmount)}, approved ${@formats.days(m.expected.committedUnits)} / ${@formats.amount(m.expected.committedAmount)}, reimbursed ${@formats.amount(m.expected.reimbursedAmount)}|">x</td>
+            <td class="small-ut" th:text="|reserved ${@formats.days(m.actual.reservedUnits)} / ${@formats.amount(m.actual.reservedAmount)}, approved ${@formats.days(m.actual.committedUnits)} / ${@formats.amount(m.actual.committedAmount)}, reimbursed ${@formats.amount(m.actual.reimbursedAmount)}|">x</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </th:block>
+</div>
+</body>
+</html>
