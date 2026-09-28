@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Temporarily busy', ~{error/_error :: view('503', 'Temporarily busy', 'Another change to the same records is in progress. Please try again in a moment.')})}">
+</html>

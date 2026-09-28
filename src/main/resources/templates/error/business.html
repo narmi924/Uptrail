@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Action not possible', ~{error/_error :: view('422', 'Action not possible', 'This action is not possible in the current state of the record.')})}">
+</html>

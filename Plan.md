@@ -17,12 +17,12 @@ Conventions:
 
 | Field | Value |
 | --- | --- |
-| Plan version | 0.2.0 |
+| Plan version | 0.3.0 |
 | Last updated | 2026-09-28 (Asia/Singapore) |
 | Approval status | **APPROVED** — owner message of 2026-09-28 approving plan 0.1.1 with amendments A1–A7 below |
 | Approved scope | Sections 3–8 of this version: the complete system (all mandatory features R01–R19, all eight optional features O01–O08, enhancements D01–D07, `training_calendar_year`). Presentation, demo script, delivery packaging and team distribution are out of scope. |
-| Current phase | Phase B — M0 engineering baseline |
-| Next concrete action | M0-T1: project skeleton, local git repository, initial commit and push of `main` |
+| Current phase | Phase B — M0 complete (PR merged); M1 identity, roles and entry points next |
+| Next concrete action | M1-T1: identity domain, `UserDetailsService`, then the two security filter chains (M1-T2) |
 | Real blockers | None known. Docker availability is verified in M0-T3. |
 
 ### Amendments given with the approval
@@ -175,6 +175,8 @@ A01 layered monolith; A02 server-side rendering plus targeted REST; A03 annual a
 | I33 | `DESIGN.md` adapted from an enterprise back-office design description (vendor names, proprietary fonts, URLs and framework APIs removed; tokens renamed; critical text darkened for contrast) | A6 |
 | I34 | Admin workspace composition controllers (dashboard, operations) live in `com.uptrail.admin.web` | Keeps module packages focused |
 | I35 | Routing admin page at `/admin/routing` (not `/admin/approvals`) | Avoids confusion with manager approvals |
+| I36 | The mail health indicator is disabled | SMTP availability must not mark the application DOWN; mail goes through the outbox |
+| I37 | MySQL CHECK violations (error 3819) are not categorised by Spring; services validate every rule before writing, so a CHECK violation reaching the handlers is treated as a defect (500) | Database constraints are a second line of defence |
 
 ---
 
@@ -344,6 +346,21 @@ Naming (I24); `training_calendar_year` (I05–I07); lifecycle commands in comman
 ## 7. Milestones and tasks
 
 Each task ends with the related tests, fixes, and an update of sections 8, 9 and 12. Target dates are sequencing targets only.
+
+### Milestone status
+
+| Milestone | Status | Notes |
+| --- | --- | --- |
+| M0 Engineering baseline | VERIFIED (except M0-T5 API error JSON, verified with the first REST endpoint in M2) | Evidence in 9.2 |
+| M1 Identity, roles, entry points | PLANNED | — |
+| M2 Rules, accounts, ledger, submission | PLANNED | — |
+| M3 Manager review and lifecycle | PLANNED | — |
+| M4 Administration | PLANNED | — |
+| M5 Calendar, pagination, reports, CSV | PLANNED | — |
+| M6 Fee claims | PLANNED | — |
+| M7 Email, audit, operations | PLANNED | — |
+| M8 Hardening | PLANNED | — |
+| M9 Documentation and final verification | PLANNED | — |
 
 ### M0 — Engineering baseline
 
@@ -523,6 +540,10 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | Date/time (SGT) | Command | Result | Notes |
 | --- | --- | --- | --- |
 | 2026-09-28 | `docker info` | Engine 29.2.0 reachable | A2 confirmed |
+| 2026-09-28 | `./mvnw -q -DskipTests compile` | Success | Boot 4.1.1 stack resolved; key classes located on the test classpath (Testcontainers 2 `org.testcontainers.mysql.MySQLContainer`, Boot 4 `org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc`, Jackson 3) |
+| 2026-09-28 | `./mvnw verify -Dit.test=SchemaMigrationIT` (first run) | 6 tests, 2 failures | CHECK violations surface as uncategorized SQL exceptions (MySQL error 3819); assertions changed to require the specific constraint name |
+| 2026-09-28 | `./mvnw verify` | BUILD SUCCESS: unit 6/6 (ArchitectureTest), IT 9/9 (SchemaMigrationIT 6, RuntimeBaselineIT 3) | Migrations V1–V5 on empty `mysql:8.4`; Hibernate `ddl-auto=validate` passed for all 17 tables; health first returned 503 because of the mail health indicator (fixed, I36) |
+| 2026-09-28 | `docker compose up -d`; `java -jar target/uptrail-1.0.0-SNAPSHOT.jar --spring.profiles.active=dev`; `curl /actuator/health` | Compose MySQL and Mailpit healthy; 5 migrations applied; health `UP`; `/employee/dashboard` → 403 under the baseline lock | M0-T4 |
 
 Rules: failures recorded with output; skipped or blocked runs marked `NOT_VERIFIED`/`BLOCKED`; no pre-filled counts, coverage or timings.
 
@@ -576,10 +597,10 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 
 | Field | Value |
 | --- | --- |
-| Completed | Phase A; approval recorded; `DESIGN.md` adapted; `CLAUDE.md` updated |
-| Last verified | Docker engine reachable |
-| Next task | M0-T1 |
-| Open issues | Hibernate schema-validation details for JSON/SMALLINT/TINYINT columns to confirm in M0-T2 |
+| Completed | Phase A; approval; M0 (build, migrations, entities, test infrastructure, Compose, layout, CSS, error pages, baseline security lock) |
+| Last verified | `./mvnw verify` green (15 tests); JAR started against Compose MySQL with health UP |
+| Next task | M1-T1 identity domain, then M1-T2 security chains replacing the baseline lock in `identity.web.SecurityConfig` |
+| Open issues | API error JSON shape to be verified with the first REST endpoint (M2) |
 | How to resume | Read sections 1, 7, 9, 12; `git status`, `git log --oneline -20`, `gh pr list`; run `./mvnw verify`; continue with the first task not `VERIFIED` |
 
 ---
@@ -591,3 +612,4 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 | 0.1.0 | 2026-09-28 | Initial plan from Phase A | WAITING_FOR_USER_APPROVAL | None |
 | 0.1.1 | 2026-09-28 | Added `CLAUDE.md` and the English-source/Chinese-mirror rule | No scope change | None |
 | 0.2.0 | 2026-09-28 | Approval recorded with amendments A1–A7; demo/delivery/team scope removed; public repository and git workflow; new `DESIGN.md`; decisions I29–I35; personal details removed for the public repository | APPROVED; system-only scope | `docker info` |
+| 0.3.0 | 2026-09-28 | M0 engineering baseline done; milestone status table; decisions I36–I37 | No scope change | `./mvnw verify` green; JAR health UP (9.2) |

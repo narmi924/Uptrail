@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Record changed', ~{error/_error :: view('409', 'Record changed', 'This record changed since you opened it. Review the current version and try again.')})}">
+</html>

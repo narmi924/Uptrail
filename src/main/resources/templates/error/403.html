@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Access denied', ~{::#denied})}">
+<body>
+<div id="denied" class="ut-auth-card" style="max-width: 560px">
+  <div class="ut-error-code">Error 403</div>
+  <h1>Access denied</h1>
+  <p class="ut-auth-sub">Your account or the workspace you signed in to does not include this page.
+    Staff pages need the staff sign-in; administration pages need the administrator sign-in.</p>
+  <div class="ut-form-actions">
+    <a class="btn btn-primary" th:href="@{/}">Go to your dashboard</a>
+    <a class="btn btn-secondary" th:href="@{/login}">Staff sign-in</a>
+    <a class="btn btn-secondary" th:href="@{/admin/login}">Administrator sign-in</a>
+  </div>
+</div>
+</body>
+</html>
