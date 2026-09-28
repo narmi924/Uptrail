@@ -1,0 +1,13 @@
+Subject: Reimbursement registered for your fee claim [(${reference})]
+
+Hello [(${recipientName})],
+
+The reimbursement of [(${amount})] for "[(${courseTitle})]" was registered with reference [(${reimbursementReference})].
+Recorded in demo; no payment is initiated.
+
+Open the claim in Uptrail:
+[(${link})]
+
+You will be asked to sign in first.
+
+This message was sent automatically by Uptrail. Please do not reply.

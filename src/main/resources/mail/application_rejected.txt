@@ -1,0 +1,15 @@
+Subject: Your course application [(${reference})] was rejected
+
+Hello [(${recipientName})],
+
+Your application for "[(${courseTitle})]" ([(${period})]) was rejected.
+[# th:if="${reason != null}"]
+Reason given by your manager:
+[(${reason})]
+[/]
+Open the application in Uptrail:
+[(${link})]
+
+You will be asked to sign in first.
+
+This message was sent automatically by Uptrail. Please do not reply.

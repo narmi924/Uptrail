@@ -34,6 +34,11 @@ public class BusinessClock {
         return LocalDate.ofInstant(now(), ZONE);
     }
 
+    /** The first instant of a business date in Singapore time. */
+    public Instant startOf(LocalDate date) {
+        return date.atStartOfDay(ZONE).toInstant();
+    }
+
     public int currentYear() {
         return today().getYear();
     }

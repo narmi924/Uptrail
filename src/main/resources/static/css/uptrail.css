@@ -185,6 +185,14 @@ a.ut-tile:hover { border-color: var(--ut-primary); color: var(--ut-ink); }
 .ut-nowrap { white-space: nowrap; }
 .ut-truncate { max-width: 18rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ---------- Filter chips and inline details ---------- */
+.ut-chips { display: flex; flex-wrap: wrap; gap: var(--ut-space-2); }
+.ut-chip { display: inline-block; padding: 4px 12px; border-radius: var(--ut-radius-pill); border: 1px solid var(--ut-hairline); background: var(--ut-surface); color: var(--ut-ink); font-size: 13px; text-decoration: none; }
+.ut-chip:hover { background: var(--ut-surface-hover); color: var(--ut-ink); }
+.ut-chip.active { border-color: var(--ut-primary); color: var(--ut-primary); font-weight: 600; }
+.ut-inline-details summary { cursor: pointer; color: var(--ut-primary); }
+.ut-json { white-space: pre-wrap; word-break: break-all; font-size: 12px; background: var(--ut-surface-soft); padding: 6px 8px; border-radius: var(--ut-radius-xs); margin: 4px 0 0; max-width: 32rem; }
+
 /* ---------- Status badges ---------- */
 .ut-badge {
   display: inline-block; padding: 2px 8px; border-radius: var(--ut-radius-pill); font-size: 12px; line-height: 16px;

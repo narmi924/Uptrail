@@ -84,6 +84,8 @@ uptrail:
       enabled: true
       poll-interval: PT10S
       lease: PT60S
+      # Retry delays grow 1, 2, 4, 8 minutes (at most one hour); after max-attempts the message is FAILED.
+      backoff: PT1M
       max-attempts: 5
       batch-size: 20
   sample-data:

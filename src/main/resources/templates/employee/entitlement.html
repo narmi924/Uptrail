@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('My Entitlement', 'entitlement', ~{::#page})}">
+<body>
+<div id="page" th:with="o=${overview}, b=${overview.balance}">
+  <div class="ut-page-header">
+    <div>
+      <h1>My Entitlement</h1>
+      <div class="ut-subtitle">Your training days and budget for a year, and every movement that changed them.</div>
+    </div>
+  </div>
+
+  <nav class="ut-tabs" aria-label="Year">
+    <a th:each="y : ${o.years}" th:href="@{/employee/entitlement(year=${y})}" th:classappend="${y == o.year} ? 'active'" th:text="${y}">2026</a>
+  </nav>
+
+  <div class="ut-strip state-critical" th:if="${!b.configured}">
+    <div class="ut-strip-title" th:text="|No entitlement is configured for ${o.year}|">No entitlement</div>
+    Ask an administrator to set up your training days and budget for this year before applying for courses in it.
+  </div>
+
+  <div class="row g-4" th:if="${b.configured}">
+    <div class="col-md-6">
+      <div class="ut-card">
+        <div class="ut-card-header"><h2>Training days</h2></div>
+        <div class="ut-card-body">
+          <div class="ut-check-row"><span class="ut-check-label">Entitlement</span><span class="ut-check-value" th:text="${@formats.days(b.entitledUnits)}">10 days</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Pending applications</span><span class="ut-check-value" th:text="${@formats.days(b.reservedUnits)}">0</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Approved courses</span><span class="ut-check-value" th:text="${@formats.days(b.committedUnits)}">0</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Available</span>
+            <span class="ut-check-value ut-balance-available" th:classappend="${b.availableUnits() < 0} ? 'ut-value-negative'" th:text="${@formats.days(b.availableUnits())}">10 days</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Completed (included in approved)</span><span class="ut-check-value" th:text="${@formats.days(o.completedUnits)}">0</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="ut-card">
+        <div class="ut-card-header"><h2>Budget</h2></div>
+        <div class="ut-card-body">
+          <div class="ut-check-row"><span class="ut-check-label">Budget</span><span class="ut-check-value" th:text="${@formats.money(b.budget)}">SGD</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Pending applications</span><span class="ut-check-value" th:text="${@formats.money(b.reservedAmount)}">SGD</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Approved courses</span><span class="ut-check-value" th:text="${@formats.money(b.committedAmount)}">SGD</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Available</span>
+            <span class="ut-check-value ut-balance-available" th:classappend="${b.availableBudget().signum() < 0} ? 'ut-value-negative'" th:text="${@formats.money(b.availableBudget())}">SGD</span></div>
+          <div class="ut-check-row"><span class="ut-check-label">Reimbursed to you (not deducted again)</span><span class="ut-check-value" th:text="${@formats.money(b.reimbursedAmount)}">SGD</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ut-card" th:if="${b.configured}">
+    <div class="ut-card-header"><h2>Movements</h2>
+      <span class="small-ut text-muted-ut">Newest first. The balance above is the sum of these movements.</span></div>
+    <div class="ut-table-wrap">
+      <table class="ut-table ut-table-compact">
+        <thead><tr><th>Date</th><th>Movement</th><th>Course</th><th class="num">Days</th><th class="num">SGD</th></tr></thead>
+        <tbody>
+        <tr th:each="l : ${view.content}">
+          <td class="ut-nowrap" th:text="${@formats.dateTime(l.at)}">date</td>
+          <td th:switch="${l.type.name()}">
+            <span th:case="'RESERVE'">Reserved for a pending application</span>
+            <span th:case="'UPDATE_RESERVATION'">Reservation changed by an update</span>
+            <span th:case="'COMMIT'">Approved</span>
+            <span th:case="'RELEASE'">Released</span>
+            <span th:case="'REIMBURSE'">Reimbursement registered</span>
+          </td>
+          <td>
+            <a th:if="${l.applicationId != null}" th:href="@{/employee/applications/{id}(id=${l.applicationId})}">
+              <span class="mono" th:text="${l.applicationReference}">ref</span></a>
+            <div class="small-ut text-muted-ut" th:text="${l.courseTitle}">Course</div>
+            <a class="small-ut" th:if="${l.claimId != null}" th:href="@{/employee/claims/{id}(id=${l.claimId})}">Fee claim</a>
+          </td>
+          <td class="num small-ut">
+            <div th:if="${l.reservedUnits != 0}" th:text="'Pending ' + ${@formats.signedDays(l.reservedUnits)}">+1 day</div>
+            <div th:if="${l.committedUnits != 0}" th:text="'Approved ' + ${@formats.signedDays(l.committedUnits)}">+1 day</div>
+          </td>
+          <td class="num small-ut">
+            <div th:if="${l.reservedAmount.signum() != 0}" th:text="'Pending ' + ${@formats.signedAmount(l.reservedAmount)}">+600.00</div>
+            <div th:if="${l.committedAmount.signum() != 0}" th:text="'Approved ' + ${@formats.signedAmount(l.committedAmount)}">+600.00</div>
+            <div th:if="${l.reimbursedAmount.signum() != 0}" th:text="'Reimbursed ' + ${@formats.signedAmount(l.reimbursedAmount)}">+600.00</div>
+          </td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="5">No movements in this year yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'movements')}"></div>
+  </div>
+</div>
+</body>
+</html>

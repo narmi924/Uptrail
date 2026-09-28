@@ -1,0 +1,13 @@
+Subject: Fee claim for [(${reference})] is waiting for your decision
+
+Hello [(${recipientName})],
+
+[(${claimantName})] claimed [(${amount})] for the completed course "[(${courseTitle})]" (revision [(${revision})]).
+The claim is waiting for your decision.
+
+Review the claim and its documents in Uptrail:
+[(${link})]
+
+You will be asked to sign in first.
+
+This message was sent automatically by Uptrail. Please do not reply.

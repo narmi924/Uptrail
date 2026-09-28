@@ -1,0 +1,13 @@
+Subject: Course application [(${reference})] was changed
+
+Hello [(${recipientName})],
+
+[(${applicantName})] changed the application for "[(${courseTitle})]" ([(${period})]).
+Please review the new version before deciding.
+
+Review it in Uptrail:
+[(${link})]
+
+You will be asked to sign in first.
+
+This message was sent automatically by Uptrail. Please do not reply.
