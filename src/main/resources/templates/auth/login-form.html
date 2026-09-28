@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Shared sign-in form; each entry point posts to its own processing URL. -->
+<div th:fragment="form(action, heading, subtitle, otherEntryUrl, otherEntryLabel)" class="ut-auth-card">
+  <h1 th:text="${heading}">Sign in</h1>
+  <p class="ut-auth-sub" th:text="${subtitle}">Uptrail</p>
+
+  <div class="ut-strip state-negative" role="alert" th:if="${param.error != null}">
+    Invalid username or password.
+  </div>
+  <div class="ut-strip state-positive" role="status" th:if="${param.logout != null}">
+    You have signed out.
+  </div>
+  <div class="ut-strip state-critical" role="status" th:if="${param.expired != null}">
+    Your session has ended. Please sign in again.
+  </div>
+
+  <form method="post" th:action="${action}" autocomplete="on">
+    <input type="hidden" name="next" th:if="${next != null}" th:value="${next}">
+    <div class="mb-3">
+      <label class="form-label" for="username">Username</label>
+      <input class="form-control" id="username" name="username" type="text" required autofocus
+             autocomplete="username" maxlength="80">
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="password">Password</label>
+      <div class="input-group">
+        <input class="form-control" id="password" name="password" type="password" required
+               autocomplete="current-password" maxlength="200">
+        <button class="btn btn-secondary" type="button" data-ut-toggle-password="password"
+                aria-controls="password" aria-pressed="false">Show</button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Sign in</button>
+  </form>
+
+  <p class="ut-auth-switch">
+    <a th:href="${otherEntryUrl}" th:text="${otherEntryLabel}">Other sign-in</a>
+  </p>
+</div>
+</body>
+</html>

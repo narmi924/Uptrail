@@ -8,18 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.web.servlet.MockMvc;
 
 import com.uptrail.shared.web.CorrelationId;
 import com.uptrail.support.AbstractMySqlIT;
 
-@AutoConfigureMockMvc
 class RuntimeBaselineIT extends AbstractMySqlIT {
-
-    @Autowired
-    private MockMvc mvc;
 
     @Test
     void healthEndpointReportsUpWithoutDetails() throws Exception {

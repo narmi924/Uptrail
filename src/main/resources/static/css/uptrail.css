@@ -217,7 +217,7 @@ form.ut-inline { display: inline; }
 /* ---------- Forms ---------- */
 .form-label, .ut-label { font-size: 12px; font-weight: 600; color: var(--ut-ink-muted); margin-bottom: 4px; }
 .ut-required { color: var(--ut-ink-muted); font-weight: 400; }
-.form-control, .form-select { border-radius: var(--ut-radius-xs); border-color: var(--ut-hairline-strong); min-height: 34px; font-size: 14px; color: var(--ut-ink); }
+.form-control, .form-select { background-color: var(--ut-surface); border-radius: var(--ut-radius-xs); border-color: var(--ut-hairline-strong); min-height: 34px; font-size: 14px; color: var(--ut-ink); }
 .form-control:focus, .form-select:focus { border-color: var(--ut-primary); box-shadow: 0 0 0 2px rgba(11, 98, 196, 0.2); }
 .form-control.is-invalid, .form-select.is-invalid { border-color: var(--ut-negative); background-color: var(--ut-negative-bg); background-image: none; padding-right: 12px; }
 .invalid-feedback, .ut-field-error { display: block; color: var(--ut-negative); font-size: 12px; margin-top: 4px; }
@@ -332,3 +332,4 @@ form.ut-inline { display: inline; }
   .ut-print-only { display: block !important; }
 }
 .ut-print-only { display: none; }
+.ut-auth-card-wide { max-width: 560px; }

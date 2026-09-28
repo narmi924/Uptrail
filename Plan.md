@@ -17,12 +17,12 @@ Conventions:
 
 | Field | Value |
 | --- | --- |
-| Plan version | 0.3.0 |
+| Plan version | 0.4.0 |
 | Last updated | 2026-09-28 (Asia/Singapore) |
 | Approval status | **APPROVED** — owner message of 2026-09-28 approving plan 0.1.1 with amendments A1–A7 below |
 | Approved scope | Sections 3–8 of this version: the complete system (all mandatory features R01–R19, all eight optional features O01–O08, enhancements D01–D07, `training_calendar_year`). Presentation, demo script, delivery packaging and team distribution are out of scope. |
-| Current phase | Phase B — M0 complete (PR merged); M1 identity, roles and entry points next |
-| Next concrete action | M1-T1: identity domain, `UserDetailsService`, then the two security filter chains (M1-T2) |
+| Current phase | Phase B — M0 and M1 complete; M2 (calendar rules, accounts, ledger, submission) in progress |
+| Next concrete action | M2-T5: application evaluator, submission and preview services |
 | Real blockers | None known. Docker availability is verified in M0-T3. |
 
 ### Amendments given with the approval
@@ -352,8 +352,8 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | Milestone | Status | Notes |
 | --- | --- | --- |
 | M0 Engineering baseline | VERIFIED (except M0-T5 API error JSON, verified with the first REST endpoint in M2) | Evidence in 9.2 |
-| M1 Identity, roles, entry points | PLANNED | — |
-| M2 Rules, accounts, ledger, submission | PLANNED | — |
+| M1 Identity, roles, entry points | VERIFIED | Two chains with entry-bound sessions (I29), CSP, session expiry, safe redirects, scope policy, sample organisation; evidence in 9.2 |
+| M2 Rules, accounts, ledger, submission | IN_PROGRESS | M2-T1 calculator VERIFIED (unit); M2-T3/T4 services written |
 | M3 Manager review and lifecycle | PLANNED | — |
 | M4 Administration | PLANNED | — |
 | M5 Calendar, pagination, reports, CSV | PLANNED | — |
@@ -472,7 +472,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | --- | --- | --- | --- | --- | --- |
 | R01 | Three categories (p3, p5) | form, catalogue admin | catalogue, `course_category` | category rules, catalogue IT | PLANNED |
 | R02 | Internal free/half-day; others fee/full-day | form, preview | calculator, evaluator | T18–T21 | PLANNED |
-| R03 | Two entry points, DB credentials (p5) | `/login`, `/admin/login` | identity, security | T01–T03 | PLANNED |
+| R03 | Two entry points, DB credentials (p5) | `/login`, `/admin/login` | identity, security | T01–T03 (AuthenticationIT) | VERIFIED |
 | R04 | Form, validation, Applied (p6) | `/employee/applications/new` | application | T10–T32, AC-A | PLANNED |
 | R05 | Update → Updated | `/{id}/edit`, `/{id}/update` | application | T29, T34, T49, AC-B | PLANNED |
 | R06 | Delete → Deleted | `/{id}/delete` | application, ledger | T40 | PLANNED |
@@ -503,7 +503,7 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | O05 | Training calendar | `/calendar`, `/api/v1/calendar` | reporting | T63–T65 | PLANNED |
 | O06 | Pagination | all lists | shared | T62, T70 | PLANNED |
 | O07 | Email | outbox, templates, operations page | notification | T74–T76 | PLANNED |
-| O08 | Spring Security | chains, scope policy, CSRF, private files | identity, shared | T01–T09, T71, T72 | PLANNED |
+| O08 | Spring Security | chains, scope policy, CSRF, private files | identity, shared | T01–T09, T71, T72 | IN_PROGRESS (sign-in, roles, workspaces, CSRF, session expiry, headers verified; private files in M6) |
 
 ### 8.3 Enhancements
 
@@ -544,6 +544,8 @@ Each task ends with the related tests, fixes, and an update of sections 8, 9 and
 | 2026-09-28 | `./mvnw verify -Dit.test=SchemaMigrationIT` (first run) | 6 tests, 2 failures | CHECK violations surface as uncategorized SQL exceptions (MySQL error 3819); assertions changed to require the specific constraint name |
 | 2026-09-28 | `./mvnw verify` | BUILD SUCCESS: unit 6/6 (ArchitectureTest), IT 9/9 (SchemaMigrationIT 6, RuntimeBaselineIT 3) | Migrations V1–V5 on empty `mysql:8.4`; Hibernate `ddl-auto=validate` passed for all 17 tables; health first returned 503 because of the mail health indicator (fixed, I36) |
 | 2026-09-28 | `docker compose up -d`; `java -jar target/uptrail-1.0.0-SNAPSHOT.jar --spring.profiles.active=dev`; `curl /actuator/health` | Compose MySQL and Mailpit healthy; 5 migrations applied; health `UP`; `/employee/dashboard` → 403 under the baseline lock | M0-T4 |
+| 2026-09-28 | `./mvnw verify` (M1) | First runs: 2 failures (non-HTML requests got the JSON entry point; test URL pattern) fixed by an explicit login entry point for non-API paths. Final: BUILD SUCCESS, unit 20/20 (ArchitectureTest 6, TrainingDayCalculatorTest 14), IT 29/29 (AuthenticationIT 14, AccessScopePolicyIT 4, SampleOrganisationIT 2, RuntimeBaselineIT 3, SchemaMigrationIT 6) | T01–T04, T08, T09, T13–T21, T30 |
+| 2026-09-28 | JAR with `dev` profile + `agent-browser` at 1366×768 | Sample data loaded (21 accounts); staff sign-in → staff dashboard; admin sign-in → admin dashboard with real counts; screenshots in `target/screens/` (not committed) | Found and fixed: grey input background |
 
 Rules: failures recorded with output; skipped or blocked runs marked `NOT_VERIFIED`/`BLOCKED`; no pre-filled counts, coverage or timings.
 
@@ -597,10 +599,10 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 
 | Field | Value |
 | --- | --- |
-| Completed | Phase A; approval; M0 (build, migrations, entities, test infrastructure, Compose, layout, CSS, error pages, baseline security lock) |
-| Last verified | `./mvnw verify` green (15 tests); JAR started against Compose MySQL with health UP |
-| Next task | M1-T1 identity domain, then M1-T2 security chains replacing the baseline lock in `identity.web.SecurityConfig` |
-| Open issues | API error JSON shape to be verified with the first REST endpoint (M2) |
+| Completed | Phase A; approval; M0; M1 (identity, two entry points, workspace separation, scope policy, sample organisation); M2-T1 calculator |
+| Last verified | `./mvnw verify` green (49 tests); browser check of sign-in and both dashboards |
+| Next task | M2-T2..T6: holiday service, accounts/ledger, audit/outbox primitives, submission and preview, employee pages |
+| Open issues | API business-error JSON verified with the preview endpoint (M2); 401/403 JSON already verified |
 | How to resume | Read sections 1, 7, 9, 12; `git status`, `git log --oneline -20`, `gh pr list`; run `./mvnw verify`; continue with the first task not `VERIFIED` |
 
 ---
@@ -613,3 +615,4 @@ At-least-once email delivery; no antivirus scanning; simulated reimbursement onl
 | 0.1.1 | 2026-09-28 | Added `CLAUDE.md` and the English-source/Chinese-mirror rule | No scope change | None |
 | 0.2.0 | 2026-09-28 | Approval recorded with amendments A1–A7; demo/delivery/team scope removed; public repository and git workflow; new `DESIGN.md`; decisions I29–I35; personal details removed for the public repository | APPROVED; system-only scope | `docker info` |
 | 0.3.0 | 2026-09-28 | M0 engineering baseline done; milestone status table; decisions I36–I37 | No scope change | `./mvnw verify` green; JAR health UP (9.2) |
+| 0.4.0 | 2026-09-28 | M1 done: identity, entry points, scope policy, sample organisation; calculator | No scope change | `./mvnw verify` 49 tests green; browser check (9.2) |
