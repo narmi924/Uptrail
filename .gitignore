@@ -1,0 +1,31 @@
+# Course material, design pack and local Chinese mirrors: never published
+/References/
+/tmp/
+
+# Build output
+/target/
+**/target/
+
+# Runtime data (uploaded documents, captured mail, logs)
+/var/
+*.log
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+.DS_Store
+Thumbs.db
+
+# Tooling caches
+node_modules/
+.mvn/wrapper/maven-wrapper.jar
