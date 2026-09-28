@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Fee claim', 'claims', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-breadcrumb"><a th:href="@{/employee/claims}">My Claims</a></div>
+  <div th:replace="~{fragments/claim :: header(${claim})}"></div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div th:replace="~{fragments/claim :: outcome(${claim})}"></div>
+
+      <div class="ut-card" th:if="${claim.actions.canResubmit}" id="resubmit">
+        <div class="ut-card-header"><h2>Revise and resubmit</h2></div>
+        <div class="ut-card-body">
+          <p class="small-ut text-muted-ut">The revised claim keeps this claim and becomes revision
+            <span th:text="${claim.revision + 1}">2</span>. Attach both documents again; earlier documents stay on record.</p>
+          <div class="ut-strip state-negative" role="alert" th:if="${businessError != null}">
+            <div class="ut-strip-title" th:text="${businessError}">Error</div>
+          </div>
+          <form method="post" enctype="multipart/form-data" th:action="@{/employee/claims/{id}/resubmit(id=${claim.id})}"
+                data-ut-confirm="Submit the revised claim? Your approving manager is notified by email."
+                th:with="amountDraft=${amountDraft != null} ? ${amountDraft} : ${claim.amount.toPlainString()}">
+            <input type="hidden" name="expectedVersion" th:value="${claim.version}">
+            <th:block th:replace="~{fragments/claim :: fields(${claim.application.fee}, ${maxBytes})}"></th:block>
+            <div class="ut-form-actions">
+              <button type="submit" class="btn btn-primary">Submit revised claim</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div th:replace="~{fragments/claim :: course(${claim}, @{/employee/applications/{id}(id=${claim.application.id})})}"></div>
+      <div th:replace="~{fragments/claim :: documents(${claim}, @{/claims/documents/})}"></div>
+    </div>
+    <div class="col-lg-4">
+      <div class="ut-card" th:if="${claim.status.name() == 'SUBMITTED'}">
+        <div class="ut-card-body small-ut text-muted-ut">Waiting for <span th:text="${claim.approverName}">manager</span> to decide.</div>
+      </div>
+      <div class="ut-card" th:if="${claim.status.name() == 'APPROVED'}">
+        <div class="ut-card-body small-ut text-muted-ut">Approved. An administrator registers the reimbursement next.</div>
+      </div>
+      <div th:replace="~{fragments/application :: timeline(${claim.timeline})}"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -33,6 +33,9 @@ import com.uptrail.audit.repository.AuditEventRepository;
 import com.uptrail.catalogue.domain.CategoryCode;
 import com.uptrail.catalogue.service.CatalogueQueryService;
 import com.uptrail.catalogue.service.HolidayCalendarService;
+import com.uptrail.claim.domain.CourseClaim;
+import com.uptrail.claim.repository.CourseClaimRepository;
+import com.uptrail.claim.service.ClaimPolicy;
 import com.uptrail.entitlement.domain.LedgerEntry;
 import com.uptrail.entitlement.domain.TrainingAccount;
 import com.uptrail.entitlement.domain.TrainingDayCalculator;
@@ -73,12 +76,13 @@ public class ApplicationQueryService {
     private final CatalogueQueryService catalogue;
     private final HolidayCalendarService holidays;
     private final AccessScopePolicy scope;
+    private final CourseClaimRepository claims;
     private final BusinessClock clock;
 
     public ApplicationQueryService(CourseApplicationRepository applications, AuditEventRepository auditEvents,
             EntitlementService entitlements, TrainingAccountRepository trainingAccounts, EmployeeRepository employees,
             EmployeeDirectoryService directory, CatalogueQueryService catalogue, HolidayCalendarService holidays,
-            AccessScopePolicy scope, BusinessClock clock) {
+            AccessScopePolicy scope, CourseClaimRepository claims, BusinessClock clock) {
         this.applications = applications;
         this.auditEvents = auditEvents;
         this.entitlements = entitlements;
@@ -88,6 +92,7 @@ public class ApplicationQueryService {
         this.catalogue = catalogue;
         this.holidays = holidays;
         this.scope = scope;
+        this.claims = claims;
         this.clock = clock;
     }
 
@@ -149,7 +154,9 @@ public class ApplicationQueryService {
         boolean ended = clock.today().isAfter(application.getEndDate());
         String completeNote = approved && !ended ? "You can confirm attendance after the course ends on "
                 + ApplicationCommandService.DAY.format(application.getEndDate()) + "." : null;
-        return new Actions(pending, pending, approved, approved && ended, completeNote, false, null);
+        Long claimId = claims.findByApplicationId(application.getId()).map(CourseClaim::getId).orElse(null);
+        boolean canClaim = claimId == null && ClaimPolicy.ineligibility(application).isEmpty();
+        return new Actions(pending, pending, approved, approved && ended, completeNote, canClaim, claimId);
     }
 
     public Dashboard dashboard(Actor actor) {

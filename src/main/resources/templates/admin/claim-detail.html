@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Fee claim', 'reimbursements', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-breadcrumb"><a th:href="@{/admin/reimbursements}">Reimbursements</a></div>
+  <div th:replace="~{fragments/claim :: header(${claim})}"></div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="ut-card" id="register">
+        <div class="ut-card-header"><h2>Register reimbursement</h2></div>
+        <div class="ut-card-body">
+          <p class="mb-0 text-muted-ut" th:if="${!claim.actions.canRegister}" th:text="${claim.actions.registerNote}">Already registered.</p>
+          <form th:if="${claim.actions.canRegister}" method="post" th:action="@{/admin/claims/{id}/reimburse(id=${claim.id})}"
+                data-ut-confirm="Register this reimbursement? It is recorded in demo; no payment is initiated.">
+            <input type="hidden" name="expectedVersion" th:value="${claim.version}">
+            <p class="small-ut">Check the documents below against the approved amount. Registration adds the amount to the
+              reimbursed total of <span th:text="${claim.application.startDate.year}">2026</span>; it does not reduce the budget again.</p>
+            <div class="ut-form-actions">
+              <button type="submit" class="btn btn-primary" th:text="|Register ${@formats.money(claim.amount)} as reimbursed|">Register</button>
+              <span class="ut-action-note">A simulated reference (SIM-…) is issued. Uptrail has no bank interface.</span>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div th:replace="~{fragments/claim :: outcome(${claim})}"></div>
+      <div th:replace="~{fragments/claim :: documents(${claim}, @{/admin/claims/documents/})}"></div>
+      <div th:replace="~{fragments/claim :: course(${claim}, null)}"></div>
+    </div>
+    <div class="col-lg-4">
+      <div th:replace="~{fragments/application :: timeline(${claim.timeline})}"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

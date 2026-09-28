@@ -53,6 +53,17 @@ public class Formats {
         return units < 0 ? "-" + value : value;
     }
 
+    /** File size for document lists: "820 KB", "1.4 MB". */
+    public String fileSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " bytes";
+        }
+        if (bytes < 1024 * 1024) {
+            return Math.max(1, Math.round(bytes / 1024.0)) + " KB";
+        }
+        return String.format(Locale.ENGLISH, "%.1f MB", bytes / (1024.0 * 1024.0));
+    }
+
     /** Signed training time for ledger movements. */
     public String signedDays(int units) {
         return (units > 0 ? "+" : "") + days(units);

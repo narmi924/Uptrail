@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Claim course fee', 'claims', ~{::#page})}">
+<body>
+<div id="page" th:with="a=${course}">
+  <div class="ut-breadcrumb"><a th:href="@{/employee/claims}">My Claims</a></div>
+  <div class="ut-page-header">
+    <div>
+      <div class="mono text-muted-ut" th:text="${a.referenceNo}">CATS-2026-000001</div>
+      <h1 th:text="|Claim fee: ${a.courseTitle}|">Claim fee</h1>
+    </div>
+  </div>
+
+  <div class="ut-strip state-critical" th:if="${ineligible != null}">
+    <div class="ut-strip-title">This course cannot be claimed</div>
+    <span th:text="${ineligible}">Reason</span>
+    <a th:href="@{/employee/applications/{id}(id=${a.id})}">Open the application</a>
+  </div>
+
+  <div class="row g-4" th:if="${ineligible == null}">
+    <div class="col-lg-8">
+      <div class="ut-card">
+        <div class="ut-card-header"><h2>Claim</h2></div>
+        <div class="ut-card-body">
+          <div class="ut-strip state-negative" role="alert" th:if="${businessError != null}">
+            <div class="ut-strip-title" th:text="${businessError}">Error</div>
+          </div>
+          <form method="post" enctype="multipart/form-data" th:action="@{/employee/claims}"
+                data-ut-confirm="Submit this claim? Your approving manager is notified by email.">
+            <input type="hidden" name="applicationId" th:value="${a.id}">
+            <th:block th:replace="~{fragments/claim :: fields(${a.fee}, ${maxBytes})}"></th:block>
+            <div class="ut-form-actions">
+              <button type="submit" class="btn btn-primary">Submit claim</button>
+              <a class="btn btn-ghost" th:href="@{/employee/claims}">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="ut-card">
+        <div class="ut-card-header"><h2>Course</h2></div>
+        <div class="ut-card-body">
+          <dl class="ut-dl ut-dl-narrow">
+            <dt>Category</dt><dd th:text="${a.categoryName}">External Course</dd>
+            <dt>Provider</dt><dd th:text="${a.providerName}">Provider</dd>
+            <dt>Period</dt><dd th:text="${@formats.period(a.startDate, a.startSession.name(), a.endDate, a.endSession.name())}">Period</dd>
+            <dt>Approved fee</dt><dd th:text="${@formats.money(a.fee)}">SGD 0.00</dd>
+            <dt>Completed</dt><dd th:text="${@formats.dateTime(a.completedAt)}">date</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="ut-card">
+        <div class="ut-card-body small-ut text-muted-ut">
+          Your manager approves or rejects the claim with a reason. After approval an administrator registers the
+          reimbursement in Uptrail; this is a record only and does not transfer money.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

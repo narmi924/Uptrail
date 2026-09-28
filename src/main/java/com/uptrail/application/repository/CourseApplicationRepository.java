@@ -119,4 +119,16 @@ public interface CourseApplicationRepository extends JpaRepository<CourseApplica
             """)
     List<CourseApplication> findShownInPeriod(@Param("statuses") Collection<ApplicationStatus> statuses,
             @Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    /** Completed fee-paying courses of the employee that do not have a fee claim yet. */
+    @Query("""
+            select a from CourseApplication a
+            where a.employeeId = :employeeId
+              and a.status = com.uptrail.application.domain.ApplicationStatus.COMPLETED
+              and a.category in :categories and a.courseFee > 0
+              and not exists (select c.id from CourseClaim c where c.applicationId = a.id)
+            order by a.endDate desc, a.id desc
+            """)
+    List<CourseApplication> findClaimable(@Param("employeeId") Long employeeId,
+            @Param("categories") Collection<CategoryCode> categories);
 }

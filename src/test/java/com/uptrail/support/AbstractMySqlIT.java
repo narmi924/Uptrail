@@ -19,6 +19,7 @@ import org.springframework.transaction.support.TransactionTemplate;
         "uptrail.mail.worker.enabled=false",
         "uptrail.sample-data.enabled=false",
         "uptrail.documents.root=target/test-documents",
+        "uptrail.documents.sweep.enabled=false",
         "uptrail.mail.capture-dir=target/test-mail"
 })
 @AutoConfigureMockMvc

@@ -13,7 +13,8 @@
   <nav class="ut-tabs" aria-label="Approval type">
     <a th:href="@{/manager/approvals}" th:classappend="${tab == 'applications'} ? 'active'"
        th:text="|Course applications (${pendingCount})|">Course applications</a>
-    <a th:href="@{/manager/claims}" th:classappend="${tab == 'claims'} ? 'active'">Fee claims</a>
+    <a th:href="@{/manager/claims}" th:classappend="${tab == 'claims'} ? 'active'"
+       th:text="|Fee claims (${claimCount})|">Fee claims</a>
   </nav>
 
   <div class="ut-card" th:if="${view.isEmpty()}">

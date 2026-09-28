@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Something went wrong', ~{error/_error :: view('5xx', 'Something went wrong', 'Something went wrong on the server. Try again in a moment.')})}">
+</html>

@@ -22,11 +22,14 @@ public class SampleDataSeeder implements ApplicationRunner {
     private final EmployeeRepository employees;
     private final SampleOrganisation organisation;
     private final SampleActivity activity;
+    private final SampleClaims claims;
 
-    public SampleDataSeeder(EmployeeRepository employees, SampleOrganisation organisation, SampleActivity activity) {
+    public SampleDataSeeder(EmployeeRepository employees, SampleOrganisation organisation, SampleActivity activity,
+            SampleClaims claims) {
         this.employees = employees;
         this.organisation = organisation;
         this.activity = activity;
+        this.claims = claims;
     }
 
     @Override
@@ -37,7 +40,8 @@ public class SampleDataSeeder implements ApplicationRunner {
         }
         SampleOrganisation.Staff staff = organisation.seed();
         SampleActivity.Created created = activity.seed(staff);
-        log.info("Sample data loaded: {} staff accounts and {} course applications. See README for the sign-in "
-                + "details.", staff.size(), created.applications().size());
+        int claimCount = claims.seed(staff, created.applications());
+        log.info("Sample data loaded: {} staff accounts, {} course applications and {} fee claims. See README for "
+                + "the sign-in details.", staff.size(), created.applications().size(), claimCount);
     }
 }
