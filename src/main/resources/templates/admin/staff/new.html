@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Add staff member', 'staff', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-breadcrumb"><a th:href="@{/admin/staff}">Staff</a></div>
+  <div class="ut-page-header"><div><h1>Add staff member</h1>
+    <div class="ut-subtitle">Creates the person, the sign-in account and, optionally, the approver and this year's training account.</div></div></div>
+
+  <form method="post" th:action="@{/admin/staff}" th:object="${form}" novalidate>
+    <div th:replace="~{fragments/messages :: formErrors('form')}"></div>
+    <div class="ut-card">
+      <div class="ut-card-body">
+        <section class="ut-form-section">
+          <h3>Person</h3>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="staffNo">Staff number <span class="ut-required">(required)</span></label>
+              <input class="form-control" th:field="*{staffNo}" maxlength="30" th:classappend="${#fields.hasErrors('staffNo')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('staffNo')}" th:errors="*{staffNo}">Error</div>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label" for="fullName">Full name <span class="ut-required">(required)</span></label>
+              <input class="form-control" th:field="*{fullName}" maxlength="120" th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Error</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="email">Email <span class="ut-required">(required)</span></label>
+              <input class="form-control" type="email" th:field="*{email}" maxlength="254" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="department">Department <span class="ut-required">(required)</span></label>
+              <input class="form-control" th:field="*{department}" maxlength="100" th:classappend="${#fields.hasErrors('department')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('department')}" th:errors="*{department}">Error</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="designation">Designation</label>
+              <select class="form-select" th:field="*{designation}">
+                <option th:each="d : ${designations}" th:value="${d}" th:text="${d.label()}">Professional</option>
+              </select>
+              <div class="ut-help">Designation sets the default entitlement; it is not a security role.</div>
+            </div>
+          </div>
+        </section>
+        <section class="ut-form-section">
+          <h3>Sign-in account</h3>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="username">Username <span class="ut-required">(required)</span></label>
+              <input class="form-control" th:field="*{username}" maxlength="80" autocomplete="off" th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Error</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="password">Initial password <span class="ut-required">(at least 10 characters)</span></label>
+              <input class="form-control" type="password" id="password" name="password" autocomplete="new-password"
+                     th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Error</div>
+            </div>
+            <div class="col-12">
+              <fieldset>
+                <legend class="form-label">Roles</legend>
+                <div class="form-check form-check-inline" th:each="r : ${roles}">
+                  <input class="form-check-input" type="checkbox" th:field="*{roles}" th:value="${r}">
+                  <label class="form-check-label" th:for="${#ids.prev('roles')}" th:text="${r.label()}">Employee</label>
+                </div>
+                <div class="ut-help">Managers automatically receive the employee role so they can apply for courses too.</div>
+                <div class="ut-field-error" th:if="${#fields.hasErrors('roles')}" th:errors="*{roles}">Error</div>
+              </fieldset>
+            </div>
+          </div>
+        </section>
+        <section class="ut-form-section">
+          <h3>Routing and entitlement</h3>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="approverId">Approving manager</label>
+              <select class="form-select" th:field="*{approverId}" th:classappend="${#fields.hasErrors('approverId')} ? 'is-invalid'">
+                <option value="">Set later</option>
+                <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.fullName} + ' · ' + ${m.department}">Manager</option>
+              </select>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('approverId')}" th:errors="*{approverId}">Error</div>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" th:field="*{openCurrentYearAccount}">
+                <label class="form-check-label" th:for="${#ids.prev('openCurrentYearAccount')}">Open this year's training account with the designation defaults</label>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="ut-form-actions">
+          <button class="btn btn-primary" type="submit">Add staff member</button>
+          <a class="btn btn-secondary" th:href="@{/admin/staff}">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+</body>
+</html>

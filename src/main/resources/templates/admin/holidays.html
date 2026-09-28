@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Public Holidays', 'holidays', ~{::#page})}">
+<body>
+<div id="page" th:with="c=${calendar}">
+  <div class="ut-page-header">
+    <div>
+      <h1 th:text="|Public Holidays ${c.year}|">Public Holidays</h1>
+      <div class="ut-subtitle">Working days of a year are only counted after its holiday list is confirmed. A missing year never means "no holidays".</div>
+    </div>
+    <div class="ut-actions">
+      <form method="get" th:action="@{/admin/holidays}" class="d-flex gap-2">
+        <label class="visually-hidden" for="year">Year</label>
+        <select class="form-select" id="year" name="year" data-ut-autosubmit>
+          <option th:each="y : ${years}" th:value="${y}" th:text="${y}" th:selected="${y == c.year}">2026</option>
+        </select>
+        <noscript><button class="btn btn-secondary" type="submit">Show</button></noscript>
+      </form>
+    </div>
+  </div>
+
+  <div class="ut-card" th:if="${!c.exists}">
+    <div class="ut-card-header"><h2 th:text="|No calendar for ${c.year} yet|">No calendar</h2></div>
+    <div class="ut-card-body">
+      <form class="ut-filters" method="post" th:action="@{/admin/holidays/years}">
+        <input type="hidden" name="year" th:value="${c.year}">
+        <div class="ut-filter-grow"><label class="form-label" for="create-source">Source of the holiday list</label>
+          <input class="form-control" id="create-source" name="sourceNote" maxlength="400" required
+                 placeholder="For example: Ministry of Manpower public holidays page, checked on 1 Dec"></div>
+        <div><button class="btn btn-primary" type="submit" th:text="|Create ${c.year} calendar|">Create</button></div>
+      </form>
+    </div>
+  </div>
+
+  <th:block th:if="${c.exists}">
+    <div class="ut-card">
+      <div class="ut-card-header">
+        <h2>Calendar status</h2>
+        <span th:replace="~{fragments/messages :: status(${c.status.name()}, ${c.status.name() == 'CONFIRMED'} ? 'Confirmed' : 'Draft')}"></span>
+      </div>
+      <div class="ut-card-body">
+        <dl class="ut-dl">
+          <dt>Source</dt><dd th:text="${c.sourceNote}">source</dd>
+          <th:block th:if="${c.confirmedAt != null}">
+            <dt>Confirmed</dt><dd th:text="|${@formats.dateTime(c.confirmedAt)} by ${c.confirmedByName} (${c.confirmedHolidayCount} holidays)|">x</dd>
+          </th:block>
+          <dt>Holidays entered</dt><dd th:text="${#lists.size(c.holidays)}">0</dd>
+        </dl>
+        <div class="ut-strip state-critical mt-3 mb-0" th:if="${c.status.name() == 'DRAFT'}">
+          Applications that include days in <span th:text="${c.year}">2026</span> cannot be submitted or approved until this calendar is confirmed.
+        </div>
+        <div class="ut-form-actions">
+          <form th:if="${c.bundledHolidays > 0}" method="post" th:action="@{/admin/holidays/years/{y}/import(y=${c.year})}"
+                th:attr="data-ut-confirm=|Import the ${c.bundledHolidays} bundled holidays of ${c.year} that are missing? A confirmed year returns to draft if dates are added.|">
+            <button class="btn btn-secondary" type="submit" th:text="|Add missing bundled Singapore holidays (${c.bundledHolidays} in the list)|">Import</button>
+          </form>
+          <form method="post" class="d-flex flex-wrap gap-2 align-items-center" th:action="@{/admin/holidays/years/{y}/confirm(y=${c.year})}">
+            <label class="visually-hidden" for="confirm-source">Source</label>
+            <input class="form-control ut-w-name" id="confirm-source" name="sourceNote" maxlength="400" th:value="${c.sourceNote}" required>
+            <button class="btn btn-primary" type="submit" th:text="${c.status.name() == 'CONFIRMED'} ? 'Confirm again' : 'Confirm calendar'">Confirm</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="ut-card">
+      <div class="ut-card-header"><h2>Add a holiday</h2></div>
+      <div class="ut-card-body">
+        <form class="row g-2 align-items-end" method="post" th:action="@{/admin/holidays/add}">
+          <div class="col-md-3"><label class="form-label" for="add-date">Date</label>
+            <input class="form-control" id="add-date" name="date" type="date" th:attr="min=${c.year + '-01-01'},max=${c.year + '-12-31'}" required></div>
+          <div class="col-md-3"><label class="form-label" for="add-name">Name</label>
+            <input class="form-control" id="add-name" name="name" maxlength="120" required></div>
+          <div class="col-md-4"><label class="form-label" for="add-source">Source</label>
+            <input class="form-control" id="add-source" name="sourceNote" maxlength="400" required></div>
+          <div class="col-md-2"><button class="btn btn-secondary w-100" type="submit">Add</button></div>
+        </form>
+        <p class="ut-help mt-2 mb-0">Adding or removing a date shows the affected applications first. Existing schedules are not rewritten; waiting applications are checked again before approval.</p>
+      </div>
+    </div>
+  </th:block>
+
+  <div class="ut-card">
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Date</th><th>Holiday</th><th>Source</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="h : ${c.holidays}">
+          <td class="text-nowrap" th:text="${#temporals.format(h.date, 'EEE d MMM yyyy')}">date</td>
+          <td th:text="${h.name}">Name</td>
+          <td class="small-ut text-muted-ut" th:text="${h.sourceNote}">Source</td>
+          <td class="num text-nowrap">
+            <details class="ut-inline-edit">
+              <summary class="btn btn-ghost btn-sm">Edit</summary>
+              <form class="ut-inline-edit-form" method="post" th:action="@{/admin/holidays/{d}/describe(d=${h.date})}">
+                <label class="form-label" th:for="${'name-' + h.date}">Name</label>
+                <input class="form-control form-control-sm mb-2" th:id="${'name-' + h.date}" name="name" maxlength="120" th:value="${h.name}" required>
+                <label class="form-label" th:for="${'source-' + h.date}">Source</label>
+                <input class="form-control form-control-sm mb-2" th:id="${'source-' + h.date}" name="sourceNote" maxlength="400" th:value="${h.sourceNote}" required>
+                <button class="btn btn-secondary btn-sm" type="submit">Save</button>
+                <span class="ut-help d-block mt-1">Renaming does not change working days.</span>
+              </form>
+            </details>
+            <form class="ut-inline" method="post" th:action="@{/admin/holidays/{d}/remove(d=${h.date})}">
+              <button class="btn btn-outline-danger btn-sm" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="ut-empty" th:if="${#lists.isEmpty(c.holidays)}"><td colspan="4">No holidays entered for this year.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

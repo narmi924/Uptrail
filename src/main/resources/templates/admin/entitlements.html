@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Entitlements', 'entitlements', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1 th:text="|Entitlements ${year}|">Entitlements</h1>
+      <div class="ut-subtitle">Training days and budget per person and year. Available = entitlement − pending reservations − approved commitments.</div>
+    </div>
+    <div class="ut-actions">
+      <form method="post" th:action="@{/admin/entitlements/{year}/open-missing(year=${year})}"
+            th:attr="data-ut-confirm=|Open ${year} accounts with the designation defaults for everyone who has none?|">
+        <button class="btn btn-secondary" type="submit">Open missing accounts with defaults</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-body">
+      <form class="ut-filters" method="get" th:action="@{/admin/entitlements}">
+        <div class="ut-filter">
+          <label class="form-label" for="year">Year</label>
+          <select class="form-select" id="year" name="year">
+            <option th:each="y : ${years}" th:value="${y}" th:text="${y}" th:selected="${y == year}">2026</option>
+          </select>
+        </div>
+        <div class="ut-filter-grow">
+          <label class="form-label" for="q">Search</label>
+          <input class="form-control" id="q" name="q" type="search" th:value="${q}" placeholder="Name, staff number or department">
+        </div>
+        <div><button class="btn btn-secondary" type="submit">Show</button></div>
+      </form>
+      <p class="ut-help mt-2 mb-0">
+        Defaults:
+        <span th:each="d, it : ${defaults}" th:text="|${d.key.label()} ${@formats.days(d.value.units())}, ${@formats.money(d.value.budget())}${it.last ? '' : ' · '}|">x</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Staff member</th><th class="num">Entitlement</th><th class="num">Pending</th><th class="num">Approved</th>
+          <th class="num">Available</th><th class="num">Reimbursed</th><th>Change (reason required)</th></tr></thead>
+        <tbody>
+        <tr th:each="r : ${view.content}" th:with="b=${r.balance}">
+          <td><span th:text="${r.fullName}">Name</span>
+            <div class="small-ut text-muted-ut" th:text="${r.staffNo} + ' · ' + ${r.designation.label()}">x</div></td>
+          <td class="num" th:if="${b.configured}"><span th:text="${@formats.days(b.entitledUnits)}">x</span><div class="small-ut" th:text="${@formats.money(b.budget)}">x</div></td>
+          <td class="num" th:if="${b.configured}"><span th:text="${@formats.days(b.reservedUnits)}">x</span><div class="small-ut" th:text="${@formats.money(b.reservedAmount)}">x</div></td>
+          <td class="num" th:if="${b.configured}"><span th:text="${@formats.days(b.committedUnits)}">x</span><div class="small-ut" th:text="${@formats.money(b.committedAmount)}">x</div></td>
+          <td class="num" th:if="${b.configured}"><strong th:text="${@formats.days(b.availableUnits())}">x</strong><div class="small-ut" th:text="${@formats.money(b.availableBudget())}">x</div></td>
+          <td class="num" th:if="${b.configured}" th:text="${@formats.money(b.reimbursedAmount)}">x</td>
+          <td colspan="5" th:if="${!b.configured}"><span class="ut-badge status-not-configured">Not configured</span></td>
+          <td>
+            <form class="d-flex flex-wrap gap-2 align-items-center" method="post"
+                  th:action="@{/admin/entitlements/{e}/{y}(e=${r.employeeId},y=${year})}">
+              <input class="form-control form-control-sm ut-w-days" name="days" type="number" min="0" step="0.5"
+                     th:value="${b.configured} ? ${b.entitledUnits / 2.0} : ''" th:attr="aria-label='Days for ' + ${r.fullName}" placeholder="Days" required>
+              <input class="form-control form-control-sm ut-w-money" name="budget" type="number" min="0" step="0.01"
+                     th:value="${b.configured} ? ${b.budget} : ''" th:attr="aria-label='Budget for ' + ${r.fullName}" placeholder="SGD" required>
+              <input class="form-control form-control-sm ut-w-reason" name="reason" maxlength="2000"
+                     th:attr="aria-label='Reason for ' + ${r.fullName}" placeholder="Reason" required>
+              <button class="btn btn-secondary btn-sm" type="submit" th:text="${b.configured} ? 'Save' : 'Create'">Save</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="7">No staff match.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'staff')}"></div>
+  </div>
+</div>
+</body>
+</html>

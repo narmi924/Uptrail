@@ -23,6 +23,8 @@ public interface TrainingAccountRepository extends JpaRepository<TrainingAccount
 
     boolean existsByEmployeeId(Long employeeId);
 
+    List<TrainingAccount> findByEmployeeId(Long employeeId);
+
     /**
      * Locks the accounts of the given years. One statement ordered by year: InnoDB takes the row locks in
      * index order (employee, year), which keeps the lock order consistent across all writers.

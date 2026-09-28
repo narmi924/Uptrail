@@ -8,4 +8,6 @@ import com.uptrail.notification.domain.OutboxStatus;
 public interface OutboxMessageRepository extends JpaRepository<OutboxMessage, Long> {
 
     long countByStatus(OutboxStatus status);
+
+    long countByRecipientEmployeeId(Long recipientEmployeeId);
 }

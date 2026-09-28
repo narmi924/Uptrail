@@ -340,3 +340,16 @@ form.ut-inline { display: inline; }
 }
 .ut-print-only { display: none; }
 .ut-auth-card-wide { max-width: 560px; }
+
+/* Compact inline editors in administration tables */
+.ut-w-days { width: 5.5rem; }
+.ut-w-money { width: 7.5rem; }
+.ut-w-reason { width: 11rem; }
+.ut-w-name { min-width: 12rem; }
+
+/* Row editor revealed on demand */
+.ut-inline-edit { display: inline-block; position: relative; text-align: left; }
+.ut-inline-edit > summary { list-style: none; cursor: pointer; }
+.ut-inline-edit > summary::-webkit-details-marker { display: none; }
+.ut-inline-edit-form { position: absolute; right: 0; z-index: 10; width: 22rem; margin-top: 4px; padding: var(--ut-space-3);
+  background: var(--ut-surface); border: 1px solid var(--ut-hairline); border-radius: var(--ut-radius-md); box-shadow: var(--ut-shadow-2); }
