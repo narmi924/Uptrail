@@ -16,6 +16,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
@@ -105,7 +106,10 @@ public class SecurityConfig {
                         .defaultAuthenticationEntryPointFor(ApiSecurityResponses.unauthenticated(), api)
                         .defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"),
                                 AnyRequestMatcher.INSTANCE)
-                        .defaultAccessDeniedHandlerFor(ApiSecurityResponses.denied(), api))
+                        .defaultAccessDeniedHandlerFor(ApiSecurityResponses.denied(), api)
+                        // With a single mapping Spring Security would use the JSON handler for every request;
+                        // pages get the standard handler, which shows the 403 error page.
+                        .defaultAccessDeniedHandlerFor(new AccessDeniedHandlerImpl(), AnyRequestMatcher.INSTANCE))
                 .sessionManagement(session -> session
                         .maximumSessions(-1)
                         .sessionRegistry(sessionRegistry)

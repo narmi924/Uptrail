@@ -330,7 +330,9 @@ form.ut-inline { display: inline; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 991.98px) {
-  .ut-menu-toggle { display: inline-flex; }
+  .ut-menu-toggle { display: inline-flex; align-items: center; }
+  /* Empty-table messages start at the visible left edge when a wide table scrolls sideways. */
+  .ut-table .ut-empty td { text-align: left; }
   .ut-sidenav { position: fixed; left: 0; top: var(--ut-topbar-height); z-index: 1020; box-shadow: var(--ut-shadow-2); display: none; }
   .ut-sidenav.show { display: block; }
   .ut-sticky { position: static; }
@@ -350,7 +352,7 @@ form.ut-inline { display: inline; }
   .ut-topbar, .ut-sidenav, .ut-actions, .ut-pager, .ut-filters, .ut-tabs, .ut-no-print, .btn { display: none !important; }
   .ut-content { padding: 0; }
   .ut-card { box-shadow: none; border-color: #999; break-inside: avoid; }
-  body { background: #fff; }
+  body, .ut-shell, .ut-content, .ut-content-inner { background: #fff !important; }
   .ut-print-only { display: block !important; }
 }
 .ut-print-only { display: none; }
