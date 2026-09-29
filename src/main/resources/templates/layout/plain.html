@@ -5,13 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title th:text="${title} + ' · Uptrail'">Uptrail</title>
   <link rel="icon" th:href="@{/img/favicon.svg}" type="image/svg+xml">
+  <link rel="preload" th:href="@{/fonts/inter-latin-wght-normal.woff2}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/dist/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/css/uptrail.css}">
   <script defer th:src="@{/js/uptrail.js}"></script>
 </head>
 <body>
-<main class="ut-auth" id="main">
-  <th:block th:replace="${content}"></th:block>
-</main>
+<div class="ut-auth">
+  <!-- Product panel; hidden on narrow screens, where only the card is shown. -->
+  <aside class="ut-auth-panel" aria-hidden="true">
+    <span class="ut-brand"><img class="ut-brand-mark" th:src="@{/img/logo.svg}" alt="">Uptrail</span>
+    <div>
+      <h2>Training requests, approvals and claims in one place.</h2>
+      <p>Staff apply for courses, managers decide with their team's calendar in view, and administrators keep
+        entitlements and reimbursements in order.</p>
+      <ul class="ut-auth-features">
+        <li><svg th:replace="~{fragments/ui :: icon('calendar-days')}"></svg>
+          <div><strong>Half-day scheduling</strong>Working days follow the Singapore public holiday calendar.</div></li>
+        <li><svg th:replace="~{fragments/ui :: icon('shield-check')}"></svg>
+          <div><strong>Checked before you submit</strong>Training days, budget and overlaps are checked as you fill in the form.</div></li>
+        <li><svg th:replace="~{fragments/ui :: icon('receipt')}"></svg>
+          <div><strong>Claims with their evidence</strong>Receipts and certificates travel with each claim to approval and reimbursement.</div></li>
+      </ul>
+    </div>
+    <span class="ut-auth-foot">Uptrail · Staff Training &amp; Approvals</span>
+  </aside>
+  <main class="ut-auth-main" id="main">
+    <th:block th:replace="${content}"></th:block>
+  </main>
+</div>
 </body>
 </html>

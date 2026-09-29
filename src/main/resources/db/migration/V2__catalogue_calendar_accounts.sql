@@ -9,7 +9,7 @@ CREATE TABLE course_category (
   CONSTRAINT ck_course_category_code CHECK (code IN ('INTERNAL', 'EXTERNAL', 'CERTIFICATION'))
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
--- The three categories are fixed by the course brief; administrators may only edit name and description.
+-- The three categories are fixed; administrators may only edit their name and description.
 INSERT INTO course_category (code, display_name, description, version) VALUES
   ('INTERNAL', 'Internal Training', 'Conducted in-house. No course fee. Half-day sessions allowed.', 0),
   ('EXTERNAL', 'External Course', 'Fee-paying course run by an external provider. Full days only.', 0),

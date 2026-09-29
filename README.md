@@ -1,6 +1,6 @@
 # Uptrail
 
-**Staff Training & Approvals.** An implementation of the SA63 Course Application Tracking System (CATS).
+**Staff Training & Approvals** — a web application for applying for training, approving it and claiming course fees.
 
 Employees apply for internal training, external courses and professional certifications; managers approve or reject each application with a reason; administrators maintain staff, approval routing, entitlements, the course catalogue and the public holiday calendar. Training days and budgets are tracked per year in a ledger that separates pending reservations, approved commitments and reimbursed fee claims.
 
@@ -72,7 +72,7 @@ To start again from an empty database: stop the application, run `docker compose
 
 ### Publishing the demo
 
-`vercel deploy --prod` from the repository root publishes the demo. `vercel.json` defines two parts: stylesheets, scripts, images and Bootstrap are collected by `deploy/demo/build-assets.sh` and served from Vercel's CDN; every other request goes to the container built from `Dockerfile.vercel`. Only the files listed in `.vercelignore` are uploaded.
+`vercel deploy --prod` from the repository root publishes the demo. `vercel.json` defines two parts: stylesheets, scripts, fonts, images and Bootstrap are collected by `deploy/demo/build-assets.sh` and served from Vercel's CDN; every other request goes to the container built from `Dockerfile.vercel`. Only the files listed in `.vercelignore` are uploaded.
 
 ## Sample accounts
 

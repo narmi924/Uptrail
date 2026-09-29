@@ -57,6 +57,15 @@ Notes:
 - `com.mysql:mysql-connector-j` is licensed under the GPL v2 with the Universal FOSS Exception; see the Connector/J licence for its conditions.
 - Several Jakarta and Eclipse artifacts declare more than one licence; see each project for how the licences apply.
 
+## Font and icons
+
+These files are part of the application's static resources and are served by the application itself.
+
+| Component | Version | License | Files |
+| --- | --- | --- | --- |
+| Inter variable font, Latin and Latin Extended subsets (from the npm package `@fontsource-variable/inter`) | 5.3.0 | SIL Open Font License 1.1 | `src/main/resources/static/fonts/`; licence text in `Inter-OFL.txt` there |
+| Lucide icons (from the npm package `lucide-static`) | 1.48.0 | ISC; the icons Lucide derives from Feather are MIT | `src/main/resources/static/img/icons.svg` and the message and empty-state icons in `uptrail.css`; licence text in `src/main/resources/static/img/Lucide-LICENSE.txt` |
+
 ## Used only for building and testing
 
 These are not packaged into the application.

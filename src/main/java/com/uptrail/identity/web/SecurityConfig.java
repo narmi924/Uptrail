@@ -88,7 +88,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/error", "/actuator/health", "/actuator/health/liveness",
                                 "/actuator/health/readiness", "/css/**", "/js/**",
-                                "/img/**", "/webjars/**", "/favicon.ico").permitAll()
+                                "/img/**", "/fonts/**", "/webjars/**", "/favicon.ico").permitAll()
                         // The training calendar is available to every signed-in user, in either workspace.
                         .requestMatchers("/calendar", "/api/v1/calendar").authenticated()
                         .requestMatchers("/manager/**").access(allOf(staff, hasRole("MANAGER")))

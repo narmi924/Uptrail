@@ -3,6 +3,7 @@
 <body>
 <!-- Shared sign-in form; each entry point posts to its own processing URL. -->
 <div th:fragment="form(action, heading, subtitle, otherEntryUrl, otherEntryLabel)" class="ut-auth-card">
+  <span class="ut-brand"><img class="ut-brand-mark" th:src="@{/img/logo.svg}" alt="">Uptrail</span>
   <h1 th:text="${heading}">Sign in</h1>
   <p class="ut-auth-sub" th:text="${subtitle}">Uptrail</p>
 
@@ -23,7 +24,7 @@
       <input class="form-control" id="username" name="username" type="text" required autofocus
              autocomplete="username" maxlength="80">
     </div>
-    <div class="mb-3">
+    <div class="mb-4">
       <label class="form-label" for="password">Password</label>
       <div class="input-group">
         <input class="form-control" id="password" name="password" type="password" required

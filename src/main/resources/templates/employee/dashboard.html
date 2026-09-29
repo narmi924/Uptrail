@@ -9,7 +9,7 @@
       <div class="ut-subtitle" th:text="|${profile.department} · ${profile.designation.label()} · Training year ${dash.year}|">Department</div>
     </div>
     <div class="ut-actions">
-      <a class="btn btn-primary" th:href="@{/employee/applications/new}">Apply for a Course</a>
+      <a class="btn btn-primary" th:href="@{/employee/applications/new}"><svg th:replace="~{fragments/ui :: icon('plus')}"></svg>Apply for a Course</a>
     </div>
   </div>
 
@@ -24,22 +24,36 @@
 
   <div class="ut-tiles" th:if="${b.configured}">
     <a class="ut-tile" th:href="@{/employee/entitlement}">
-      <div class="ut-tile-label">Training days available</div>
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon"><svg th:replace="~{fragments/ui :: icon('calendar')}"></svg></span>
+        <span class="ut-tile-label">Training days available</span>
+      </div>
       <div class="ut-tile-value" th:text="${@formats.days(b.availableUnits())}">5 days</div>
+      <div class="ut-meter" aria-hidden="true"><span th:class="${@formats.meter(@formats.percent(b.usedUnits(), b.entitledUnits))}"></span></div>
       <div class="ut-tile-note" th:text="|of ${@formats.days(b.entitledUnits)}: ${@formats.days(b.reservedUnits)} pending, ${@formats.days(b.committedUnits)} approved|">note</div>
     </a>
     <a class="ut-tile" th:href="@{/employee/entitlement}">
-      <div class="ut-tile-label">Budget available</div>
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon"><svg th:replace="~{fragments/ui :: icon('wallet')}"></svg></span>
+        <span class="ut-tile-label">Budget available</span>
+      </div>
       <div class="ut-tile-value" th:text="${@formats.money(b.availableBudget())}">SGD</div>
+      <div class="ut-meter" aria-hidden="true"><span th:class="${@formats.meter(@formats.percent(b.usedAmount(), b.budget))}"></span></div>
       <div class="ut-tile-note" th:text="|of ${@formats.money(b.budget)}: ${@formats.money(b.reservedAmount)} pending, ${@formats.money(b.committedAmount)} approved|">note</div>
     </a>
     <a class="ut-tile" th:href="@{/employee/applications}">
-      <div class="ut-tile-label">Waiting for a decision</div>
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon tone-warning"><svg th:replace="~{fragments/ui :: icon('hourglass')}"></svg></span>
+        <span class="ut-tile-label">Waiting for a decision</span>
+      </div>
       <div class="ut-tile-value" th:text="${dash.pendingCount}">0</div>
       <div class="ut-tile-note">Applied or updated applications</div>
     </a>
     <div class="ut-tile">
-      <div class="ut-tile-label">Completed this year</div>
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon tone-success"><svg th:replace="~{fragments/ui :: icon('graduation-cap')}"></svg></span>
+        <span class="ut-tile-label">Completed this year</span>
+      </div>
       <div class="ut-tile-value" th:text="${@formats.days(dash.completedUnits)}">0 days</div>
       <div class="ut-tile-note">Attendance confirmed; already counted in approved days</div>
     </div>
@@ -48,7 +62,7 @@
   <div class="row g-4">
     <div class="col-lg-7">
       <div class="ut-card">
-        <div class="ut-card-header"><h2>Needs your action</h2></div>
+        <div class="ut-card-header"><h2><svg th:replace="~{fragments/ui :: icon('list-checks')}"></svg>Needs your action</h2></div>
         <div class="ut-table-wrap">
           <table class="ut-table">
             <tbody>
@@ -65,7 +79,7 @@
     </div>
     <div class="col-lg-5">
       <div class="ut-card">
-        <div class="ut-card-header"><h2>Your profile</h2></div>
+        <div class="ut-card-header"><h2><svg th:replace="~{fragments/ui :: icon('user')}"></svg>Your profile</h2></div>
         <div class="ut-card-body">
           <dl class="ut-dl">
             <dt>Staff number</dt><dd class="mono" th:text="${profile.staffNo}">S0001</dd>
@@ -79,7 +93,7 @@
   </div>
 
   <div class="ut-card">
-    <div class="ut-card-header"><h2>Recent applications</h2>
+    <div class="ut-card-header"><h2><svg th:replace="~{fragments/ui :: icon('file-text')}"></svg>Recent applications</h2>
       <div class="ut-card-actions"><a th:href="@{/employee/applications}">All applications this year</a></div></div>
     <div class="ut-table-wrap">
       <table class="ut-table">

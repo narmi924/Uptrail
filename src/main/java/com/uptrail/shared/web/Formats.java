@@ -76,6 +76,28 @@ public class Formats {
         return (amount.signum() > 0 ? "+" : "") + amount(amount);
     }
 
+    /** Share of a limit that is used, in whole percent; 0 when there is no limit. */
+    public int percent(int used, int limit) {
+        return limit <= 0 ? 0 : (int) Math.round(used * 100.0 / limit);
+    }
+
+    public int percent(BigDecimal used, BigDecimal limit) {
+        if (used == null || limit == null || limit.signum() <= 0) {
+            return 0;
+        }
+        return used.multiply(BigDecimal.valueOf(100)).divide(limit, 0, RoundingMode.HALF_UP).intValue();
+    }
+
+    /**
+     * Classes for the fill of a usage meter: its width in 5 % steps (any use shows at least one step) and a
+     * warning tone above 85 % or a danger tone over the limit, as described in DESIGN.md.
+     */
+    public String meter(int percent) {
+        int step = percent <= 0 ? 0 : Math.max(5, Math.min(100, Math.round(percent / 5.0f) * 5));
+        String tone = percent > 100 ? " tone-danger" : percent > 85 ? " tone-warning" : "";
+        return "ut-fill-" + step + tone;
+    }
+
     public String date(LocalDate date) {
         return date == null ? "" : DATE.format(date);
     }

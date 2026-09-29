@@ -123,7 +123,7 @@ class ClaimWebIT extends AbstractClaimIT {
         MockHttpSession session = staffSession(manager);
 
         mvc.perform(get("/manager/approvals").session(session))
-                .andExpect(content().string(Matchers.containsString("Fee claims (1)")));
+                .andExpect(content().string(Matchers.matchesPattern("(?s).*Fee claims\\s*<span class=\"ut-tab-count\">1</span>.*")));
         mvc.perform(get("/manager/claims").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Spring Application Development")));
@@ -152,7 +152,7 @@ class ClaimWebIT extends AbstractClaimIT {
 
         mvc.perform(get("/admin/reimbursements").session(session))
                 .andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString("Awaiting registration (1)")))
+                .andExpect(content().string(Matchers.matchesPattern("(?s).*Awaiting registration\\s*<span class=\"ut-tab-count\">1</span>.*")))
                 .andExpect(content().string(Matchers.containsString("Documents match.")));
         mvc.perform(get("/admin/claims/{id}", claimId).session(session))
                 .andExpect(status().isOk())

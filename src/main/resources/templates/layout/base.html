@@ -7,75 +7,87 @@
   <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
   <title th:text="${title} + ' · Uptrail'">Uptrail</title>
   <link rel="icon" th:href="@{/img/favicon.svg}" type="image/svg+xml">
+  <link rel="preload" th:href="@{/fonts/inter-latin-wght-normal.woff2}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/dist/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/css/uptrail.css}">
   <!-- Deferred scripts run in document order, so page scripts placed in the content run after these. -->
   <script defer th:src="@{/webjars/bootstrap/5.3.8/dist/js/bootstrap.bundle.min.js}"></script>
   <script defer th:src="@{/js/uptrail.js}"></script>
 </head>
-<body th:with="user=${currentUser}">
+<body th:with="user=${currentUser}, home=${currentUser != null and currentUser.adminWorkspace} ? @{/admin/dashboard} : @{/employee/dashboard}">
 <a class="visually-hidden-focusable" href="#main">Skip to content</a>
 
-<header class="ut-topbar">
-  <button type="button" class="btn btn-ghost btn-sm ut-menu-toggle" aria-controls="ut-sidenav"
-          aria-expanded="false" data-ut-toggle="sidenav">Menu</button>
-  <a class="ut-brand" th:href="${user != null and user.adminWorkspace} ? @{/admin/dashboard} : @{/employee/dashboard}">Uptrail</a>
-  <span class="ut-workspace" th:if="${user != null}"
-        th:text="${user.adminWorkspace} ? 'Administration' : 'Staff workspace'">Staff workspace</span>
+<!-- Top bar for small screens; on wide screens the sidebar is always visible. -->
+<header class="ut-topbar" th:if="${user != null}">
+  <button type="button" class="ut-icon-button ut-menu-toggle" aria-controls="ut-sidenav" aria-expanded="false"
+          aria-label="Open navigation" data-ut-toggle="sidenav">
+    <svg th:replace="~{fragments/ui :: icon('menu')}"></svg>
+  </button>
+  <a class="ut-brand" th:href="${home}"><img class="ut-brand-mark" th:src="@{/img/logo.svg}" alt="">Uptrail</a>
   <span class="ut-topbar-spacer"></span>
-  <div class="ut-user" th:if="${user != null}">
-    <div class="ut-user-name" th:text="${user.displayName}">Name</div>
-    <div class="ut-user-roles" th:text="${user.rolesLabel}">Employee</div>
-  </div>
-  <form th:if="${user != null}" method="post" class="ut-inline"
-        th:action="${user.adminWorkspace} ? @{/admin/logout} : @{/logout}">
-    <button type="submit" class="btn btn-secondary btn-sm">Sign out</button>
-  </form>
+  <span class="ut-avatar" th:text="${user.initials}" th:title="${user.displayName}">U</span>
 </header>
 
-<div class="ut-shell">
+<div class="ut-shell" th:classappend="${user == null} ? 'ut-shell-bare'">
   <nav class="ut-sidenav" id="ut-sidenav" aria-label="Main navigation" th:if="${user != null}">
-    <th:block th:if="${!user.adminWorkspace}">
-      <div class="ut-nav-group" th:if="${user.employee}">
-        <div class="ut-nav-heading">My training</div>
-        <a class="ut-nav-link" th:classappend="${nav == 'dashboard'} ? 'active'" th:href="@{/employee/dashboard}">Dashboard</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'applications'} ? 'active'" th:href="@{/employee/applications}">My Applications</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'apply'} ? 'active'" th:href="@{/employee/applications/new}">Apply for a Course</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'claims'} ? 'active'" th:href="@{/employee/claims}">My Claims</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'entitlement'} ? 'active'" th:href="@{/employee/entitlement}">My Entitlement</a>
-      </div>
-      <div class="ut-nav-group" th:if="${user.manager}">
-        <div class="ut-nav-heading">Team</div>
-        <a class="ut-nav-link" th:classappend="${nav == 'approvals'} ? 'active'" th:href="@{/manager/approvals}">Approvals</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'team'} ? 'active'" th:href="@{/manager/team/history}">Team History</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'reports'} ? 'active'" th:href="@{/manager/reports}">Reports</a>
-      </div>
+    <div class="ut-sidenav-brand">
+      <a class="ut-brand" th:href="${home}"><img class="ut-brand-mark" th:src="@{/img/logo.svg}" alt="">Uptrail</a>
+      <span class="ut-workspace" th:text="${user.adminWorkspace} ? 'Administration' : 'Staff workspace'">Staff workspace</span>
+    </div>
+
+    <div class="ut-sidenav-scroll">
+      <th:block th:if="${!user.adminWorkspace}">
+        <div class="ut-nav-group" th:if="${user.employee}">
+          <div class="ut-nav-heading">My training</div>
+          <a th:replace="~{fragments/ui :: navLink('dashboard', @{/employee/dashboard}, 'layout-dashboard', 'Dashboard', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('applications', @{/employee/applications}, 'file-text', 'My Applications', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('apply', @{/employee/applications/new}, 'circle-plus', 'Apply for a Course', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('claims', @{/employee/claims}, 'receipt', 'My Claims', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('entitlement', @{/employee/entitlement}, 'wallet', 'My Entitlement', 0)}"></a>
+        </div>
+        <div class="ut-nav-group" th:if="${user.manager}">
+          <div class="ut-nav-heading">Team</div>
+          <a th:replace="~{fragments/ui :: navLink('approvals', @{/manager/approvals}, 'inbox', 'Approvals', ${user.counts.approvals})}"></a>
+          <a th:replace="~{fragments/ui :: navLink('team', @{/manager/team/history}, 'history', 'Team History', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('reports', @{/manager/reports}, 'chart-column', 'Reports', 0)}"></a>
+        </div>
+      </th:block>
+      <th:block th:if="${user.adminWorkspace}">
+        <div class="ut-nav-group">
+          <div class="ut-nav-heading">Administration</div>
+          <a th:replace="~{fragments/ui :: navLink('admin-dashboard', @{/admin/dashboard}, 'layout-dashboard', 'Dashboard', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('staff', @{/admin/staff}, 'users', 'Staff', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('routing', @{/admin/routing}, 'route', 'Approval Routing', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('entitlements', @{/admin/entitlements}, 'sliders-horizontal', 'Entitlements', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('catalogue', @{/admin/catalogue}, 'book-open', 'Catalogue', 0)}"></a>
+          <a th:replace="~{fragments/ui :: navLink('holidays', @{/admin/holidays}, 'flag', 'Public Holidays', 0)}"></a>
+        </div>
+        <div class="ut-nav-group">
+          <div class="ut-nav-heading">Finance and operations</div>
+          <a th:replace="~{fragments/ui :: navLink('reimbursements', @{/admin/reimbursements}, 'banknote', 'Reimbursements', ${user.counts.registrations})}"></a>
+          <a th:replace="~{fragments/ui :: navLink('operations', @{/admin/operations}, 'activity', 'Operations', 0)}"></a>
+        </div>
+      </th:block>
       <div class="ut-nav-group">
         <div class="ut-nav-heading">Shared</div>
-        <a class="ut-nav-link" th:classappend="${nav == 'calendar'} ? 'active'" th:href="@{/calendar}">Training Calendar</a>
+        <a th:replace="~{fragments/ui :: navLink('calendar', @{/calendar}, 'calendar-days', 'Training Calendar', 0)}"></a>
       </div>
-    </th:block>
-    <th:block th:if="${user.adminWorkspace}">
-      <div class="ut-nav-group">
-        <div class="ut-nav-heading">Administration</div>
-        <a class="ut-nav-link" th:classappend="${nav == 'admin-dashboard'} ? 'active'" th:href="@{/admin/dashboard}">Dashboard</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'staff'} ? 'active'" th:href="@{/admin/staff}">Staff</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'routing'} ? 'active'" th:href="@{/admin/routing}">Approval Routing</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'entitlements'} ? 'active'" th:href="@{/admin/entitlements}">Entitlements</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'catalogue'} ? 'active'" th:href="@{/admin/catalogue}">Catalogue</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'holidays'} ? 'active'" th:href="@{/admin/holidays}">Public Holidays</a>
+    </div>
+
+    <div class="ut-sidenav-footer">
+      <span class="ut-avatar" th:text="${user.initials}" aria-hidden="true">U</span>
+      <div class="ut-user">
+        <div class="ut-user-name" th:text="${user.displayName}">Name</div>
+        <div class="ut-user-roles" th:text="${user.rolesLabel}">Employee</div>
       </div>
-      <div class="ut-nav-group">
-        <div class="ut-nav-heading">Finance and operations</div>
-        <a class="ut-nav-link" th:classappend="${nav == 'reimbursements'} ? 'active'" th:href="@{/admin/reimbursements}">Reimbursements</a>
-        <a class="ut-nav-link" th:classappend="${nav == 'operations'} ? 'active'" th:href="@{/admin/operations}">Operations</a>
-      </div>
-      <div class="ut-nav-group">
-        <div class="ut-nav-heading">Shared</div>
-        <a class="ut-nav-link" th:classappend="${nav == 'calendar'} ? 'active'" th:href="@{/calendar}">Training Calendar</a>
-      </div>
-    </th:block>
+      <form method="post" class="ut-inline" th:action="${user.adminWorkspace} ? @{/admin/logout} : @{/logout}">
+        <button type="submit" class="ut-icon-button" aria-label="Sign out" title="Sign out">
+          <svg th:replace="~{fragments/ui :: icon('log-out')}"></svg>
+        </button>
+      </form>
+    </div>
   </nav>
+  <div class="ut-backdrop" data-ut-backdrop="sidenav" th:if="${user != null}"></div>
 
   <main class="ut-content" id="main">
     <div class="ut-content-inner">

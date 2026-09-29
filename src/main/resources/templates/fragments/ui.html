@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Line icon from the local sprite (static/img/icons.svg). Decorative: the text next to it carries the meaning. -->
+<svg th:fragment="icon(name)" class="ut-icon" aria-hidden="true" focusable="false"><use th:href="@{/img/icons.svg} + '#i-' + ${name}"></use></svg>
+
+<!-- Sidebar link; "nav" is the key of the current page, set by the page layout. -->
+<a th:fragment="navLink(key, href, icon, label, count)" class="ut-nav-link" th:href="${href}"
+   th:classappend="${nav == key} ? 'active'" th:attr="aria-current=${nav == key} ? 'page' : null">
+  <svg th:replace="~{fragments/ui :: icon(${icon})}"></svg>
+  <span th:text="${label}">Label</span>
+  <span class="ut-nav-count" th:if="${count > 0}" th:text="${count}"
+        th:attr="aria-label=|${count} waiting|">0</span>
+</a>
+
+</body>
+</html>

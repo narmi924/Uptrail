@@ -44,7 +44,7 @@ class ApplicationSubmissionIT extends AbstractApplicationIT {
     void submissionReservesDaysAndBudgetWritesAuditAndQueuesManagerEmail() {
         SubmitResult result = submit(employee, external(MON_12_OCT, MON_12_OCT.plusDays(1), "600.00"));
 
-        assertThat(result.referenceNo()).matches("CATS-2026-\\d{6}");
+        assertThat(result.referenceNo()).matches("UPT-2026-\\d{6}");
         assertThat(statusOf(result.applicationId())).isEqualTo("APPLIED");
         assertThat(count("SELECT COUNT(*) FROM application_day WHERE application_id = ?", result.applicationId()))
                 .isEqualTo(2);

@@ -11,8 +11,8 @@
   </div>
 
   <nav class="ut-tabs" aria-label="Reimbursement status">
-    <a th:href="@{/admin/reimbursements}" th:classappend="${tab == 'awaiting'} ? 'active'"
-       th:text="|Awaiting registration (${awaitingCount})|">Awaiting registration</a>
+    <a th:href="@{/admin/reimbursements}" th:classappend="${tab == 'awaiting'} ? 'active'">Awaiting registration
+      <span class="ut-tab-count" th:text="${awaitingCount}">0</span></a>
     <a th:href="@{/admin/reimbursements(tab='registered')}" th:classappend="${tab == 'registered'} ? 'active'">Registered</a>
   </nav>
 

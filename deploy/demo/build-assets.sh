@@ -1,5 +1,5 @@
 #!/bin/sh
-# Collects the static files (stylesheets, scripts, images, Bootstrap) that Vercel serves from its CDN in
+# Collects the static files (stylesheets, scripts, fonts, images, Bootstrap) that Vercel serves from its CDN in
 # front of the demo container, so a browser's parallel asset requests never reach the container.
 # Run from the repository root; the result is written to deploy/demo/public/.
 set -eu

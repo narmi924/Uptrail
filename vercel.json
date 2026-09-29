@@ -17,7 +17,7 @@
   },
   "headers": [
     {
-      "source": "/(css|js|img|webjars)/(.*)",
+      "source": "/(css|js|img|fonts|webjars)/(.*)",
       "headers": [
         {
           "key": "X-Content-Type-Options",
@@ -41,6 +41,12 @@
     },
     {
       "source": "/img/(.*)",
+      "destination": {
+        "service": "assets"
+      }
+    },
+    {
+      "source": "/fonts/(.*)",
       "destination": {
         "service": "assets"
       }

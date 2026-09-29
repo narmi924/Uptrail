@@ -1,233 +1,195 @@
-# Uptrail Workbench Design System
+# Uptrail Design System
 
-Visual and interaction rules for the Uptrail user interface (server-rendered Thymeleaf pages, Bootstrap 5, one local stylesheet, small vanilla JavaScript modules).
+Visual and interaction rules for the Uptrail user interface: server-rendered Thymeleaf pages, Bootstrap 5 as the component base, one local stylesheet and small vanilla JavaScript files.
 
-Provenance: adapted from a publicly available description of an enterprise back-office design language. Vendor names, proprietary typefaces, product URLs, marketing copy and framework-specific component APIs were removed; tokens were renamed, some values were changed for accessibility, and every rule was rewritten for this application's stack and screens.
+Uptrail should feel like a modern product, not a form generator: calm surfaces, confident typography, one clear accent colour and data that reads at a glance. It is still a work tool, so density, clarity and keyboard use matter more than decoration.
 
-Implementation file: `src/main/resources/static/css/uptrail.css`. Tokens are CSS custom properties on `:root`; Bootstrap variables are mapped onto them so Bootstrap components follow the same palette.
+Provenance: inspired by publicly available descriptions of modern product design languages (payments dashboards, documentation sites and productivity tools). No vendor names, proprietary typefaces, logos or assets are used; every rule is written for this application.
+
+Implementation: `src/main/resources/static/css/uptrail.css` (tokens are CSS custom properties on `:root`; Bootstrap variables are mapped onto them), icons in `static/img/icons.svg`, the Inter font in `static/fonts/`.
 
 ---
 
 ## 1. Principles
 
-1. **Work surface, not a showcase.** Every screen exists to review, decide, record or reconcile. No hero sections, no decorative gradients, no illustrations, no animation beyond short state transitions.
-2. **One interactive colour.** Primary blue marks primary actions, links, focus and the active navigation item. Everything else is neutral.
-3. **Status is a contract.** Four semantic states (positive, critical, negative, information) plus neutral. Each business status maps to exactly one state (section 6). Status is always written as text; colour only reinforces it.
-4. **Density for desks, space for touch.** Compact controls and table rows on desktop; larger targets on narrow screens.
-5. **Numbers are data.** Amounts and day counts use tabular numerals, right alignment, an explicit currency (`SGD`) and one decimal format.
-6. **Explain, do not hide.** Unavailable actions are either absent because they never apply, or shown disabled with the reason next to them.
+1. **Calm surfaces, clear hierarchy.** A cool off-white canvas, white cards with whisper-thin borders and soft, blue-tinted shadows. Hierarchy comes from type weight and spacing, not from boxes inside boxes.
+2. **One accent.** Indigo marks what is interactive or selected. Status colours are reserved for status; category colours only for categories.
+3. **Numbers are content.** Days and money use tabular figures, always with their unit (`SGD 600.00`, `2.5 days`). Balances show a progress meter so the remaining budget is visible without reading.
+4. **Never colour alone.** Every status badge has a text label and a dot; every icon button has a label or `aria-label`.
+5. **Fast and self-contained.** No CDN, no web fonts from third parties, no inline scripts or styles (the Content-Security-Policy blocks them). Pages work at 390 px width and in print.
 
 ---
 
-## 2. Colour tokens
+## 2. Colour
+
+### Neutrals
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--ut-primary` | `#0b62c4` | Primary buttons, links, focus ring, active tab/nav marker |
-| `--ut-primary-hover` | `#094f9e` | Hover on primary fills and links |
-| `--ut-primary-active` | `#073c78` | Pressed state |
-| `--ut-ink` | `#1d2d3e` | Body text, titles (never pure black) |
-| `--ut-ink-muted` | `#556b82` | Labels, table headers, metadata, helper text |
-| `--ut-ink-quiet` | `#7a8b9e` | Disabled text only |
-| `--ut-canvas` | `#f5f6f7` | Page background |
-| `--ut-surface` | `#ffffff` | Cards, tables, forms, dialogs |
-| `--ut-surface-soft` | `#eef1f4` | Table header row, secondary toolbars, read-only fields |
-| `--ut-surface-hover` | `#f5f8fa` | Row hover |
-| `--ut-hairline` | `#d9e0e6` | Card and table borders |
-| `--ut-hairline-soft` | `#eef1f4` | Row separators |
-| `--ut-hairline-strong` | `#a9b4c0` | Input borders |
-| `--ut-scrim` | `rgba(29, 45, 62, 0.45)` | Modal backdrop |
+| `--ut-ink` | `#0f1b2d` | Headings, primary text, table values (deep navy instead of black) |
+| `--ut-ink-2` | `#344054` | Body text, labels |
+| `--ut-ink-3` | `#667085` | Secondary text, captions, table headings |
+| `--ut-ink-4` | `#98a2b3` | Placeholders, disabled text, quiet icons |
+| `--ut-canvas` | `#f5f7fb` | Page background |
+| `--ut-surface` | `#ffffff` | Cards, inputs, sidebar |
+| `--ut-surface-2` | `#f9fafc` | Table headers, subtle fills, read-only fields |
+| `--ut-surface-3` | `#f1f3f8` | Hover fills, chips, meter tracks |
+| `--ut-border` | `#e6e9f0` | Card and table borders (whisper weight) |
+| `--ut-border-strong` | `#d0d5dd` | Inputs, secondary buttons |
 
-### Semantic states
+### Accent (Trail Indigo)
 
-| State | Text / icon | Background | Border | Meaning in Uptrail |
-| --- | --- | --- | --- | --- |
-| Positive | `#107e3e` | `#eef8f1` | `#9ad4af` | Finished successfully: completed course, reimbursed claim, confirmed calendar, sent email |
-| Critical | `#9a4a00` (text), `#df6e0c` (accent) | `#fff4e6` | `#f8cb9c` | Waiting for someone: pending application or claim, draft calendar year, retrying email |
-| Negative | `#b00000` | `#ffeef0` | `#f399a2` | Refused or failed: rejected, validation error, failed email, insufficient balance |
-| Information | `#0b62c4` | `#edf4fd` | `#a1cbfa` | Scheduled or informative: approved course, approved claim, notices |
-| Neutral | `#1d2d3e` | `#eef1f4` | `#d9e0e6` | Closed without outcome: deleted, cancelled, inactive |
+| Token | Value | Use |
+| --- | --- | --- |
+| `--ut-primary` | `#4f46e5` | Primary buttons, links, active navigation, focus |
+| `--ut-primary-hover` | `#4338ca` | Hover |
+| `--ut-primary-active` | `#3730a3` | Pressed |
+| `--ut-primary-soft` | `#eef0ff` | Active navigation item, selected chips, soft buttons |
+| `--ut-primary-soft-border` | `#c7cbfd` | Borders of soft elements |
+| `--ut-primary-on-soft` | `#3b35c3` | Text and icons on soft backgrounds |
 
-The critical text colour is darker than the accent so badge text meets WCAG AA contrast on its background.
+The brand gradient `#4f46e5 → #7c3aed → #0ea5e9` is used only for the brand mark and the sign-in panel. The sign-in panel background is Night `#0b1026` with soft indigo and teal glows.
+
+### Status
+
+| Role | Text | Background | Border | Dot | Used for |
+| --- | --- | --- | --- | --- | --- |
+| Success | `#067647` | `#ecfdf3` | `#abefc6` | `#17b26a` | Completed, reimbursed, confirmed, sent, active |
+| Warning | `#b54708` | `#fffaeb` | `#fedf89` | `#f79009` | Awaiting a decision: applied, updated, submitted, draft, pending |
+| Danger | `#b42318` | `#fef3f2` | `#fecdca` | `#f04438` | Rejected, failed, validation errors, destructive actions |
+| Info | `#175cd3` | `#eff8ff` | `#b2ddff` | `#2e90fa` | Approved and scheduled, notices |
+| Neutral | `#475467` | `#f2f4f7` | `#e4e7ec` | `#98a2b3` | Deleted, cancelled, inactive, not configured |
+
+### Categories
+
+| Category | Colour | Soft background |
+| --- | --- | --- |
+| Internal training | Teal `#0e9384` | `#f0fdf9` |
+| External course | Blue `#1570ef` | `#eff8ff` |
+| Professional certification | Violet `#7a5af8` | `#f4f3ff` |
+
+Contrast: body text and badge text reach at least 4.5:1 on their backgrounds; white on `--ut-primary` is 6.3:1.
 
 ---
 
 ## 3. Typography
 
-System fonts only; nothing is downloaded at runtime.
+Font: **Inter** (variable, self-hosted, SIL Open Font License), fallback `system-ui`. Features: `cv11` (single-storey a) everywhere; `tnum` (tabular figures) for every number in tables, stats, balances and money. Reference numbers stay in Inter with tabular figures and a slashed zero; a monospace font (`ui-monospace`, `SFMono-Regular`, `Consolas`) is used only for raw JSON in the audit trail.
 
-```css
---ut-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
---ut-font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-```
+| Role | Size / line height | Weight | Tracking | Use |
+| --- | --- | --- | --- | --- |
+| Display | 34 / 40 | 650 | -0.025em | Sign-in panel headline |
+| Page title | 26 / 32 | 650 | -0.02em | One `h1` per page |
+| Section title | 16 / 24 | 600 | -0.01em | Card and section headings |
+| Stat value | 28 / 34 | 650 | -0.02em, `tnum` | Dashboard numbers |
+| Body | 14 / 22 | 400 | 0 | Default text |
+| Body strong | 14 / 22 | 550 | 0 | Table primary column, names |
+| Small | 13 / 20 | 400–500 | 0 | Buttons (small), helper text, pager |
+| Caption | 12 / 18 | 500 | 0 | Labels, meta lines, table headings |
+| Overline | 11 / 16 | 600 | 0.06em, uppercase | Sidebar group labels, stat labels |
+| Reference | 13 / 20 | 500 | 0, `tnum`, slashed zero | Reference numbers, staff numbers, correlation ids |
 
-| Role | Size / line height | Weight | Use |
-| --- | --- | --- | --- |
-| Page title | 24px / 30px | 700 | One per page, in the page header |
-| Section title | 18px / 24px | 700 | Card and section headers |
-| Subsection | 16px / 22px | 600 | Group titles inside a card |
-| Body | 14px / 20px | 400 | Default for tables, forms, text |
-| Body strong | 14px / 20px | 600 | Key values, current balance |
-| Small | 12px / 16px | 400 | Helper text, timestamps, badge text |
-| Label | 12px / 16px | 600 | Form labels, table column headers (no uppercase transform) |
-| Mono | 13px / 18px | 400 | Reference numbers (`CATS-2026-000042`), `SIM-` references, correlation ids |
-
-Numeric cells and amounts use `font-variant-numeric: tabular-nums`.
+Rules: headings in `--ut-ink`, body in `--ut-ink-2`, secondary text in `--ut-ink-3`. Never use weights above 700. Keep line length under 80 characters for prose.
 
 ---
 
-## 4. Spacing, shape, elevation
+## 4. Layout and spacing
 
-Spacing scale (8px base): `2, 4, 8, 12, 16, 24, 32, 48` px as `--ut-space-*`.
-
-| Radius token | Value | Use |
-| --- | --- | --- |
-| `--ut-radius-xs` | 4px | Inputs, message strips |
-| `--ut-radius-sm` | 6px | Buttons, dropdown triggers |
-| `--ut-radius-md` | 8px | Cards, table wrappers, panels |
-| `--ut-radius-lg` | 12px | Dialogs |
-| `--ut-radius-pill` | 16px | Status badges, filter chips |
-
-Elevation:
-
-- Level 0: border only (`1px solid var(--ut-hairline)`), used for tables inside cards.
-- Level 1: `0 1px 4px rgba(29, 45, 62, 0.08)`, cards and panels.
-- Level 2: `0 4px 16px rgba(29, 45, 62, 0.12)`, dropdowns and popovers.
-- Level 3: `0 12px 32px rgba(29, 45, 62, 0.20)`, dialogs with the scrim.
+- Spacing grid of 4 px: 4, 8, 12, 16, 20, 24, 32, 40, 48.
+- **App shell:** a 256 px white sidebar on the left (brand, workspace label, grouped navigation with icons, the signed-in person at the bottom) and the content area on the canvas. Below 992 px the sidebar becomes a drawer opened from a slim top bar.
+- **Content:** maximum width 1240 px, padding 32 px (24 px below 1200 px, 16 px below 768 px). Gaps between cards 16–24 px.
+- **Grids:** stat cards in an auto-fit grid (minimum 220 px); detail pages use 8/4 columns (content / side panel) from 992 px up.
+- Tables scroll inside their card on narrow screens; the page itself never scrolls sideways.
 
 ---
 
-## 5. Layout
+## 5. Shape, elevation and motion
 
-### 5.1 Shell
-
-- **Top bar**, 48px, white with a bottom hairline: product name "Uptrail", workspace label (Staff workspace / Administration), current user name and roles, sign-out button (POST form).
-- **Side navigation**, 232px, white, left hairline marker in primary blue on the active item. Groups: *My training* (Dashboard, My Applications, Apply for a Course, My Claims, My Entitlement), *Team* (Approvals, Team History, Reports; managers only), *Shared* (Training Calendar). The administration workspace has its own group (Dashboard, Staff, Approval Routing, Entitlements, Catalogue, Public Holidays, Reimbursements, Operations, Training Calendar).
-- **Content area** on the canvas colour, max width 1280px, 24px padding (16px below 768px).
-- Below 992px the side navigation collapses behind a menu button in the top bar.
-
-### 5.2 Page patterns
-
-| Pattern | Structure | Used by |
+| Token | Value | Use |
 | --- | --- | --- |
-| List report | Page header (title, primary action) → filter bar card → table card with pagination footer | My Applications, Team History, Staff, Reimbursements, Operations |
-| Object page | Header (reference in mono, title, status badge, key facts row, actions) → two-column body: details and schedule (left, 8/12), timeline and balances (right, 4/12) | Application detail, claim detail |
-| Review page | Object page plus a sticky decision panel at the bottom of the left column | Manager application and claim review |
-| Form with live check | Form (8/12) with three titled sections; sticky side panel (4/12) showing the eligibility check result | Apply / edit application |
-| Grouped worklist | Tabs (Applications / Fee claims) → one card per subordinate with a compact table; pagination by subordinate | Manager approvals |
-| Configuration page | Tabs for sibling entities in one shell; table plus inline "add" form | Catalogue, Public Holidays |
-| Calendar | Toolbar (previous, month select, next, category filter, view toggle) → month grid or list | Training Calendar |
+| `--ut-radius-sm` | 6 px | Inputs, small buttons, calendar events |
+| `--ut-radius-md` | 8 px | Buttons, dropdowns, navigation items |
+| `--ut-radius-lg` | 12 px | Cards, tables, panels |
+| `--ut-radius-xl` | 16 px | Sign-in card, empty-state illustrations |
+| `--ut-radius-pill` | 999 px | Badges, chips, avatars, meters |
+
+Shadows are layered and slightly blue-tinted so elevation feels part of the palette:
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--ut-shadow-xs` | `0 1px 2px rgba(16,24,40,.05)` | Buttons, inputs |
+| `--ut-shadow-sm` | `0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04)` | Cards at rest |
+| `--ut-shadow-md` | `0 12px 24px -10px rgba(50,50,93,.20), 0 4px 10px -6px rgba(0,0,0,.08)` | Hovered clickable cards, sticky panels |
+| `--ut-shadow-lg` | `0 30px 60px -24px rgba(50,50,93,.35), 0 18px 36px -18px rgba(0,0,0,.18)` | Popovers, dialogs, sign-in card |
+
+Focus ring: `0 0 0 4px rgba(79,70,229,.18)` plus the indigo border on inputs; a 2 px indigo outline on other focusable elements.
+
+Motion: 150 ms `cubic-bezier(.2,.8,.2,1)` for hover, press and panel changes; clickable cards lift by 1 px. Everything is disabled under `prefers-reduced-motion`.
 
 ---
 
-## 6. Status mapping
+## 6. Iconography
 
-Status badges are pills with text, never colour alone.
-
-| Domain | Status | State |
-| --- | --- | --- |
-| Course application | APPLIED, UPDATED | Critical (awaiting manager) |
-| | APPROVED | Information (scheduled) |
-| | COMPLETED | Positive |
-| | REJECTED | Negative |
-| | DELETED, CANCELLED | Neutral |
-| Fee claim | SUBMITTED | Critical |
-| | APPROVED | Information |
-| | REIMBURSED | Positive, with the note "Recorded; no payment initiated" |
-| | REJECTED | Negative |
-| Calendar year | DRAFT | Critical |
-| | CONFIRMED | Positive |
-| | Not configured | Neutral |
-| Email outbox | PENDING, SENDING | Critical |
-| | SENT | Positive |
-| | FAILED | Negative |
-| Employee | Active | Positive |
-| | Inactive | Neutral |
-
-Badge labels use sentence case of the status name (for example "Applied", "Reimbursed").
+Line icons from one local sprite (`/img/icons.svg`, ids `i-<name>`), drawn with `currentColor`, stroke 2, sizes 16 (inline, buttons), 18 (navigation) and 20 (stat and empty-state icons). An icon always sits next to a text label; an icon-only button carries an `aria-label`. Use the same icon for the same concept everywhere (for example `receipt` for claims, `wallet` for entitlement, `calendar-days` for holidays).
 
 ---
 
 ## 7. Components
 
-### Buttons
+**Sidebar navigation.** Brand mark (gradient tile with the Uptrail monogram) and name, then the workspace label ("Staff workspace" or "Administration") as an overline. Items: 18 px icon + label, 36 px high, 8 px radius. Active item: `--ut-primary-soft` background, `--ut-primary-on-soft` text and icon, weight 600. Counts (for example waiting approvals) sit right-aligned in a small pill. The footer shows an initials avatar, name, roles and a sign-out button.
 
-| Variant | Look | Use |
-| --- | --- | --- |
-| Primary | Blue fill, white text, 6px radius | The single main action of a page or panel |
-| Secondary | White fill, strong hairline border, blue text | Other actions |
-| Ghost | Transparent, blue text | Low-emphasis actions inside tables |
-| Danger | Negative red fill, white text | Destructive confirmations only (Delete, Cancel course, Reject) inside a confirmation dialog |
+**Page header.** Optional back link (small, with an arrow), the page title, a one-line subtitle in `--ut-ink-3`, and actions on the right. Detail pages add a key-facts row under the title.
 
-Height 34px on desktop, 44px below 768px. Focus ring: 2px solid primary with 2px offset. State-changing buttons are always inside POST forms.
+**Cards.** White, 1 px `--ut-border`, 12 px radius, `--ut-shadow-sm`. Header: 16 px section title with an optional icon and actions on the right, separated from the body by a hairline. Clickable cards lift on hover.
 
-### Tables
+**Stat cards.** Icon in a 36 px tinted circle, overline label, stat value, a note line and, for balances, a meter (8 px pill track in `--ut-surface-3`, indigo fill; warning fill above 85 %, danger fill when over).
 
-- Header row: soft surface, label typography, 36px height.
-- Body rows: 40px, row separators in soft hairline, hover in surface-hover.
-- Amount and day columns right-aligned with tabular numerals; currency shown in the header ("Fee (SGD)").
-- The first column (reference or course title) is the detail link.
-- Empty table: one row spanning all columns with a one-line explanation and, where useful, a next action ("No applications this year. Apply for a course.").
+**Tables.** Inside a card; header row in `--ut-surface-2` with caption-style headings; rows at least 48 px high with hairline separators and a soft hover. The first column (reference or name) is the link to the detail. Numbers right-aligned with `tnum`. Empty table: one row with an icon and a sentence that says what to do next.
 
-### Forms
+**Badges.** Pill, 12 px weight 550, a 6 px coloured dot before the label, soft background and border from the status table. Never only a coloured dot.
 
-- Label above field; required fields marked with "Required" in the label text, not only with an asterisk.
-- Input: 34px, 4px radius, strong hairline border; invalid input has negative border and background plus the message below the field.
-- A form-level message strip summarises errors at the top after a failed submission; field input is preserved.
-- Help text in small muted type under the field (for example the half-day rule).
+**Buttons.** Primary: indigo fill, white text, 8 px radius, 38 px high (34 px small). Secondary: white with `--ut-border-strong` border and `--ut-shadow-xs`, ink text. Soft: `--ut-primary-soft` fill with indigo text for secondary calls to action. Ghost: text only. Danger: outlined red, filled red only inside a confirmation. One primary button per panel.
 
-### Message strips
+**Forms.** Labels 13 px weight 550 in `--ut-ink-2` above fields; inputs 40 px high, 8 px radius, white, `--ut-border-strong`; focus ring as above. Help text 12 px under the field; errors in danger text with the field border in danger. Required fields say "(required)" in the label.
 
-Full-width strip with a 4px left border in the state colour, state background, ink text. Used for flash messages after actions, business-rule errors, and notices such as "Registration only. Uptrail does not transfer money."
+**Filters and tabs.** Filter bars sit in a card body as a row of fields with the submit button at the end. Tabs are underlined: 2 px indigo underline for the active tab, counts in a small pill.
 
-### Cards and panels
+**Messages.** Flash messages and strips are rounded panels with an icon, a soft status background and a 1 px status border; the title is weight 600.
 
-White surface, hairline border, 8px radius, level 1 shadow, 16px padding, header with section title and optional actions on the right.
+**Timeline.** A vertical hairline with 10 px dots; each entry shows the event, who and when, and the reason in a soft quote block.
 
-### Key facts row
+**Calendar.** A rounded month grid; day numbers top-left, today in an indigo circle, weekends and other months on `--ut-surface-2`. Events are compact chips with the category's soft background and a category-coloured left edge; holidays appear as small red captions.
 
-Horizontal list of label/value pairs under an object page title (period, training days, fee, approver, submitted). Label in small muted, value in body strong.
+**Sign-in.** Split screen: on the left a Night panel with the brand mark, a short headline and three feature lines with icons; on the right the sign-in card (16 px radius, `--ut-shadow-lg`). The public demo lists its accounts as selectable rows under the form. On narrow screens only the card is shown.
 
-### Balance panel
-
-Rows: Entitlement, Pending reservations, Approved commitments, Available, and separately Completed (statistic) and Reimbursed (claims). Available is emphasised; a negative or insufficient result is shown with the negative state and the exact numbers.
-
-### Timeline
-
-Vertical list of audit events: time (Asia/Singapore), actor, event, status change, reason. Newest first.
-
-### Dialogs
-
-Used only for confirmations of destructive or irreversible actions and for mandatory reason entry. Title states the action, body states the consequence, primary button repeats the verb ("Cancel course").
-
-### Pagination
-
-Footer of the table card: "Showing 11–20 of 57", page size select (10, 20, 25), previous/next and page numbers. Filters are preserved in every link.
+**Empty, loading and error states.** Empty: a 40 px icon in a soft circle, one sentence and, where useful, a button. Loading (calendar, eligibility check): a quiet text line, never a spinner alone. Error pages use the sign-in layout with the status code, a title, the message and the correlation id.
 
 ---
 
-## 8. Page states
+## 8. Status mapping
 
-Every page defines these states explicitly:
-
-| State | Presentation |
-| --- | --- |
-| Normal | Data from the database |
-| Empty | Explanatory row or card with the next useful action |
-| Validation failed | Form-level strip plus field messages, input preserved |
-| Load failed (API) | Inline strip "Unable to check now. You can still submit; the server validates again." Never a fake success |
-| Forbidden | 403 page naming the required workspace or role and how to switch |
-| Not found | 404 page without revealing whether a record exists |
-| Stale version | 409 strip "This record changed since you opened it. Review the current version and try again." Typed text preserved |
+| Record | States | Style |
+| --- | --- | --- |
+| Course application | APPLIED, UPDATED | Warning (awaiting the manager) |
+| | APPROVED | Info (scheduled) |
+| | COMPLETED | Success |
+| | REJECTED | Danger |
+| | DELETED, CANCELLED | Neutral |
+| Fee claim | SUBMITTED | Warning |
+| | APPROVED | Info |
+| | REIMBURSED | Success |
+| | REJECTED | Danger |
+| Calendar year | DRAFT / CONFIRMED | Warning / Success |
+| Email | PENDING, SENDING / SENT / FAILED | Warning / Success / Danger |
 
 ---
 
 ## 9. Accessibility and responsiveness
 
-- WCAG 2.1 AA contrast for text and badges; focus visible on every interactive element.
-- All actions reachable by keyboard; dialogs trap focus and close with Escape.
-- Tables scroll horizontally inside their card on narrow screens; forms become single-column below 992px; the side panel moves under the form.
-- Primary demo resolution 1366×768; forms usable at 375px width.
+- Text contrast at least 4.5:1; focus always visible; the skip link goes to the main content.
+- Touch targets at least 44 px below 768 px.
+- Breakpoints: 1200 px (content padding), 992 px (sidebar becomes a drawer, side panels stack), 768 px (single column, full-width buttons in forms).
+- Print: navigation, filters and buttons hidden; cards lose their shadows; tables use the full width.
 
 ---
 
@@ -235,15 +197,15 @@ Every page defines these states explicitly:
 
 Do:
 
-- Use one primary button per page or panel.
-- Show currency and units with every number (`SGD 600.00`, `2.5 days`).
+- Use one primary button per panel and put secondary actions next to it as secondary or ghost buttons.
+- Show units with every number and use tabular figures.
+- Pair every icon with text, and every status colour with a label.
 - Use the same course terms and status names on every page.
-- Print reports with the print stylesheet (navigation hidden, tables full width).
 
 Don't:
 
-- Use gradients, large display type, pill-shaped buttons or illustrations.
+- Load fonts, icons or scripts from a CDN, or add inline scripts or styles.
+- Use gradients outside the brand mark and the sign-in panel.
 - Invent new status colours or show status by colour alone.
-- Load fonts, icons or scripts from a CDN.
-- Put state-changing actions behind links (GET).
-- Display placeholder numbers, fake metrics or unimplemented buttons.
+- Put state-changing actions behind links (`GET`).
+- Show placeholder numbers, fake metrics or buttons without a function.

@@ -36,7 +36,7 @@ The schema has 17 tables in MySQL 8.4 and is owned by Flyway (`src/main/resource
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `course_application` | One application: reference number (`CATS-yyyy-nnnnnn`), applicant, approver, category, title, provider, dates and sessions, fee, justification, status, decision and completion fields | statuses `APPLIED`, `UPDATED`, `DELETED`, `APPROVED`, `REJECTED`, `CANCELLED`, `COMPLETED`; end not before start; internal fee 0; a decision needs a reason; `(employee_id, client_request_id)` unique for idempotent submission |
+| `course_application` | One application: reference number (`UPT-yyyy-nnnnnn`), applicant, approver, category, title, provider, dates and sessions, fee, justification, status, decision and completion fields | statuses `APPLIED`, `UPDATED`, `DELETED`, `APPROVED`, `REJECTED`, `CANCELLED`, `COMPLETED`; end not before start; internal fee 0; a decision needs a reason; `(employee_id, client_request_id)` unique for idempotent submission |
 | `application_day` | The counted training days of an application (weekends and holidays excluded), each with its units and session | primary key `(application_id, training_date)`; rebuilt on update |
 
 ### Audit and ledger (V4)

@@ -86,7 +86,7 @@ Claim documents (receipt and certificate of completion) must be PDF, PNG or JPEG
 
 ## Front end
 
-Thymeleaf templates with one layout, fragments for recurring parts, Bootstrap 5.3.8 served from the application (webjar) and `uptrail.css` following [DESIGN.md](../DESIGN.md). Three small JavaScript files add the live eligibility check, the catalogue search, the calendar, confirmations and file-size checks; every page also works as a plain form without them, except the live checks. Pages are usable at phone width (tables scroll inside their card) and reports have a print layout.
+Thymeleaf templates with two layouts (the workspace with its sidebar, and the split-screen sign-in and error pages), fragments for recurring parts, Bootstrap 5.3.8 served from the application (webjar) and `uptrail.css` following [DESIGN.md](../DESIGN.md). The Inter font and a sprite of line icons are served from the application as well, so no page loads anything from another site. Three small JavaScript files add the live eligibility check, the catalogue search, the calendar, confirmations and file-size checks; every page also works as a plain form without them, except the live checks. Pages are usable at phone width (tables scroll inside their card) and reports have a print layout.
 
 ## Configuration and profiles
 

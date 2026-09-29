@@ -35,7 +35,7 @@ class MailRenderingTest {
     private static Map<String, String> values() {
         Map<String, String> values = new HashMap<>();
         values.put("recipientName", "Siti Rahman");
-        values.put("reference", "CATS-2026-000001");
+        values.put("reference", "UPT-2026-000001");
         values.put("applicantName", "Siti Rahman");
         values.put("claimantName", "Siti Rahman");
         values.put("courseTitle", "Spring Application Development");
@@ -53,7 +53,7 @@ class MailRenderingTest {
     void everyTemplateRendersWithASubjectAndTheDeepLink(MailTemplate template) {
         RenderedMail mail = RENDERER.render(template, values());
 
-        assertThat(mail.subject()).isNotBlank().doesNotContain("\n").contains("CATS-2026-000001");
+        assertThat(mail.subject()).isNotBlank().doesNotContain("\n").contains("UPT-2026-000001");
         assertThat(mail.body()).contains("Hello Siti Rahman,")
                 .contains("http://localhost:8080/login?next=/employee/applications/1")
                 .doesNotContain("null").doesNotContain("[(").doesNotContain("Subject:");

@@ -9,7 +9,7 @@
       <div class="ut-subtitle" th:text="|Personal course history for ${year}: applications with training days in ${year}.|">History</div>
     </div>
     <div class="ut-actions">
-      <a class="btn btn-primary" th:href="@{/employee/applications/new}">Apply for a Course</a>
+      <a class="btn btn-primary" th:href="@{/employee/applications/new}"><svg th:replace="~{fragments/ui :: icon('plus')}"></svg>Apply for a Course</a>
     </div>
   </div>
 
@@ -59,7 +59,7 @@
         </thead>
         <tbody>
         <tr th:each="row : ${view.content}">
-          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">CATS-2026-000001</a></td>
+          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">UPT-2026-000001</a></td>
           <td><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a>
             <div class="small-ut text-muted-ut" th:text="${row.providerName}">Provider</div></td>
           <td th:text="${row.categoryName}">External Course</td>

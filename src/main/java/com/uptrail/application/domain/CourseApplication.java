@@ -159,12 +159,12 @@ public class CourseApplication {
         return application;
     }
 
-    /** Assigns the human-readable reference once the id exists, e.g. {@code CATS-2026-000042}. */
+    /** Assigns the human-readable reference once the id exists, e.g. {@code UPT-2026-000042}. */
     public void assignReferenceNumber(int year) {
         if (id == null) {
             throw new IllegalStateException("The application must be saved before it gets a reference number");
         }
-        this.referenceNo = String.format(Locale.ROOT, "CATS-%d-%06d", year, id);
+        this.referenceNo = String.format(Locale.ROOT, "UPT-%d-%06d", year, id);
     }
 
     public void revise(ApplicationDetails details, List<ScheduledDay> newDays, Instant now) {

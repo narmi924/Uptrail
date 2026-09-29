@@ -45,15 +45,35 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  /* On small screens the sidebar is a drawer: the menu button opens it; the backdrop and Escape close it. */
   function initNavToggle() {
     var button = document.querySelector('[data-ut-toggle="sidenav"]');
     var nav = document.getElementById('ut-sidenav');
+    var backdrop = document.querySelector('[data-ut-backdrop="sidenav"]');
     if (!button || !nav) {
       return;
     }
-    button.addEventListener('click', function () {
-      var open = nav.classList.toggle('show');
+    function setOpen(open) {
+      nav.classList.toggle('show', open);
+      if (backdrop) {
+        backdrop.classList.toggle('show', open);
+      }
       button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      button.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    }
+    button.addEventListener('click', function () {
+      setOpen(!nav.classList.contains('show'));
+    });
+    if (backdrop) {
+      backdrop.addEventListener('click', function () {
+        setOpen(false);
+      });
+    }
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && nav.classList.contains('show')) {
+        setOpen(false);
+        button.focus();
+      }
     });
   }
 
