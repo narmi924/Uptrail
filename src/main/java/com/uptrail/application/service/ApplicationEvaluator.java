@@ -48,7 +48,7 @@ import com.uptrail.shared.time.BusinessClock;
 @Transactional(readOnly = true)
 public class ApplicationEvaluator {
 
-    public static final String IN_HOUSE_PROVIDER = "ISS (In-house)";
+    public static final String IN_HOUSE_PROVIDER = "In-house";
     private static final BigDecimal MAX_FEE = new BigDecimal("999999.99");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
 

@@ -25,8 +25,8 @@ import com.uptrail.notification.service.MailTransport.OutgoingMail;
 import com.uptrail.shared.time.BusinessClock;
 
 /**
- * Every notification renders to a one-line subject and a plain-text body with the sign-in deep link
- * (T76), and the file transport writes a readable message.
+ * Every notification renders to a one-line subject and a plain-text body with the sign-in deep link, and
+ * the file transport writes a readable message.
  */
 class MailRenderingTest {
 

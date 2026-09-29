@@ -1,7 +1,7 @@
 package com.uptrail.catalogue.domain;
 
 /**
- * The three course categories required by the course brief. Fee and half-day rules are fixed here and
+ * The three built-in course categories. Fee and half-day rules are fixed here and
  * cannot be changed from the administration pages.
  */
 public enum CategoryCode {

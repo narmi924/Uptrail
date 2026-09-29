@@ -28,8 +28,7 @@ import com.uptrail.shared.error.ErrorCode;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Submission rules and their side effects (T10-T15, T18-T25, T27, T30, T31, T46-T48, AC-A) and the
- * eligibility preview API.
+ * Submission rules and their side effects, and the eligibility preview API.
  */
 class ApplicationSubmissionIT extends AbstractApplicationIT {
 

@@ -358,6 +358,15 @@ form.ut-inline { display: inline; }
 .ut-print-only { display: none; }
 .ut-auth-card-wide { max-width: 560px; }
 
+/* ---------- Public demo panel on the sign-in pages ---------- */
+.ut-demo { margin-top: var(--ut-space-5); padding-top: var(--ut-space-4); border-top: 1px solid var(--ut-hairline); font-size: 13px; }
+.ut-demo h2 { font-size: 14px; font-weight: 700; margin-bottom: var(--ut-space-2); }
+.ut-demo code { color: var(--ut-ink); background: var(--ut-surface-soft); padding: 1px 4px; border-radius: var(--ut-radius-xs); }
+.ut-demo-accounts { list-style: none; padding: 0; margin: 0 0 var(--ut-space-3); display: grid; gap: var(--ut-space-2); }
+.ut-demo-accounts li { display: flex; align-items: center; gap: var(--ut-space-3); }
+.ut-demo-accounts .btn { min-width: 5.5rem; }
+.ut-demo-note { color: var(--ut-ink-muted); margin: 0; }
+
 /* Compact inline editors in administration tables */
 .ut-w-days { width: 5.5rem; }
 .ut-w-money { width: 7.5rem; }

@@ -106,6 +106,16 @@ Profile-only tools:
 
 Playwright downloads a Chromium build on first use; Chromium is distributed under its own licence terms.
 
+## Demo image
+
+`Dockerfile.vercel` builds one image from these public images; the image is used for the public demo and for running Uptrail with Docker only.
+
+| Component | Source image | License |
+| --- | --- | --- |
+| MySQL Community Server 8.4 | `mysql:8.4` | GPL-2.0 |
+| Eclipse Temurin Java 21 runtime | `eclipse-temurin:21-jre` (build: `eclipse-temurin:21-jdk`) | GPL-2.0 with Classpath Exception |
+| Caddy web server | `caddy:2` | Apache-2.0 |
+
 ## Local development services
 
 Docker images started by `docker-compose.yml`; they are not part of Uptrail.

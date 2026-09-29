@@ -23,6 +23,14 @@ class RuntimeBaselineIT extends AbstractMySqlIT {
     }
 
     @Test
+    void livenessAndReadinessProbesArePublic() throws Exception {
+        mvc.perform(get("/actuator/health/readiness"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+        mvc.perform(get("/actuator/health/liveness")).andExpect(status().isOk());
+    }
+
+    @Test
     void stylesheetsAndScriptsAreServedLocally() throws Exception {
         mvc.perform(get("/css/uptrail.css")).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("--ut-primary")));

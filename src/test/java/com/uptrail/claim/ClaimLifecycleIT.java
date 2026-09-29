@@ -35,8 +35,8 @@ import com.uptrail.shared.error.NotFoundException;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Fee claim rules, revisions, decisions and reimbursement registration with their ledger effects (T51-T60,
- * AC-D), and the private document store (T71-T73).
+ * Fee claim rules, revisions, decisions and reimbursement registration with their ledger effects, and the
+ * private document store.
  */
 class ClaimLifecycleIT extends AbstractClaimIT {
 
@@ -56,7 +56,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         return entitlements.balance(employee.id(), 2026);
     }
 
-    // ---- eligibility (T51-T56) -------------------------------------------------------------------------
+    // ---- eligibility -------------------------------------------------------------------------
 
     @Test
     void submittingAClaimRecordsDocumentsAuditAndNotifiesTheApproverWithoutTouchingTheLedger() {
@@ -130,7 +130,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
                 pdf("r.pdf"), pdf("c.pdf"))).isInstanceOf(NotFoundException.class);
     }
 
-    // ---- revisions and decisions (T57, T58) ------------------------------------------------------------
+    // ---- revisions and decisions ------------------------------------------------------------
 
     @Test
     void aRejectedClaimIsRevisedAsTheSameClaimWithTheNextRevision() {
@@ -196,7 +196,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
                 .isEqualTo(director.id());
     }
 
-    // ---- reimbursement registration (T59, T60, AC-D) -----------------------------------------------------
+    // ---- reimbursement registration -----------------------------------------------------
 
     @Test
     void registeringAReimbursementAddsToTheReimbursedTotalWithoutChargingTheBudgetAgain() {
@@ -291,7 +291,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         }
     }
 
-    // ---- document store (T71-T73) ------------------------------------------------------------------------
+    // ---- document store ------------------------------------------------------------------------
 
     @Test
     void documentsMustBeRealPdfPngOrJpegFilesWithAMatchingNameAndAtMostFiveMegabytes() {

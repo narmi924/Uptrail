@@ -19,7 +19,7 @@ import com.uptrail.support.Fixtures;
 
 /**
  * Operations page (audit search, outbox, ledger check) and the employee entitlement page with its ledger
- * movements (M7-T2, M7-T3).
+ * movements.
  */
 class OperationsIT extends AbstractApplicationIT {
 

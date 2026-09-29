@@ -4,7 +4,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Course application states, named exactly as in the course brief. DELETED, REJECTED, CANCELLED and
+ * Course application states. DELETED, REJECTED, CANCELLED and
  * COMPLETED are terminal; terminal records are kept as history rather than removed.
  */
 public enum ApplicationStatus {

@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.uptrail.shared.csv.CsvWriter;
 
 /**
- * CSV escaping and formula-injection guard (T68, T69).
+ * CSV escaping and formula-injection guard.
  */
 class CsvWriterTest {
 

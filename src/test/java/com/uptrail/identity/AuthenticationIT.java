@@ -27,8 +27,7 @@ import com.uptrail.support.Fixtures;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Two entry points, workspace separation, CSRF, session expiry and safe post-login redirects
- * (test scenarios T01, T02, T03, T08, T09).
+ * Two entry points, workspace separation, CSRF, session expiry and safe post-login redirects.
  */
 class AuthenticationIT extends AbstractMySqlIT {
 
@@ -95,6 +94,15 @@ class AuthenticationIT extends AbstractMySqlIT {
         mvc.perform(formLogin("/login").user("leaver").password(Fixtures.PASSWORD))
                 .andExpect(redirectedUrl("/login?error"))
                 .andExpect(unauthenticated());
+    }
+
+    @Test
+    void signInPagesShowNoDemoAccountsOutsideDemoMode() throws Exception {
+        mvc.perform(get("/login")).andExpect(status().isOk())
+                .andExpect(content().string(Matchers.not(Matchers.containsString("Public demo"))))
+                .andExpect(content().string(Matchers.not(Matchers.containsString("data-ut-demo-password"))));
+        mvc.perform(get("/admin/login")).andExpect(status().isOk())
+                .andExpect(content().string(Matchers.not(Matchers.containsString("Public demo"))));
     }
 
     @Test

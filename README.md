@@ -4,6 +4,8 @@
 
 Employees apply for internal training, external courses and professional certifications; managers approve or reject each application with a reason; administrators maintain staff, approval routing, entitlements, the course catalogue and the public holiday calendar. Training days and budgets are tracked per year in a ledger that separates pending reservations, approved commitments and reimbursed fee claims.
 
+**Live demo: <https://uptrail-demo.vercel.app>** — the sign-in page lists demo accounts you can use with one click.
+
 ## What it does
 
 | Role | Main functions |
@@ -19,7 +21,31 @@ Every change is audited, emails are sent through an outbox after the change is s
 
 Java 21 · Spring Boot 4.1 (Spring MVC, Thymeleaf, Spring Security, Spring Data JPA) · MySQL 8.4 · Flyway · Bootstrap 5.3 (served by the application) · JUnit 5, Testcontainers, GreenMail, ArchUnit, Playwright.
 
-## Quick start
+## Try it
+
+### Online demo
+
+Open <https://uptrail-demo.vercel.app>. Staff sign in at `/login`, administrators at `/admin/login`; both pages list demo accounts.
+
+- Everything is synthetic sample data, created fresh when the demo starts.
+- The demo sleeps after a few idle minutes and forgets all changes. The first page after a pause can take up to a minute.
+- Other visitors use the same demo at the same time and may change the same records.
+- Emails are written to files inside the demo instead of being sent. Uploads are limited to 4.5 MB per request by the hosting platform.
+
+### With Docker only
+
+The demo runs from one self-contained image (Uptrail, MySQL and a small proxy). No Java installation is needed:
+
+```bash
+git clone https://github.com/narmi924/Uptrail.git
+cd Uptrail
+docker build -f Dockerfile.vercel -t uptrail-demo .
+docker run --rm -p 8080:80 uptrail-demo
+```
+
+Open <http://localhost:8080> once the log shows "Sample data loaded". The first build downloads the base images and Maven dependencies and takes several minutes. Stopping the container discards its data.
+
+### For development
 
 Prerequisites: JDK 21 and Docker. Maven is not needed; use the wrapper (`./mvnw`, or `mvnw.cmd` on Windows).
 
@@ -43,6 +69,10 @@ java -jar target/uptrail-1.0.0-SNAPSHOT.jar --spring.profiles.active=dev
 ```
 
 To start again from an empty database: stop the application, run `docker compose down -v` (removes only this project's containers and volumes) and `docker compose up -d`, then start the application again.
+
+### Publishing the demo
+
+`vercel deploy --prod` from the repository root builds `Dockerfile.vercel` on Vercel (only the files listed in `.vercelignore` are uploaded) and publishes it.
 
 ## Sample accounts
 
@@ -113,6 +143,7 @@ src/main/resources/holidays/   bundled Singapore public holidays 2026–2027 wit
 src/test/java/                 unit and integration tests
 src/e2e/java/                  Playwright end-to-end tests
 docs/                          architecture, data model, API, diagrams
+Dockerfile.vercel, deploy/demo/    self-contained demo image (Uptrail, MySQL, proxy)
 var/                           runtime files (documents, captured mail); not in git
 ```
 
@@ -122,7 +153,7 @@ var/                           runtime files (documents, captured mail); not in 
 | --- | --- |
 | The application cannot connect to MySQL | Check `docker compose ps`. Port 3307 in use: set `UPTRAIL_DB_PORT` for Compose and the matching `UPTRAIL_DB_URL` for the application. |
 | `Access denied for user 'uptrail'` | The application's password differs from the one the database volume was created with. Export the same `UPTRAIL_DB_PASSWORD`, or recreate the database with `docker compose down -v`. |
-| No sample data | Sample data loads only with the `dev` profile into an empty database. Reset as described in Quick start. |
+| No sample data | Sample data loads only with the `dev` profile into an empty database. Reset as described under "For development". |
 | Sign-in fails for a correct password, or a page shows 403 | Administrators sign in at `/admin/login`, staff at `/login`; each session belongs to the workspace it signed in to. |
 | Applications are refused because the holiday calendar is not confirmed | An administrator confirms the year on Public Holidays. The bundled 2026–2027 holidays were retrieved from the Ministry of Manpower on 2026-09-28; check them against the official list. |
 | No emails in Mailpit | Check that Mailpit runs and look at Operations → Email outbox for errors. Failed emails are retried automatically and can be queued again there. |
@@ -137,9 +168,8 @@ var/                           runtime files (documents, captured mail); not in 
 - [docs/api.md](docs/api.md) — JSON API, CSV exports and document downloads
 - [docs/diagrams/](docs/diagrams/README.md) — PlantUML sources and SVG diagrams
 - [DESIGN.md](DESIGN.md) — user interface design system
-- [Plan.md](Plan.md) — scope, decisions, requirement traceability and verification evidence
 - [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) — open-source components and their licences
-- [CLAUDE.md](CLAUDE.md) — repository conventions
+- [CLAUDE.md](CLAUDE.md) — working notes for AI coding assistants
 
 ## Limitations
 

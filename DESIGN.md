@@ -237,7 +237,7 @@ Do:
 
 - Use one primary button per page or panel.
 - Show currency and units with every number (`SGD 600.00`, `2.5 days`).
-- Keep course terminology and status names from the course brief.
+- Use the same course terms and status names on every page.
 - Print reports with the print stylesheet (navigation hidden, tables full width).
 
 Don't:

@@ -6,8 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * Uptrail - Staff Training and Approvals.
- * An implementation of the SA63 Course Application Tracking System (CATS).
+ * Uptrail - staff training applications, approvals, budgets and fee claims.
  */
 @SpringBootApplication
 @ConfigurationPropertiesScan

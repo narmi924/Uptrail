@@ -1,0 +1,10 @@
+# Build context of the demo image (Dockerfile.vercel): only the files it needs.
+*
+!Dockerfile.vercel
+!pom.xml
+!mvnw
+!.mvn
+!deploy
+!src
+src/*
+!src/main

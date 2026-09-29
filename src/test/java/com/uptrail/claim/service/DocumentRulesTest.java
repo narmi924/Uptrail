@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import com.uptrail.claim.service.DocumentTypeDetector.Format;
 
 /**
- * Format detection, file-name handling and amount rules for claims (T55, T71, T72).
+ * Format detection, file-name handling and amount rules for claims.
  */
 class DocumentRulesTest {
 

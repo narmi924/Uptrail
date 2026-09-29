@@ -17,7 +17,7 @@ import com.uptrail.entitlement.domain.TrainingDayCalculator.Request;
 import com.uptrail.entitlement.domain.TrainingDayCalculator.Result;
 
 /**
- * Working-day and half-day rules (scenarios T13-T21 and T30). Holidays here are synthetic fixtures.
+ * Working-day and half-day rules. Holidays here are synthetic fixtures.
  * 12 October 2026 is a Monday.
  */
 class TrainingDayCalculatorTest {
