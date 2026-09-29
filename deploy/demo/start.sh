@@ -8,6 +8,9 @@ SOCKET=/var/run/mysqld/mysqld.sock
 mkdir -p "$DATA/documents" "$DATA/mail" /var/run/mysqld
 chown mysql:mysql /var/run/mysqld
 
+# A short random id in every response shows which demo instance answered (each has its own data).
+DEMO_INSTANCE=$(cut -c1-8 /proc/sys/kernel/random/uuid)
+export DEMO_INSTANCE
 caddy run --config /opt/uptrail/Caddyfile --adapter caddyfile &
 
 mysqld --user=mysql \

@@ -31,4 +31,4 @@ Working notes for AI coding assistants (and anyone else) changing Uptrail. Start
 
 ## Public demo
 
-`Dockerfile.vercel` builds a self-contained demo image (Uptrail, MySQL and a proxy). `vercel deploy --prod` from the repository root rebuilds and publishes it.
+`Dockerfile.vercel` builds a self-contained demo image (Uptrail, MySQL and a proxy); `vercel.json` serves the static files from Vercel's CDN and everything else from that container. `vercel deploy --prod` from the repository root rebuilds and publishes the demo at https://uptrail-demo.vercel.app.

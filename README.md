@@ -29,7 +29,7 @@ Open <https://uptrail-demo.vercel.app>. Staff sign in at `/login`, administrator
 
 - Everything is synthetic sample data, created fresh when the demo starts.
 - The demo sleeps after a few idle minutes and forgets all changes. The first page after a pause can take up to a minute.
-- Other visitors use the same demo at the same time and may change the same records.
+- Other visitors use the same demo at the same time and may change the same records. If you are signed out unexpectedly, the demo has restarted; sign in again.
 - Emails are written to files inside the demo instead of being sent. Uploads are limited to 4.5 MB per request by the hosting platform.
 
 ### With Docker only
@@ -72,7 +72,7 @@ To start again from an empty database: stop the application, run `docker compose
 
 ### Publishing the demo
 
-`vercel deploy --prod` from the repository root builds `Dockerfile.vercel` on Vercel (only the files listed in `.vercelignore` are uploaded) and publishes it.
+`vercel deploy --prod` from the repository root publishes the demo. `vercel.json` defines two parts: stylesheets, scripts, images and Bootstrap are collected by `deploy/demo/build-assets.sh` and served from Vercel's CDN; every other request goes to the container built from `Dockerfile.vercel`. Only the files listed in `.vercelignore` are uploaded.
 
 ## Sample accounts
 
