@@ -94,7 +94,7 @@ Thymeleaf templates with one layout, fragments for recurring parts, Bootstrap 5.
 | --- | --- |
 | default | Production-like: credentials from environment variables, no sample data, template caching |
 | `dev` | Local development: Docker Compose MySQL on port 3307, Mailpit, sample data loaded into an empty database |
-| Demo image (`Dockerfile.vercel`) | One container with Uptrail, MySQL and a Caddy proxy; fresh sample data on every start, emails written to files, the sign-in pages list demo accounts (`UPTRAIL_DEMO_ENABLED=true`). The proxy opens the port at once and holds requests until Uptrail reports ready |
+| Demo image (`Dockerfile.vercel`) | One container with Uptrail, MySQL and a Caddy proxy; fresh sample data on every start, emails written to files, the sign-in pages list demo accounts (`UPTRAIL_DEMO_ENABLED=true`). The proxy opens the port at once and holds requests until Uptrail reports ready. On Vercel, static files are served from the CDN (`vercel.json`), so only pages and API calls reach the container |
 
 Settings are listed in the [README](../README.md#configuration).
 

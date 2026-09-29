@@ -8,3 +8,4 @@
 !src
 src/*
 !src/main
+deploy/demo/public

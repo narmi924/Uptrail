@@ -6,6 +6,9 @@
 /target/
 **/target/
 
+# Static files collected for the demo (deploy/demo/build-assets.sh)
+/deploy/demo/public/
+
 # Runtime data (uploaded documents, captured mail, logs)
 /var/
 *.log
