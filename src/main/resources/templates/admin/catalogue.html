@@ -50,7 +50,7 @@
           <tr th:each="c : ${courseView.content}">
             <td th:text="${c.categoryName}">Category</td>
             <td th:text="${c.title}">Title</td>
-            <td th:text="${c.providerName != null} ? ${c.providerName} : 'ISS (In-house)'">Provider</td>
+            <td th:text="${c.providerName != null} ? ${c.providerName} : 'In-house'">Provider</td>
             <td class="num" th:text="${@formats.amount(c.defaultFee)}">0.00</td>
             <td class="small-ut text-muted-ut" th:text="${c.description}">Description</td>
             <td><span th:replace="~{fragments/messages :: status(${c.active} ? 'active' : 'inactive', ${c.active} ? 'Listed' : 'Hidden')}"></span></td>
@@ -120,7 +120,7 @@
   </th:block>
 
   <th:block th:if="${tab == 'categories'}">
-    <div class="ut-strip">The three categories are fixed by the course brief. Their fee and half-day rules cannot be changed here; only the display name and description can.</div>
+    <div class="ut-strip">The three categories are built in. Their fee and half-day rules cannot be changed here; only the display name and description can.</div>
     <div class="ut-card" th:each="c : ${categories}">
       <div class="ut-card-header"><h2 class="mono" th:text="${c.code}">INTERNAL</h2></div>
       <div class="ut-card-body">

@@ -118,8 +118,24 @@
     });
   }
 
+  /* Demo sign-in: account buttons fill in the username and password. */
+  function initDemoAccounts() {
+    document.querySelectorAll('[data-ut-demo-username]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var username = document.getElementById('username');
+        var password = document.getElementById('password');
+        if (username && password) {
+          username.value = button.getAttribute('data-ut-demo-username');
+          password.value = button.getAttribute('data-ut-demo-password');
+          password.form.querySelector('button[type="submit"]').focus();
+        }
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initNavToggle();
+    initDemoAccounts();
     initPrintButtons();
     initFileLimits();
     initPasswordToggles();

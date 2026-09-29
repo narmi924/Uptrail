@@ -91,6 +91,9 @@ uptrail:
   sample-data:
     enabled: false
     password: ${UPTRAIL_SAMPLE_PASSWORD:Uptrail#2026}
+  # Public demo: the sign-in pages list sample accounts and their password.
+  demo:
+    enabled: ${UPTRAIL_DEMO_ENABLED:false}
   entitlement-defaults:
     administrative:
       units: 10

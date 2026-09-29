@@ -42,8 +42,8 @@ import com.uptrail.support.Fixtures;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Administration: staff and roles (T09, I27), routing and explicit reassignment (Q10), entitlement limits
- * (T32), catalogue snapshots, and the holiday calendar confirmation rules (I05-I07).
+ * Administration: staff and roles, routing and explicit reassignment, entitlement limits, catalogue
+ * snapshots, and the holiday calendar confirmation rules.
  */
 class AdministrationIT extends AbstractMySqlIT {
 

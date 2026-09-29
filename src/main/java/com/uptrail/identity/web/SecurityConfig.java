@@ -86,7 +86,8 @@ public class SecurityConfig {
         AuthorizationManager<RequestAuthorizationContext> staff = hasAuthority(EntryPoint.STAFF.authority());
         http.authenticationManager(manager(users, encoder, EntryPoint.STAFF))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/error", "/actuator/health", "/css/**", "/js/**",
+                        .requestMatchers("/", "/login", "/error", "/actuator/health", "/actuator/health/liveness",
+                                "/actuator/health/readiness", "/css/**", "/js/**",
                                 "/img/**", "/webjars/**", "/favicon.ico").permitAll()
                         // The training calendar is available to every signed-in user, in either workspace.
                         .requestMatchers("/calendar", "/api/v1/calendar").authenticated()

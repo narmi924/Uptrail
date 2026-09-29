@@ -38,6 +38,21 @@
   <p class="ut-auth-switch">
     <a th:href="${otherEntryUrl}" th:text="${otherEntryLabel}">Other sign-in</a>
   </p>
+
+  <section class="ut-demo" th:if="${demo != null}" aria-labelledby="demo-heading">
+    <h2 id="demo-heading">Public demo</h2>
+    <p>All people and data are synthetic. Every account uses the password
+      <code th:text="${demo.password}">password</code>. Choose an account to fill in the form.</p>
+    <ul class="ut-demo-accounts">
+      <li th:each="a : ${demo.accounts}">
+        <button type="button" class="btn btn-secondary btn-sm" th:text="${a.username}"
+                th:attr="data-ut-demo-username=${a.username},data-ut-demo-password=${demo.password}">user</button>
+        <span th:text="${a.description}">Role</span>
+      </li>
+    </ul>
+    <p class="ut-demo-note">The demo starts with fresh sample data and resets after a few idle minutes.
+      The first page after a pause can take up to a minute while it starts.</p>
+  </section>
 </div>
 </body>
 </html>

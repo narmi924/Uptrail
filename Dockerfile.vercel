@@ -1,0 +1,47 @@
+# Self-contained demo image: Uptrail, MySQL 8.4 and a small front proxy in one container.
+#
+# Used for the public demo on Vercel (Vercel builds this file on `vercel deploy`) and for trying Uptrail
+# with nothing but Docker:
+#
+#   docker build -f Dockerfile.vercel -t uptrail-demo .
+#   docker run --rm -p 8080:80 uptrail-demo        # then open http://localhost:8080
+#
+# The database lives inside the container, so every new container starts with fresh sample data and
+# nothing is kept when it stops. Emails are written to files inside the container instead of being sent.
+
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /src
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+COPY src/main src/main
+RUN chmod +x mvnw && ./mvnw -B -q -DskipTests package && cp target/uptrail-*.jar /uptrail.jar
+
+FROM eclipse-temurin:21-jre AS jre
+
+FROM caddy:2 AS proxy
+
+FROM mysql:8.4
+COPY --from=jre /opt/java/openjdk /opt/java/openjdk
+COPY --from=proxy /usr/bin/caddy /usr/local/bin/caddy
+COPY deploy/demo/ /opt/uptrail/
+COPY --from=build /uptrail.jar /opt/uptrail/uptrail.jar
+RUN chmod +x /opt/uptrail/start.sh \
+ && mysqld --initialize-insecure --user=mysql --datadir=/var/lib/uptrail-mysql --innodb-redo-log-capacity=8M
+
+ENV JAVA_HOME=/opt/java/openjdk \
+    PATH=/opt/java/openjdk/bin:$PATH \
+    UPTRAIL_DB_URL="jdbc:mysql://127.0.0.1:3306/uptrail?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true" \
+    UPTRAIL_DB_USER=uptrail \
+    UPTRAIL_DB_PASSWORD=uptrail-demo \
+    UPTRAIL_PORT=8080 \
+    UPTRAIL_SAMPLEDATA_ENABLED=true \
+    UPTRAIL_DEMO_ENABLED=true \
+    UPTRAIL_MAIL_TRANSPORT=file \
+    UPTRAIL_MAIL_CAPTURE_DIR=/opt/uptrail/data/mail \
+    UPTRAIL_DOCUMENTS_ROOT=/opt/uptrail/data/documents \
+    SERVER_FORWARD_HEADERS_STRATEGY=framework \
+    SERVER_TOMCAT_USE_RELATIVE_REDIRECTS=true
+
+EXPOSE 80
+ENTRYPOINT ["/opt/uptrail/start.sh"]
+CMD []

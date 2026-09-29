@@ -37,8 +37,7 @@ import com.uptrail.support.Fixtures;
 /**
  * Outbox delivery against a local GreenMail SMTP server: mail goes out after the business commit with a
  * sign-in deep link, an unavailable SMTP server never blocks the business change, failed sends are retried
- * with backoff and end as FAILED after the attempt limit, and concurrent workers send a message once
- * (T74-T76).
+ * with backoff and end as FAILED after the attempt limit, and concurrent workers send a message once.
  */
 class MailDeliveryIT extends AbstractApplicationIT {
 

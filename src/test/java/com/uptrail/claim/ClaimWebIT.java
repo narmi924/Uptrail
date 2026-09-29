@@ -23,8 +23,8 @@ import com.uptrail.support.Fixtures;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Claim pages in the three workspaces, multipart submission with CSRF, and authorised document downloads
- * (T05, P06, P07, P15).
+ * Claim pages for employees, managers and administrators, multipart submission with CSRF, and authorised
+ * document downloads.
  */
 class ClaimWebIT extends AbstractClaimIT {
 

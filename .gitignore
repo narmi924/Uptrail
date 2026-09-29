@@ -1,6 +1,6 @@
-# Course material, design pack and local Chinese mirrors: never published
-/References/
+# Local working files
 /tmp/
+.vercel/
 
 # Build output
 /target/
@@ -29,3 +29,5 @@ Thumbs.db
 # Tooling caches
 node_modules/
 .mvn/wrapper/maven-wrapper.jar
+
+.vercel

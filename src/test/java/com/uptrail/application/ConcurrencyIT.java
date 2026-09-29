@@ -24,7 +24,7 @@ import com.uptrail.support.Fixtures.Person;
 
 /**
  * Real concurrent transactions against MySQL. Two threads wait on a barrier and then call the service at
- * the same moment, each in its own transaction and connection (T42, T43, T44, AC-C).
+ * the same moment, each in its own transaction and connection.
  */
 class ConcurrencyIT extends AbstractApplicationIT {
 

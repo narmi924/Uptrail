@@ -94,6 +94,7 @@ Thymeleaf templates with one layout, fragments for recurring parts, Bootstrap 5.
 | --- | --- |
 | default | Production-like: credentials from environment variables, no sample data, template caching |
 | `dev` | Local development: Docker Compose MySQL on port 3307, Mailpit, sample data loaded into an empty database |
+| Demo image (`Dockerfile.vercel`) | One container with Uptrail, MySQL and a Caddy proxy; fresh sample data on every start, emails written to files, the sign-in pages list demo accounts (`UPTRAIL_DEMO_ENABLED=true`). The proxy opens the port at once and holds requests until Uptrail reports ready |
 
 Settings are listed in the [README](../README.md#configuration).
 
@@ -105,4 +106,4 @@ Settings are listed in the [README](../README.md#configuration).
 | Integration | Spring Boot test, MockMvc, Testcontainers `mysql:8.4`, GreenMail | submission and lifecycle rules, concurrency races, administration, reports, claims, mail delivery, authorization matrix |
 | End-to-end | Playwright (profile `e2e`) | employee, manager and administrator flow in a real browser, phone width and print |
 
-Integration tests fail when no database is available; they never skip. The results of each run are recorded in `Plan.md` section 9.
+Integration tests fail when no database is available; they never skip.

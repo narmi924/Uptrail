@@ -176,7 +176,7 @@
       var fee = Number(item.defaultFee) > 0 ? money(item.defaultFee) : 'No fee';
       return '<button type="button" class="list-group-item list-group-item-action" data-index="' + index + '">' +
         '<strong>' + U.escapeHtml(item.title) + '</strong><br><span class="small-ut text-muted-ut">' +
-        U.escapeHtml(item.category) + ' · ' + U.escapeHtml(item.providerName || 'ISS (In-house)') + ' · ' + fee +
+        U.escapeHtml(item.category) + ' · ' + U.escapeHtml(item.providerName || 'In-house') + ' · ' + fee +
         '</span></button>';
     }).join('') || '<div class="list-group-item small-ut text-muted-ut">No catalogue course matches. You can still enter the details yourself.</div>';
     results.querySelectorAll('button[data-index]').forEach(function (button) {

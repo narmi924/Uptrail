@@ -12,8 +12,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import com.uptrail.application.domain.ApplicationStatus;
 
 /**
- * Every legal and illegal transition of the application state machine (T33, T34), as drawn in the course
- * brief's state transition diagram.
+ * Every legal and illegal transition of the application state machine
+ * (see docs/diagrams/application-states.puml).
  */
 class ApplicationStatusTest {
 

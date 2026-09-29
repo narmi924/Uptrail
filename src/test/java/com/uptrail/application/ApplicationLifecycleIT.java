@@ -26,8 +26,8 @@ import com.uptrail.shared.error.NotFoundException;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Update, delete, decisions, cancellation and completion with their ledger effects (T26, T28, T29,
- * T35-T41, T44, T45, T49, AC-B, AC-E) and the pages that drive them.
+ * Update, delete, decisions, cancellation and completion with their ledger effects, and the pages that
+ * drive them.
  */
 class ApplicationLifecycleIT extends AbstractApplicationIT {
 

@@ -33,8 +33,8 @@ import com.uptrail.shared.error.NotFoundException;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Training calendar (O05), manager reports (O04), CSV export and pagination (O06): what is shown, the scope
- * of each view and that the downloads equal the pages (T64-T69).
+ * Training calendar, manager reports, CSV export and pagination: what is shown, the scope of each view and
+ * that the downloads equal the pages.
  */
 class CalendarAndReportIT extends AbstractApplicationIT {
 
@@ -256,7 +256,7 @@ class CalendarAndReportIT extends AbstractApplicationIT {
         fixtures.route(newcomer, manager);
         clock.setDate(MON_12_OCT.plusDays(1));
         commands.complete(employee.actor(), done, version(done), "Useful course.");
-        // Claims are created through the claim service from M6 on; a direct row keeps this test independent.
+        // A direct row keeps this test independent of the claim service.
         jdbc.update("""
                 INSERT INTO course_claim (application_id, revision, amount, paid_by_employee, approver_id, status,
                                           submitted_at, version)

@@ -47,7 +47,7 @@ import com.uptrail.shared.time.BusinessClock;
 import com.uptrail.support.MySqlTestDatabase;
 
 /**
- * Browser end-to-end flow over the sample organisation on a real server port (M8-T4): an employee applies
+ * Browser end-to-end flow over the sample organisation on a real server port: an employee applies
  * with the live eligibility check, the manager approves, the employee claims the fee of a completed course
  * with two uploaded documents, the manager approves the claim, the administrator registers the
  * reimbursement, and the manager uses the training calendar and a CSV report. Screenshots go to

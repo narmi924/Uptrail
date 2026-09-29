@@ -14,7 +14,7 @@ import com.uptrail.support.AbstractMySqlIT;
 import com.uptrail.support.Fixtures.Person;
 
 /**
- * Data-scope checks: owners, current direct managers, assigned approvers and past reviewers (T04, T07).
+ * Data-scope checks: owners, current direct managers, assigned approvers and past reviewers.
  */
 class AccessScopePolicyIT extends AbstractMySqlIT {
 

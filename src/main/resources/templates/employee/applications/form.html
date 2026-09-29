@@ -64,7 +64,7 @@
                   <datalist id="providers-list">
                     <option th:each="p : ${providers}" th:value="${p}"></option>
                   </datalist>
-                  <div class="ut-help">Required for external courses and certifications. Internal training defaults to ISS (In-house).</div>
+                  <div class="ut-help">Required for external courses and certifications. Internal training defaults to In-house.</div>
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('providerName')}" th:errors="*{providerName}">Error</div>
                 </div>
               </div>

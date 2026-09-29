@@ -7,7 +7,7 @@ import com.uptrail.application.domain.ApplicationStatus;
 import com.uptrail.application.domain.CourseApplication;
 
 /**
- * Rules for fee claims (Q12): only a completed course in a fee-paying category with a fee can be claimed,
+ * Rules for fee claims: only a completed course in a fee-paying category with a fee can be claimed,
  * the fee must have been paid by the employee, and the amount is more than zero and at most the course fee
  * recorded on the application.
  */

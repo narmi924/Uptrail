@@ -7,7 +7,7 @@ import java.util.Set;
 import com.uptrail.identity.domain.Role;
 
 /**
- * The two sign-in entry points required by the course brief. A session is bound to the entry it was
+ * The two sign-in entry points (staff and administration). A session is bound to the entry it was
  * created through, which keeps the staff and administration workspaces separate.
  */
 public enum EntryPoint {

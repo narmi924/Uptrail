@@ -29,7 +29,7 @@ import com.uptrail.claim.service.DocumentStorage.Upload;
 import com.uptrail.support.Fixtures;
 
 /**
- * Role and workspace matrix over every page, API, CSV export and download (M8-T1, T03, T05): each cell is
+ * Role and workspace matrix over every page, API, CSV export and download: each cell is
  * the status a signed-out visitor, an employee, a manager or an administrator gets. Record-level scope
  * (another person's record gives 404) is covered by the feature tests; here the owner of each record is the
  * employee and the approver is the manager.

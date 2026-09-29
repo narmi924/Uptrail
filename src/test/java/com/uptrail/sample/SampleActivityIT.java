@@ -12,7 +12,7 @@ import com.uptrail.support.AbstractMySqlIT;
 
 /**
  * The sample activity goes through the real services and leaves a ledger that reconciles exactly with the
- * applications (T50 over a realistic data set).
+ * applications and claims.
  */
 class SampleActivityIT extends AbstractMySqlIT {
 
