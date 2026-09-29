@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Approvals', 'approvals', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Approvals</h1>
+      <div class="ut-subtitle">Course applications waiting for your decision, grouped by staff member.</div>
+    </div>
+  </div>
+
+  <nav class="ut-tabs" aria-label="Approval type">
+    <a th:href="@{/manager/approvals}" th:classappend="${tab == 'applications'} ? 'active'">Course applications
+      <span class="ut-tab-count" th:text="${pendingCount}">0</span></a>
+    <a th:href="@{/manager/claims}" th:classappend="${tab == 'claims'} ? 'active'">Fee claims
+      <span class="ut-tab-count" th:text="${claimCount}">0</span></a>
+  </nav>
+
+  <div class="ut-card" th:if="${view.isEmpty()}">
+    <div class="ut-card-body">
+      <strong>All caught up.</strong> No course applications are waiting for your decision.
+      <a th:href="@{/manager/team/history}">Open team history</a>.
+    </div>
+  </div>
+
+  <div class="ut-card" th:each="group : ${view.content}">
+    <div class="ut-card-header">
+      <div class="ut-group-header">
+        <h2 th:text="${group.employeeName}">Name</h2>
+        <span class="ut-group-meta" th:text="|${group.department} · ${#lists.size(group.applications)} waiting|">Dept</span>
+      </div>
+      <div class="ut-card-actions">
+        <a class="small-ut" th:href="@{/manager/team/history(employeeId=${group.employeeId})}">History</a>
+      </div>
+    </div>
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead>
+        <tr><th>Reference</th><th>Course</th><th>Category</th><th>Period</th><th class="num">Days</th>
+          <th class="num">Fee (SGD)</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${group.applications}">
+          <td class="mono"><a th:href="@{/manager/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">ref</a></td>
+          <td th:text="${row.courseTitle}">Course</td>
+          <td th:text="${row.categoryName}">Category</td>
+          <td th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">Period</td>
+          <td class="num" th:text="${@formats.days(row.units)}">1 day</td>
+          <td class="num" th:text="${@formats.amount(row.fee)}">0.00</td>
+          <td><span th:replace="~{fragments/messages :: status(${row.status.name()}, ${row.status.label()})}"></span></td>
+          <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/manager/applications/{id}(id=${row.id})}">Review</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ut-card" th:if="${!view.isEmpty()}">
+    <div th:replace="~{fragments/paging :: pager(${view}, 'staff members')}"></div>
+  </div>
+</div>
+</body>
+</html>

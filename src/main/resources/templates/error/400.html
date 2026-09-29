@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Invalid request', ~{error/_error :: view('400', 'Invalid request', 'The address or form contained a value that could not be read.')})}">
+</html>

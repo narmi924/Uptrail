@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Administration', 'admin-dashboard', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Administration</h1>
+      <div class="ut-subtitle">Configuration that staff need before they can apply, and items waiting for you.</div>
+    </div>
+  </div>
+
+  <div class="ut-tiles" th:with="o=${overview}">
+    <a class="ut-tile" th:href="@{/admin/staff}">
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon"><svg th:replace="~{fragments/ui :: icon('users')}"></svg></span>
+        <span class="ut-tile-label">Active staff</span>
+      </div>
+      <div class="ut-tile-value" th:text="${o.activeStaff}">0</div>
+      <div class="ut-tile-note" th:text="${o.inactiveStaff} + ' inactive (archived)'">0 inactive</div>
+    </a>
+    <a class="ut-tile" th:href="@{/admin/routing}">
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon" th:classappend="${o.applicantsWithoutApprover > 0} ? 'tone-danger' : 'tone-success'"><svg th:replace="~{fragments/ui :: icon('route')}"></svg></span>
+        <span class="ut-tile-label">Staff without an approver</span>
+      </div>
+      <div class="ut-tile-value" th:classappend="${o.applicantsWithoutApprover > 0} ? 'ut-value-negative'"
+           th:text="${o.applicantsWithoutApprover}">0</div>
+      <div class="ut-tile-note">They cannot submit applications until routing is configured.</div>
+    </a>
+    <a class="ut-tile" th:href="@{/admin/reimbursements}">
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon tone-info"><svg th:replace="~{fragments/ui :: icon('banknote')}"></svg></span>
+        <span class="ut-tile-label">Approved claims to register</span>
+      </div>
+      <div class="ut-tile-value" th:text="${o.claimsAwaitingReimbursement}">0</div>
+      <div class="ut-tile-note">Registration only. Uptrail does not transfer money.</div>
+    </a>
+    <a class="ut-tile" th:href="@{/admin/operations(tab='outbox')}">
+      <div class="ut-tile-top">
+        <span class="ut-tile-icon" th:classappend="${o.failedEmails > 0} ? 'tone-danger' : 'tone-success'"><svg th:replace="~{fragments/ui :: icon('mail')}"></svg></span>
+        <span class="ut-tile-label">Failed emails</span>
+      </div>
+      <div class="ut-tile-value" th:classappend="${o.failedEmails > 0} ? 'ut-value-negative'"
+           th:text="${o.failedEmails}">0</div>
+      <div class="ut-tile-note">Business records are unaffected; emails can be retried.</div>
+    </a>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-header"><h2><svg th:replace="~{fragments/ui :: icon('clipboard-check')}"></svg>Year readiness</h2></div>
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead>
+        <tr>
+          <th>Year</th>
+          <th>Public holiday calendar</th>
+          <th class="num">Holidays entered</th>
+          <th class="num">Staff without a training account</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="y : ${overview.years}">
+          <td th:text="${y.year}">2026</td>
+          <td>
+            <span th:replace="~{fragments/messages :: status(${y.calendarStatus},
+                  ${y.calendarStatus == 'NOT_CONFIGURED'} ? 'Not configured' : ${#strings.capitalize(#strings.toLowerCase(y.calendarStatus))})}"></span>
+          </td>
+          <td class="num" th:text="${y.holidayCount}">0</td>
+          <td class="num" th:classappend="${y.applicantsWithoutAccount > 0} ? 'ut-value-negative'"
+              th:text="${y.applicantsWithoutAccount}">0</td>
+          <td>
+            <a th:href="@{/admin/holidays(year=${y.year})}">Holidays</a> ·
+            <a th:href="@{/admin/entitlements(year=${y.year})}">Entitlements</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ut-card-footer small-ut text-muted-ut">
+      Applications can only be submitted for years whose holiday calendar is confirmed and for which the applicant has a training account.
+    </div>
+  </div>
+</div>
+</body>
+</html>

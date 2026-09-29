@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Fee claims', 'approvals', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Approvals</h1>
+      <div class="ut-subtitle">Fee claims assigned to you, oldest first.</div>
+    </div>
+  </div>
+
+  <nav class="ut-tabs" aria-label="Approval type">
+    <a th:href="@{/manager/approvals}" th:classappend="${tab == 'applications'} ? 'active'">Course applications
+      <span class="ut-tab-count" th:text="${pendingCount}">0</span></a>
+    <a th:href="@{/manager/claims}" th:classappend="${tab == 'claims'} ? 'active'">Fee claims
+      <span class="ut-tab-count" th:text="${claimCount}">0</span></a>
+  </nav>
+
+  <div class="ut-card" th:if="${view.isEmpty()}">
+    <div class="ut-card-body">
+      <strong>All caught up.</strong> No fee claims are waiting for your decision.
+      <a th:href="@{/manager/team/history}">Open team history</a>.
+    </div>
+  </div>
+
+  <div class="ut-card" th:if="${!view.isEmpty()}">
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Staff member</th><th>Course</th><th>Application</th><th class="num">Claimed (SGD)</th>
+          <th class="num">Course fee (SGD)</th><th class="num">Revision</th><th>Submitted</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="c : ${view.content}">
+          <td><span th:text="${c.employeeName}">Name</span><div class="small-ut text-muted-ut" th:text="${c.department}">Dept</div></td>
+          <td th:text="${c.courseTitle}">Course</td>
+          <td class="mono" th:text="${c.applicationReference}">ref</td>
+          <td class="num" th:text="${@formats.amount(c.amount)}">0.00</td>
+          <td class="num" th:text="${@formats.amount(c.fee)}">0.00</td>
+          <td class="num" th:text="${c.revision}">1</td>
+          <td th:text="${@formats.dateTime(c.submittedAt)}">date</td>
+          <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/manager/claims/{id}(id=${c.id})}">Review</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'claims')}"></div>
+  </div>
+</div>
+</body>
+</html>

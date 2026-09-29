@@ -1,0 +1,106 @@
+spring:
+  application:
+    name: uptrail
+  datasource:
+    url: ${UPTRAIL_DB_URL:jdbc:mysql://localhost:3307/uptrail?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}
+    username: ${UPTRAIL_DB_USER:uptrail}
+    password: ${UPTRAIL_DB_PASSWORD:}
+    hikari:
+      # Business writes rely on READ COMMITTED plus explicit row locks (see WriteTransaction).
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  thymeleaf:
+    cache: true
+  servlet:
+    multipart:
+      # Slightly above the 5 MB document limit, so that the claim form can explain an oversized file itself.
+      max-file-size: 6MB
+      max-request-size: 13MB
+  mail:
+    host: ${UPTRAIL_MAIL_HOST:localhost}
+    port: ${UPTRAIL_MAIL_PORT:1025}
+    properties:
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
+server:
+  port: ${UPTRAIL_PORT:8080}
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+  error:
+    whitelabel:
+      enabled: false
+    include-stacktrace: never
+    include-message: never
+
+management:
+  health:
+    # SMTP availability must not make the application report DOWN: mail is sent asynchronously via the outbox.
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  pattern:
+    correlation: "[%X{correlationId:-}] "
+
+uptrail:
+  base-url: ${UPTRAIL_BASE_URL:http://localhost:8080}
+  documents:
+    root: ${UPTRAIL_DOCUMENTS_ROOT:var/documents}
+    max-bytes: 5242880
+    sweep:
+      enabled: true
+      interval: PT6H
+  mail:
+    transport: ${UPTRAIL_MAIL_TRANSPORT:smtp}
+    from: "Uptrail <no-reply@uptrail.example.com>"
+    capture-dir: ${UPTRAIL_MAIL_CAPTURE_DIR:var/mail-capture}
+    worker:
+      enabled: true
+      poll-interval: PT10S
+      lease: PT60S
+      # Retry delays grow 1, 2, 4, 8 minutes (at most one hour); after max-attempts the message is FAILED.
+      backoff: PT1M
+      max-attempts: 5
+      batch-size: 20
+  sample-data:
+    enabled: false
+    password: ${UPTRAIL_SAMPLE_PASSWORD:Uptrail#2026}
+  # Public demo: the sign-in pages list sample accounts and their password.
+  demo:
+    enabled: ${UPTRAIL_DEMO_ENABLED:false}
+  entitlement-defaults:
+    administrative:
+      units: 10
+      budget: 2000.00
+    professional:
+      units: 20
+      budget: 2000.00
+    management:
+      units: 20
+      budget: 3000.00

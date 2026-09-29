@@ -1,0 +1,13 @@
+Subject: Course application [(${reference})] was assigned to you
+
+Hello [(${recipientName})],
+
+An administrator assigned the application of [(${applicantName})] for "[(${courseTitle})]" to you.
+Current status: [(${status})].
+
+Review it in Uptrail:
+[(${link})]
+
+You will be asked to sign in first.
+
+This message was sent automatically by Uptrail. Please do not reply.

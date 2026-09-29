@@ -1,0 +1,131 @@
+@startuml data-model
+!pragma layout smetana
+title Uptrail - data model (17 tables)
+hide circle
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+entity employee {
+  * id
+  --
+  staff_no (unique)
+  full_name, email, department
+  designation_code, active
+}
+entity user_account {
+  * id
+  --
+  employee_id (unique)
+  username (unique), password_hash, enabled
+}
+entity user_role {
+  * user_id, role_code
+}
+entity approval_assignment {
+  * employee_id
+  --
+  manager_id
+}
+entity course_category {
+  * code
+  --
+  display_name, description
+}
+entity training_provider {
+  * id
+  --
+  name, active
+}
+entity course_catalogue {
+  * id
+  --
+  category_code, provider_id
+  title, default_fee, active
+}
+entity training_calendar_year {
+  * calendar_year
+  --
+  status (DRAFT / CONFIRMED)
+  source_note, confirmed_by
+}
+entity public_holiday {
+  * holiday_date
+  --
+  name, source_note
+  calendar_year (generated)
+}
+entity training_account {
+  * id
+  --
+  employee_id + calendar_year (unique)
+  entitled_units, budget_amount
+}
+entity course_application {
+  * id
+  --
+  reference_no (unique)
+  employee_id, approver_id, reviewed_by
+  category_code, course_title, provider_name
+  start/end date and session, course_fee
+  status, version
+}
+entity application_day {
+  * application_id, training_date
+  --
+  units (1 or 2), session_code
+}
+entity course_claim {
+  * id
+  --
+  application_id (unique)
+  revision, amount, status
+  approver_id, reviewed_by, reimbursed_by
+  reimbursement_reference (unique)
+}
+entity claim_document {
+  * id
+  --
+  claim_id + claim_revision + document_type (unique)
+  storage_key (unique), sha256, size_bytes
+}
+entity audit_event {
+  * id
+  --
+  aggregate_type, aggregate_key, event_type
+  actor_employee_id, from_state, to_state
+  reason, snapshot_json, correlation_id
+}
+entity training_ledger {
+  * id
+  --
+  event_id + account_id (unique)
+  application_id, claim_id, entry_type
+  reserved/committed units and amounts
+  reimbursed_amount
+}
+entity email_outbox {
+  * id
+  --
+  event_id + recipient + template (unique)
+  status, attempts, next_attempt_at
+  lease_until, sent_at, last_error
+}
+
+employee ||--o| user_account
+user_account ||--o{ user_role
+employee ||--o| approval_assignment
+approval_assignment }o--|| employee : manager
+course_category ||--o{ course_catalogue
+training_provider |o--o{ course_catalogue
+training_calendar_year ||--o{ public_holiday
+employee ||--o{ training_account
+employee ||--o{ course_application
+course_application ||--|{ application_day
+course_application ||--o| course_claim
+course_claim ||--o{ claim_document
+training_account ||--o{ training_ledger
+audit_event ||--o{ training_ledger
+audit_event ||--o{ email_outbox
+course_application |o--o{ training_ledger
+course_claim |o--o{ training_ledger
+@enduml

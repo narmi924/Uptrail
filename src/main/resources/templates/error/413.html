@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Files too large', ~{error/_error :: view('413', 'Files too large', 'The upload is too large. Each claim document must be 5 MB or smaller. Go back, choose smaller files and submit again.')})}">
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Flash messages set by controllers after a redirect (post/redirect/get). -->
+<th:block th:fragment="flash">
+  <div class="ut-strip state-positive" role="status" th:if="${flashSuccess != null}" th:text="${flashSuccess}">Saved.</div>
+  <div class="ut-strip state-negative" role="alert" th:if="${flashError != null}" th:text="${flashError}">Failed.</div>
+  <div class="ut-strip" role="status" th:if="${flashInfo != null}" th:text="${flashInfo}">Note.</div>
+</th:block>
+
+<!-- Form-level summary of a failed submission; field messages are shown next to the fields. -->
+<th:block th:fragment="formErrors(form)">
+  <div class="ut-strip state-negative" role="alert" th:if="${#fields.hasAnyErrors() or businessError != null}">
+    <div class="ut-strip-title" th:text="${businessError != null} ? ${businessError} : 'Some fields need attention.'">Some fields need attention.</div>
+    <ul th:if="${#fields.hasGlobalErrors()}">
+      <li th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</li>
+    </ul>
+  </div>
+</th:block>
+
+<!-- Status badge: text always shown; colour follows the state mapping in DESIGN.md. -->
+<span th:fragment="status(value, label)" class="ut-badge"
+      th:classappend="${'status-' + #strings.toLowerCase(#strings.replace(value, '_', '-'))}"
+      th:text="${label}">Status</span>
+
+</body>
+</html>

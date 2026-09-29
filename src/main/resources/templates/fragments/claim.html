@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Object page header of a fee claim. -->
+<div th:fragment="header(claim)" class="ut-page-header">
+  <div>
+    <div class="mono text-muted-ut" th:text="${claim.application.referenceNo}">UPT-2026-000001</div>
+    <h1 th:text="|Fee claim: ${claim.application.courseTitle}|">Fee claim</h1>
+    <div class="ut-facts">
+      <div><div class="ut-fact-label">Status</div>
+        <span th:replace="~{fragments/messages :: status(${claim.status.name()}, ${claim.status.label()})}"></span></div>
+      <div><div class="ut-fact-label">Amount claimed</div>
+        <div class="ut-fact-value" th:text="${@formats.money(claim.amount)}">SGD 0.00</div></div>
+      <div><div class="ut-fact-label">Approved course fee</div>
+        <div class="ut-fact-value" th:text="${@formats.money(claim.application.fee)}">SGD 0.00</div></div>
+      <div><div class="ut-fact-label">Revision</div>
+        <div class="ut-fact-value" th:text="${claim.revision}">1</div></div>
+      <div><div class="ut-fact-label">Approving manager</div>
+        <div class="ut-fact-value" th:text="${claim.approverName}">Manager</div></div>
+      <div><div class="ut-fact-label">Submitted</div>
+        <div class="ut-fact-value" th:text="${@formats.dateTime(claim.submittedAt)}">date</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- The completed course the claim belongs to. -->
+<div th:fragment="course(claim, applicationLink)" class="ut-card">
+  <div class="ut-card-header"><h2>Course</h2>
+    <a class="small-ut" th:if="${applicationLink != null}" th:href="${applicationLink}">Open the application</a></div>
+  <div class="ut-card-body" th:with="a=${claim.application}">
+    <dl class="ut-dl">
+      <dt>Claimant</dt><dd th:text="${claim.employeeName} + ' · ' + ${claim.department}">Name</dd>
+      <dt>Category</dt><dd th:text="${a.categoryName}">External Course</dd>
+      <dt>Training provider</dt><dd th:text="${a.providerName}">Provider</dd>
+      <dt>Period</dt><dd th:text="${@formats.period(a.startDate, a.startSession.name(), a.endDate, a.endSession.name())}">Period</dd>
+      <dt>Approved course fee</dt><dd th:text="${@formats.money(a.fee)}">SGD 0.00</dd>
+      <dt>Attendance confirmed</dt><dd th:text="${a.completedAt != null} ? ${@formats.dateTime(a.completedAt)} : 'Not yet'">date</dd>
+      <dt>Paid by the employee</dt><dd th:text="${claim.paidByEmployee} ? 'Yes, confirmed by the claimant' : 'No'">Yes</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- Manager decision and reimbursement registration, when present. -->
+<div th:fragment="outcome(claim)" class="ut-card" th:if="${claim.reviewComment != null or claim.reimbursementReference != null}">
+  <div class="ut-card-header"><h2>Decision and reimbursement</h2></div>
+  <div class="ut-card-body">
+    <dl class="ut-dl">
+      <th:block th:if="${claim.reviewComment != null}">
+        <dt>Decided by</dt><dd th:text="${claim.reviewerName} + ' on ' + ${@formats.dateTime(claim.reviewedAt)}">Manager</dd>
+        <dt>Manager's reason</dt><dd th:text="${claim.reviewComment}">Reason</dd>
+      </th:block>
+      <th:block th:if="${claim.reimbursementReference != null}">
+        <dt>Reimbursement reference</dt><dd class="mono" th:text="${claim.reimbursementReference}">SIM-</dd>
+        <dt>Registered by</dt><dd th:text="${claim.reimbursedByName} + ' on ' + ${@formats.dateTime(claim.reimbursedAt)}">Admin</dd>
+      </th:block>
+    </dl>
+    <p class="ut-action-note mt-3 mb-0" th:if="${claim.reimbursementReference != null}">Recorded in demo; no payment is initiated.</p>
+  </div>
+</div>
+
+<!-- Documents of every revision; each link is an authorised download. -->
+<div th:fragment="documents(claim, downloadBase)" class="ut-card">
+  <div class="ut-card-header"><h2>Documents</h2>
+    <span class="small-ut text-muted-ut">Downloads open as files; they are never shown inside Uptrail</span></div>
+  <div class="ut-table-wrap">
+    <table class="ut-table ut-table-compact">
+      <thead><tr><th>Revision</th><th>Document</th><th>File</th><th class="num">Size</th><th>Uploaded</th></tr></thead>
+      <tbody>
+      <th:block th:each="r : ${claim.revisions}">
+        <tr th:each="d : ${r.documents}">
+          <td><span th:text="${r.revision}">1</span><span class="small-ut text-muted-ut" th:if="${r.current}"> (current)</span></td>
+          <td th:text="${d.type.label()}">Receipt</td>
+          <td><a th:href="${downloadBase + d.id}" th:text="${d.originalName}">receipt.pdf</a></td>
+          <td class="num" th:text="${@formats.fileSize(d.sizeBytes)}">1 KB</td>
+          <td th:text="${@formats.dateTime(d.uploadedAt)}">date</td>
+        </tr>
+      </th:block>
+      <tr class="ut-empty" th:if="${#lists.isEmpty(claim.revisions)}"><td colspan="5">No documents.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Amount, confirmation and the two files; shared by the new claim form and the resubmission form. -->
+<th:block th:fragment="fields(fee, maxBytes)">
+  <div class="mb-3">
+    <label class="form-label" for="amount">Amount claimed (SGD) <span class="ut-required">(required)</span></label>
+    <input class="form-control ut-w-money-input" id="amount" name="amount" inputmode="decimal" required
+           th:value="${amountDraft}" th:classappend="${fieldErrors != null and fieldErrors['amount'] != null} ? 'is-invalid'"
+           aria-describedby="amount-help">
+    <div class="ut-help" id="amount-help" th:text="|More than zero and at most the approved course fee of ${@formats.money(fee)}.|">Help</div>
+    <div class="invalid-feedback" th:if="${fieldErrors != null and fieldErrors['amount'] != null}" th:text="${fieldErrors['amount']}">Error</div>
+  </div>
+  <div class="mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="paidByEmployee" name="paidByEmployee" value="true" required
+             th:checked="${paidDraft}" th:classappend="${fieldErrors != null and fieldErrors['paidByEmployee'] != null} ? 'is-invalid'">
+      <label class="form-check-label" for="paidByEmployee">I paid this fee myself and have not been reimbursed for it.</label>
+      <div class="invalid-feedback" th:if="${fieldErrors != null and fieldErrors['paidByEmployee'] != null}" th:text="${fieldErrors['paidByEmployee']}">Error</div>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="receipt">Receipt <span class="ut-required">(required)</span></label>
+    <input class="form-control" type="file" id="receipt" name="receipt" required
+           accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" th:attr="data-ut-max-bytes=${maxBytes}"
+           th:classappend="${fieldErrors != null and fieldErrors['receipt'] != null} ? 'is-invalid'">
+    <div class="invalid-feedback" th:if="${fieldErrors != null and fieldErrors['receipt'] != null}" th:text="${fieldErrors['receipt']}">Error</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="certificate">Certificate of completion <span class="ut-required">(required)</span></label>
+    <input class="form-control" type="file" id="certificate" name="certificate" required
+           accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" th:attr="data-ut-max-bytes=${maxBytes}"
+           th:classappend="${fieldErrors != null and fieldErrors['certificate'] != null} ? 'is-invalid'">
+    <div class="invalid-feedback" th:if="${fieldErrors != null and fieldErrors['certificate'] != null}" th:text="${fieldErrors['certificate']}">Error</div>
+  </div>
+  <p class="ut-help" th:text="|PDF, PNG or JPEG files of at most ${maxBytes / 1048576} MB each. Choose both files again if a submission is refused.|">Help</p>
+</th:block>
+
+</body>
+</html>

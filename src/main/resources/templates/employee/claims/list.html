@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('My Claims', 'claims', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>My Claims</h1>
+      <div class="ut-subtitle">Claim the fee of a completed external course or certification that you paid yourself. Each course has one claim; a rejected claim can be revised.</div>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-header"><h2>Courses you can claim</h2></div>
+    <div class="ut-card-body text-muted-ut" th:if="${#lists.isEmpty(claimable)}">
+      No completed fee-paying course is waiting for a claim. Mark a course as completed on its application page first.
+    </div>
+    <div class="ut-table-wrap" th:if="${!#lists.isEmpty(claimable)}">
+      <table class="ut-table">
+        <thead><tr><th>Reference</th><th>Course</th><th>Category</th><th>Period</th><th class="num">Course fee (SGD)</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="a : ${claimable}">
+          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${a.id})}" th:text="${a.referenceNo}">ref</a></td>
+          <td th:text="${a.courseTitle}">Course</td>
+          <td th:text="${a.categoryName}">Category</td>
+          <td th:text="${@formats.period(a.startDate, a.startSession.name(), a.endDate, a.endSession.name())}">Period</td>
+          <td class="num" th:text="${@formats.amount(a.fee)}">0.00</td>
+          <td class="num"><a class="btn btn-primary btn-sm" th:href="@{/employee/claims/new(applicationId=${a.id})}">Claim fee</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-header"><h2>Claims</h2></div>
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Application</th><th>Course</th><th class="num">Claimed (SGD)</th><th>Status</th><th class="num">Revision</th><th>Last activity</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="c : ${view.content}">
+          <td class="mono" th:text="${c.applicationReference}">ref</td>
+          <td th:text="${c.courseTitle}">Course</td>
+          <td class="num" th:text="${@formats.amount(c.amount)}">0.00</td>
+          <td><span th:replace="~{fragments/messages :: status(${c.status.name()}, ${c.status.label()})}"></span></td>
+          <td class="num" th:text="${c.revision}">1</td>
+          <td th:text="${@formats.dateTime(c.lastActivity)}">date</td>
+          <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/employee/claims/{id}(id=${c.id})}">View</a></td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="7">You have not submitted any fee claims.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'claims')}"></div>
+  </div>
+</div>
+</body>
+</html>

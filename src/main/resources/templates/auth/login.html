@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/plain :: page('Staff sign-in',
+        ~{auth/login-form :: form(@{/login}, 'Staff sign-in', 'Uptrail · Staff Training & Approvals',
+          @{/admin/login}, 'Administrator? Use the administrator sign-in')})}">
+</html>

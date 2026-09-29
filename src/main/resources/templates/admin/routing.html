@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Approval Routing', 'routing', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Approval Routing</h1>
+      <div class="ut-subtitle">Each employee has one approving manager. New applications go to that manager; waiting items only move when you choose to move them.</div>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-header"><h2>Move a whole team</h2></div>
+    <div class="ut-card-body">
+      <form class="ut-filters" method="post" th:action="@{/admin/routing/move-team}"
+            data-ut-confirm="Move every direct report and all waiting items to the other manager?">
+        <div class="ut-filter-grow">
+          <label class="form-label" for="fromManagerId">From manager</label>
+          <select class="form-select" id="fromManagerId" name="fromManagerId" required>
+            <option value="">Choose</option>
+            <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.fullName}">Manager</option>
+          </select>
+        </div>
+        <div class="ut-filter-grow">
+          <label class="form-label" for="toManagerId">To manager</label>
+          <select class="form-select" id="toManagerId" name="toManagerId" required>
+            <option value="">Choose</option>
+            <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.fullName}">Manager</option>
+          </select>
+        </div>
+        <div><button class="btn btn-secondary" type="submit">Move team</button></div>
+      </form>
+      <p class="ut-help mt-2 mb-0">Use this before deactivating a manager or removing their manager role.</p>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-body">
+      <form class="ut-filters" method="get" th:action="@{/admin/routing}">
+        <div class="ut-filter-grow">
+          <label class="form-label" for="q">Search staff who can apply</label>
+          <input class="form-control" id="q" name="q" type="search" th:value="${q}" placeholder="Name, staff number or department">
+        </div>
+        <div><button class="btn btn-secondary" type="submit">Search</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead><tr><th>Staff member</th><th>Current approver</th><th>Change approver</th></tr></thead>
+        <tbody>
+        <tr th:each="r : ${view.content}">
+          <td><a th:href="@{/admin/staff/{id}(id=${r.employeeId})}" th:text="${r.fullName}">Name</a>
+            <div class="small-ut text-muted-ut" th:text="${r.staffNo} + ' · ' + ${r.department}">dept</div></td>
+          <td>
+            <span th:if="${r.managerName != null}" th:text="${r.managerName}">Manager</span>
+            <span th:if="${r.managerName == null}" class="ut-badge state-critical">Not configured</span>
+            <div class="small-ut ut-value-negative" th:if="${r.pendingWithOtherApprover > 0}"
+                 th:text="|${r.pendingWithOtherApprover} waiting application(s) with a different approver|">x</div>
+          </td>
+          <td>
+            <form class="d-flex flex-wrap gap-2 align-items-center" method="post" th:action="@{/admin/routing/{id}(id=${r.employeeId})}">
+              <select class="form-select form-select-sm w-auto" name="managerId" th:attr="aria-label='Approver for ' + ${r.fullName}">
+                <option value="">No approver</option>
+                <option th:each="m : ${managers}" th:if="${m.id != r.employeeId}" th:value="${m.id}" th:text="${m.fullName}"
+                        th:selected="${m.id == r.managerId}">Manager</option>
+              </select>
+              <label class="small-ut"><input type="checkbox" name="reassignPending" value="true" checked> move waiting items</label>
+              <button class="btn btn-secondary btn-sm" type="submit">Save</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="3">No staff match.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'staff')}"></div>
+  </div>
+</div>
+</body>
+</html>

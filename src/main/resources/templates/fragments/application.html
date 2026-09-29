@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Object page header: reference, title, status and key facts. -->
+<div th:fragment="header(app)" class="ut-page-header">
+  <div>
+    <div class="mono text-muted-ut" th:text="${app.referenceNo}">UPT-2026-000001</div>
+    <h1 th:text="${app.courseTitle}">Course title</h1>
+    <div class="ut-facts">
+      <div><div class="ut-fact-label">Status</div>
+        <span th:replace="~{fragments/messages :: status(${app.status.name()}, ${app.status.label()})}"></span></div>
+      <div><div class="ut-fact-label">Period</div>
+        <div class="ut-fact-value" th:text="${@formats.period(app.startDate, app.startSession.name(), app.endDate, app.endSession.name())}">Period</div></div>
+      <div><div class="ut-fact-label">Training days</div>
+        <div class="ut-fact-value" th:text="${@formats.days(app.totalUnits)}">1 day</div></div>
+      <div><div class="ut-fact-label">Course fee</div>
+        <div class="ut-fact-value" th:text="${app.fee.signum() == 0} ? 'No fee' : ${@formats.money(app.fee)}">SGD 0.00</div></div>
+      <div><div class="ut-fact-label">Approving manager</div>
+        <div class="ut-fact-value" th:text="${app.approverName}">Manager</div></div>
+      <div><div class="ut-fact-label">Submitted</div>
+        <div class="ut-fact-value" th:text="${@formats.dateTime(app.submittedAt)}">date</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Course details, schedule and decision; shared by the employee and manager views. -->
+<th:block th:fragment="details(app)">
+  <div class="ut-card">
+    <div class="ut-card-header"><h2>Course details</h2></div>
+    <div class="ut-card-body">
+      <dl class="ut-dl">
+        <dt>Applicant</dt><dd th:text="${app.employeeName} + ' · ' + ${app.department}">Name</dd>
+        <dt>Category</dt><dd th:text="${app.categoryName}">External Course</dd>
+        <dt>Training provider</dt><dd th:text="${app.providerName}">Provider</dd>
+        <dt>Justification</dt><dd th:text="${app.justification}">Justification</dd>
+        <dt>Work arrangements</dt>
+        <dd th:text="${app.workDissemination != null} ? ${app.workDissemination} : 'Not provided'">None</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="ut-card" th:if="${app.reviewComment != null or app.cancelReason != null or app.completionComment != null}">
+    <div class="ut-card-header"><h2>Decision and outcome</h2></div>
+    <div class="ut-card-body">
+      <dl class="ut-dl">
+        <th:block th:if="${app.reviewComment != null}">
+          <dt>Decided by</dt>
+          <dd th:text="${app.reviewerName} + ' on ' + ${@formats.dateTime(app.reviewedAt)}">Manager</dd>
+          <dt>Manager's reason</dt><dd th:text="${app.reviewComment}">Reason</dd>
+        </th:block>
+        <th:block th:if="${app.cancelReason != null}">
+          <dt>Cancellation reason</dt><dd th:text="${app.cancelReason}">Reason</dd>
+        </th:block>
+        <th:block th:if="${app.completionComment != null}">
+          <dt>Attendance confirmed</dt><dd th:text="${@formats.dateTime(app.completedAt)}">date</dd>
+          <dt>Experience comments</dt><dd th:text="${app.completionComment}">Comments</dd>
+        </th:block>
+      </dl>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-header"><h2>Schedule</h2>
+      <span class="small-ut text-muted-ut">Calculated when the application was submitted or last updated</span></div>
+    <div class="ut-table-wrap">
+      <table class="ut-table ut-table-compact">
+        <thead><tr><th>Date</th><th>Counted</th><th class="num">Training days</th></tr></thead>
+        <tbody>
+        <tr th:each="d : ${app.days}">
+          <td th:text="${#temporals.format(d.date, 'EEE d MMM yyyy')}">Mon 12 Oct 2026</td>
+          <td th:text="${d.session.name() == 'BOTH'} ? 'Full day' : (${d.session.name() == 'AM'} ? 'Morning' : 'Afternoon')">Full day</td>
+          <td class="num" th:text="${@formats.days(d.units)}">1 day</td>
+        </tr>
+        <tr th:each="x : ${app.excluded}">
+          <td class="text-muted-ut" th:text="${#temporals.format(x.date, 'EEE d MMM yyyy')}">Sat</td>
+          <td class="text-muted-ut" th:text="'Not counted: ' + ${x.reason}">Weekend</td>
+          <td class="num text-muted-ut">–</td>
+        </tr>
+        </tbody>
+        <tfoot><tr><td colspan="2">Total</td><td class="num" th:text="${@formats.days(app.totalUnits)}">1 day</td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</th:block>
+
+<!-- Audit timeline of the application. -->
+<div th:fragment="timeline(entries)" class="ut-card">
+  <div class="ut-card-header"><h2>Timeline</h2></div>
+  <div class="ut-card-body">
+    <ul class="ut-timeline">
+      <li th:each="e : ${entries}">
+        <div class="ut-timeline-title" th:text="${e.label}">Submitted</div>
+        <div class="ut-timeline-meta" th:text="${@formats.dateTime(e.at)} + ' · ' + ${e.actorName}">date · name</div>
+        <div class="ut-timeline-reason" th:if="${e.reason != null}" th:text="${e.reason}">Reason</div>
+      </li>
+    </ul>
+    <p class="text-muted-ut mb-0" th:if="${#lists.isEmpty(entries)}">No events recorded.</p>
+  </div>
+</div>
+
+<!-- Ledger movements caused by the application (reservation, commitment, release). -->
+<div th:fragment="ledger(lines)" class="ut-card">
+  <div class="ut-card-header"><h2>Budget and days</h2></div>
+  <div class="ut-table-wrap">
+    <table class="ut-table ut-table-compact">
+      <thead><tr><th>Movement</th><th class="num">Year</th><th class="num">Days</th><th class="num">SGD</th></tr></thead>
+      <tbody>
+      <tr th:each="l : ${lines}">
+        <td>
+          <span th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(l.type.name(), '_', ' ')))}">Reserve</span>
+          <div class="small-ut text-muted-ut" th:text="${@formats.dateTime(l.at)}">date</div>
+        </td>
+        <td class="num" th:text="${l.year}">2026</td>
+        <td class="num small-ut">
+          <div th:if="${l.reservedUnits != 0}" th:text="'Reserved ' + ${@formats.signedDays(l.reservedUnits)}">+1 day</div>
+          <div th:if="${l.committedUnits != 0}" th:text="'Approved ' + ${@formats.signedDays(l.committedUnits)}">+1 day</div>
+        </td>
+        <td class="num small-ut">
+          <div th:if="${l.reservedAmount.signum() != 0}" th:text="'Reserved ' + ${@formats.signedAmount(l.reservedAmount)}">+600.00</div>
+          <div th:if="${l.committedAmount.signum() != 0}" th:text="'Approved ' + ${@formats.signedAmount(l.committedAmount)}">+600.00</div>
+          <div th:if="${l.reimbursedAmount.signum() != 0}" th:text="'Reimbursed ' + ${@formats.signedAmount(l.reimbursedAmount)}">+600.00</div>
+        </td>
+      </tr>
+      <tr class="ut-empty" th:if="${#lists.isEmpty(lines)}"><td colspan="4">No movements.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

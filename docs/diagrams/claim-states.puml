@@ -1,0 +1,13 @@
+@startuml claim-states
+!pragma layout smetana
+title Fee claim states (one claim per completed application)
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+[*] --> SUBMITTED : submit with receipt\nand certificate
+SUBMITTED --> APPROVED : manager approves\nwith reason
+SUBMITTED --> REJECTED : manager rejects\nwith reason
+REJECTED --> SUBMITTED : claimant revises\n(revision + 1,\nboth documents again)
+APPROVED --> REIMBURSED : administrator registers\n(SIM- reference,\n+reimbursed in the ledger)
+REIMBURSED --> [*]
+@enduml

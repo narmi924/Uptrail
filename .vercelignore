@@ -1,0 +1,12 @@
+# Only these paths are needed to build the demo image (Dockerfile.vercel).
+/*
+!/Dockerfile.vercel
+!/vercel.json
+!/pom.xml
+!/mvnw
+!/.mvn
+!/deploy
+!/src
+/src/*
+!/src/main
+/deploy/demo/public

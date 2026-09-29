@@ -1,0 +1,67 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": [
+    "sin1"
+  ],
+  "services": {
+    "assets": {
+      "root": "deploy/demo/",
+      "buildCommand": "cd ../.. && sh deploy/demo/build-assets.sh",
+      "outputDirectory": "public"
+    },
+    "app": {
+      "runtime": "container",
+      "root": "./",
+      "entrypoint": "Dockerfile.vercel"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(css|js|img|fonts|webjars)/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/css/(.*)",
+      "destination": {
+        "service": "assets"
+      }
+    },
+    {
+      "source": "/js/(.*)",
+      "destination": {
+        "service": "assets"
+      }
+    },
+    {
+      "source": "/img/(.*)",
+      "destination": {
+        "service": "assets"
+      }
+    },
+    {
+      "source": "/fonts/(.*)",
+      "destination": {
+        "service": "assets"
+      }
+    },
+    {
+      "source": "/webjars/(.*)",
+      "destination": {
+        "service": "assets"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('My Applications', 'applications', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>My Applications</h1>
+      <div class="ut-subtitle" th:text="|Personal course history for ${year}: applications with training days in ${year}.|">History</div>
+    </div>
+    <div class="ut-actions">
+      <a class="btn btn-primary" th:href="@{/employee/applications/new}"><svg th:replace="~{fragments/ui :: icon('plus')}"></svg>Apply for a Course</a>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-card-body">
+      <form class="ut-filters" method="get" th:action="@{/employee/applications}">
+        <div class="ut-filter">
+          <label class="form-label" for="status">Status</label>
+          <select class="form-select" id="status" name="status">
+            <option value="">All statuses</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label()}" th:selected="${s == status}">Applied</option>
+          </select>
+        </div>
+        <div class="ut-filter">
+          <label class="form-label" for="category">Category</label>
+          <select class="form-select" id="category" name="category">
+            <option value="">All categories</option>
+            <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.displayName}" th:selected="${c.code == category}">Internal</option>
+          </select>
+        </div>
+        <div class="ut-filter-grow">
+          <label class="form-label" for="q">Search</label>
+          <input class="form-control" id="q" name="q" type="search" th:value="${q}" placeholder="Course title or reference">
+        </div>
+        <div>
+          <button class="btn btn-secondary" type="submit">Apply filters</button>
+          <a class="btn btn-ghost" th:href="@{/employee/applications}" th:if="${status != null or category != null or (q != null and !#strings.isEmpty(q))}">Reset filters</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="ut-card">
+    <div class="ut-table-wrap">
+      <table class="ut-table">
+        <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Course</th>
+          <th>Category</th>
+          <th>Period</th>
+          <th class="num">Training days</th>
+          <th class="num">Fee (SGD)</th>
+          <th>Status</th>
+          <th>Updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${view.content}">
+          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">UPT-2026-000001</a></td>
+          <td><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a>
+            <div class="small-ut text-muted-ut" th:text="${row.providerName}">Provider</div></td>
+          <td th:text="${row.categoryName}">External Course</td>
+          <td th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">Period</td>
+          <td class="num" th:text="${@formats.days(row.units)}">1 day</td>
+          <td class="num" th:text="${@formats.amount(row.fee)}">0.00</td>
+          <td><span th:replace="~{fragments/messages :: status(${row.status.name()}, ${row.status.label()})}"></span></td>
+          <td class="small-ut" th:text="${@formats.dateTime(row.updatedAt)}">date</td>
+        </tr>
+        <tr class="ut-empty" th:if="${view.isEmpty()}">
+          <td colspan="8">
+            <span th:if="${status == null and category == null and (q == null or #strings.isEmpty(q))}">
+              You have no applications with training days this year.
+              <a th:href="@{/employee/applications/new}">Apply for a course.</a></span>
+            <span th:unless="${status == null and category == null and (q == null or #strings.isEmpty(q))}">
+              No applications match these filters. <a th:href="@{/employee/applications}">Reset filters.</a></span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{fragments/paging :: pager(${view}, 'applications')}"></div>
+  </div>
+</div>
+</body>
+</html>

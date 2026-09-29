@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Reports', 'reports', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1>Reports</h1>
+      <div class="ut-subtitle">For the staff who report to you. The CSV download contains exactly the rows shown here.</div>
+    </div>
+  </div>
+
+  <nav class="ut-tabs" aria-label="Report">
+    <a th:href="@{/manager/reports(tab='training')}" th:classappend="${tab == 'training'} ? 'active'">Training participation</a>
+    <a th:href="@{/manager/reports(tab='budget')}" th:classappend="${tab == 'budget'} ? 'active'">Budget and claims</a>
+  </nav>
+
+  <div class="ut-strip state-negative" th:if="${flashError != null}" th:text="${flashError}">Error</div>
+
+  <!-- Training participation -->
+  <th:block th:if="${tab == 'training'}">
+    <div class="ut-card ut-no-print">
+      <div class="ut-card-body">
+        <form class="ut-filters" method="get" th:action="@{/manager/reports}">
+          <input type="hidden" name="tab" value="training">
+          <div class="ut-filter"><label class="form-label" for="from">From</label>
+            <input class="form-control" id="from" name="from" type="date" th:value="${filter.from}" required></div>
+          <div class="ut-filter"><label class="form-label" for="to">To</label>
+            <input class="form-control" id="to" name="to" type="date" th:value="${filter.to}" required></div>
+          <div class="ut-filter"><label class="form-label" for="category">Category</label>
+            <select class="form-select" id="category" name="category">
+              <option value="">All categories</option>
+              <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.displayName}" th:selected="${c.code == filter.category}">x</option>
+            </select></div>
+          <div class="ut-filter"><label class="form-label" for="employeeId">Staff member</label>
+            <select class="form-select" id="employeeId" name="employeeId">
+              <option value="">All my staff</option>
+              <option th:each="p : ${team}" th:value="${p.id}" th:text="${p.fullName}" th:selected="${p.id == employeeId}">x</option>
+            </select></div>
+          <div><button class="btn btn-secondary" type="submit">Show report</button></div>
+        </form>
+      </div>
+    </div>
+
+    <th:block th:if="${training != null}" th:with="r=${training}">
+      <div class="ut-card">
+        <div class="ut-card-header">
+          <h2 th:text="|Training ${@formats.date(r.filter.from)} – ${@formats.date(r.filter.to)}|">Training</h2>
+          <div class="ut-card-actions ut-no-print">
+            <a class="btn btn-secondary btn-sm"
+               th:href="@{/manager/reports/training.csv(from=${r.filter.from},to=${r.filter.to},category=${r.filter.category},employeeId=${employeeId})}"><svg th:replace="~{fragments/ui :: icon('download')}"></svg>Download CSV</a>
+            <button class="btn btn-secondary btn-sm" type="button" data-ut-print><svg th:replace="~{fragments/ui :: icon('printer')}"></svg>Print</button>
+          </div>
+        </div>
+        <div class="ut-card-body">
+          <p class="small-ut text-muted-ut mb-2">
+            Included statuses: Approved and Completed. Category: <span th:text="${r.filter.category != null} ? ${r.filter.category.defaultLabel()} : 'all'">all</span>.
+            Training days count only the days inside the period.
+          </p>
+          <div class="ut-facts">
+            <div><div class="ut-fact-label">Courses</div><div class="ut-fact-value" th:text="${#lists.size(r.rows)}">0</div></div>
+            <div><div class="ut-fact-label">Staff attending</div><div class="ut-fact-value" th:text="${r.people}">0</div></div>
+            <div><div class="ut-fact-label">Training days in period</div><div class="ut-fact-value" th:text="${@formats.days(r.totalUnits)}">0</div></div>
+            <div th:each="entry : ${r.unitsByCategory}"><div class="ut-fact-label" th:text="${entry.key.defaultLabel()}">Internal</div>
+              <div class="ut-fact-value" th:text="${@formats.days(entry.value)}">0</div></div>
+            <div><div class="ut-fact-label">Fees of courses starting in period</div><div class="ut-fact-value" th:text="${@formats.money(r.feesOfCoursesStartingInPeriod)}">0</div></div>
+          </div>
+        </div>
+        <div class="ut-table-wrap">
+          <table class="ut-table">
+            <thead><tr><th>Reference</th><th>Staff member</th><th>Course</th><th>Category</th><th>Dates</th><th>Status</th>
+              <th class="num">Days in period</th><th class="num">Fee (SGD)</th></tr></thead>
+            <tbody>
+            <tr th:each="row : ${view.content}">
+              <td class="mono" th:text="${row.referenceNo}">ref</td>
+              <td th:text="${row.employeeName}">Name</td>
+              <td th:text="${row.courseTitle}">Course</td>
+              <td th:text="${row.categoryName}">Category</td>
+              <td th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">dates</td>
+              <td><span th:replace="~{fragments/messages :: status(${row.status.name()}, ${row.status.label()})}"></span></td>
+              <td class="num" th:text="${@formats.days(row.unitsInPeriod)}">1 day</td>
+              <td class="num" th:text="${@formats.amount(row.fee)}">0.00</td>
+            </tr>
+            <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="8">No approved or completed courses match these filters.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="ut-print-only small-ut px-3 py-2 mb-0" th:if="${view.totalPages > 1}"
+           th:text="|Rows ${view.firstRow()}–${view.lastRow()} of ${view.totalElements}. The CSV download contains all rows.|">Rows</p>
+        <div th:replace="~{fragments/paging :: pager(${view}, 'courses')}"></div>
+      </div>
+    </th:block>
+  </th:block>
+
+  <!-- Budget and claims -->
+  <th:block th:if="${tab == 'budget'}" th:with="r=${budget}">
+    <div class="ut-card ut-no-print">
+      <div class="ut-card-body">
+        <form class="ut-filters" method="get" th:action="@{/manager/reports}">
+          <input type="hidden" name="tab" value="budget">
+          <div class="ut-filter"><label class="form-label" for="year">Year</label>
+            <select class="form-select" id="year" name="year">
+              <option th:each="y : ${years}" th:value="${y}" th:text="${y}" th:selected="${y == year}">2026</option>
+            </select></div>
+          <div class="ut-filter"><label class="form-label" for="budget-employee">Staff member</label>
+            <select class="form-select" id="budget-employee" name="employeeId">
+              <option value="">All my staff</option>
+              <option th:each="p : ${team}" th:value="${p.id}" th:text="${p.fullName}" th:selected="${p.id == employeeId}">x</option>
+            </select></div>
+          <div><button class="btn btn-secondary" type="submit">Show report</button></div>
+        </form>
+      </div>
+    </div>
+    <div class="ut-card">
+      <div class="ut-card-header">
+        <h2 th:text="|Budget use and fee claims ${year}|">Budget</h2>
+        <div class="ut-card-actions ut-no-print">
+          <a class="btn btn-secondary btn-sm" th:href="@{/manager/reports/budget.csv(year=${year},employeeId=${employeeId})}"><svg th:replace="~{fragments/ui :: icon('download')}"></svg>Download CSV</a>
+          <button class="btn btn-secondary btn-sm" type="button" data-ut-print><svg th:replace="~{fragments/ui :: icon('printer')}"></svg>Print</button>
+        </div>
+      </div>
+      <div class="ut-card-body small-ut text-muted-ut">
+        Available = entitlement or budget − pending − approved. Totals cover staff with an account for the year.
+        Reimbursed claims do not reduce the budget again. Claims belong to the year in which their course started.
+      </div>
+      <div class="ut-table-wrap">
+        <table class="ut-table ut-table-dense">
+          <thead>
+          <tr class="ut-head-group">
+            <th></th>
+            <th class="ut-group-start" colspan="5">Training days</th>
+            <th class="ut-group-start" colspan="4">Budget (SGD)</th>
+            <th class="ut-group-start" colspan="3">Fee claims (SGD)</th>
+          </tr>
+          <tr>
+            <th>Staff member</th>
+            <th class="num ut-group-start">Entitled</th><th class="num">Pending</th><th class="num">Approved</th>
+            <th class="num">Available</th><th class="num">Completed</th>
+            <th class="num ut-group-start">Budget</th><th class="num">Pending</th><th class="num">Approved</th><th class="num">Available</th>
+            <th class="num ut-group-start">Submitted</th><th class="num">Approved</th><th class="num">Reimbursed</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="row : ${r.rows}" th:with="b=${row.balance}">
+            <td class="ut-nowrap"><span th:text="${row.employeeName}">Name</span><div class="small-ut text-muted-ut" th:text="${row.staffNo}">S</div></td>
+            <th:block th:if="${b.configured}">
+              <td class="num ut-group-start" th:text="${@formats.dayValue(b.entitledUnits)}">10</td>
+              <td class="num" th:text="${@formats.dayValue(b.reservedUnits)}">0</td>
+              <td class="num" th:text="${@formats.dayValue(b.committedUnits)}">0</td>
+              <td class="num" th:text="${@formats.dayValue(b.availableUnits())}">10</td>
+            </th:block>
+            <td class="ut-group-start" colspan="4" th:if="${!b.configured}"><span class="ut-badge status-not-configured">Not configured</span></td>
+            <td class="num" th:text="${@formats.dayValue(row.completedUnits)}">0</td>
+            <td class="num ut-group-start" th:text="${b.configured} ? ${@formats.amount(b.budget)} : '–'">0</td>
+            <td class="num" th:text="${@formats.amount(b.reservedAmount)}">0</td>
+            <td class="num" th:text="${@formats.amount(b.committedAmount)}">0</td>
+            <td class="num" th:text="${b.configured} ? ${@formats.amount(b.availableBudget())} : '–'">0</td>
+            <td class="num ut-group-start" th:text="${@formats.amount(row.claimsSubmitted)}">0</td>
+            <td class="num" th:text="${@formats.amount(row.claimsApproved)}">0</td>
+            <td class="num" th:text="${@formats.amount(b.reimbursedAmount)}">0</td>
+          </tr>
+          <tr class="ut-empty" th:if="${#lists.isEmpty(r.rows)}"><td colspan="13">Nobody reports to you.</td></tr>
+          </tbody>
+          <tfoot th:if="${!#lists.isEmpty(r.rows)}" th:with="t=${r.totals}">
+          <tr>
+            <td>Total</td>
+            <td class="num ut-group-start" th:text="${@formats.dayValue(t.entitledUnits)}">0</td>
+            <td class="num" th:text="${@formats.dayValue(t.reservedUnits)}">0</td>
+            <td class="num" th:text="${@formats.dayValue(t.committedUnits)}">0</td>
+            <td class="num" th:text="${@formats.dayValue(t.availableUnits())}">0</td>
+            <td class="num" th:text="${@formats.dayValue(r.completedUnits)}">0</td>
+            <td class="num ut-group-start" th:text="${@formats.amount(t.budget)}">0</td>
+            <td class="num" th:text="${@formats.amount(t.reservedAmount)}">0</td>
+            <td class="num" th:text="${@formats.amount(t.committedAmount)}">0</td>
+            <td class="num" th:text="${@formats.amount(t.availableBudget())}">0</td>
+            <td class="num ut-group-start" th:text="${@formats.amount(r.claimsSubmitted)}">0</td>
+            <td class="num" th:text="${@formats.amount(r.claimsApproved)}">0</td>
+            <td class="num" th:text="${@formats.amount(t.reimbursedAmount)}">0</td>
+          </tr>
+          </tfoot>
+        </table>
+      </div>
+      </div>
+    </div>
+  </th:block>
+</div>
+</body>
+</html>

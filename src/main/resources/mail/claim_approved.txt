@@ -1,0 +1,16 @@
+Subject: Your fee claim for [(${reference})] was approved
+
+Hello [(${recipientName})],
+
+Your claim of [(${amount})] for "[(${courseTitle})]" was approved.
+An administrator will register the reimbursement.
+[# th:if="${reason != null}"]
+Reason given by your manager:
+[(${reason})]
+[/]
+Open the claim in Uptrail:
+[(${link})]
+
+You will be asked to sign in first.
+
+This message was sent automatically by Uptrail. Please do not reply.

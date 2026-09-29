@@ -1,0 +1,36 @@
+# Local working files
+/tmp/
+.vercel/
+
+# Build output
+/target/
+**/target/
+
+# Static files collected for the demo (deploy/demo/build-assets.sh)
+/deploy/demo/public/
+
+# Runtime data (uploaded documents, captured mail, logs)
+/var/
+*.log
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+.DS_Store
+Thumbs.db
+
+# Tooling caches
+node_modules/
+.mvn/wrapper/maven-wrapper.jar
+
+.vercel
