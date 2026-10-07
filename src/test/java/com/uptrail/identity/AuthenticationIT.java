@@ -182,6 +182,33 @@ class AuthenticationIT extends AbstractMySqlIT {
     }
 
     @Test
+    void legacyEmailLinksKeepTheirDestinationAndWorkspaceThroughLogin() throws Exception {
+        fixtures.employee("emma");
+        fixtures.admin("ada");
+        MockHttpSession staff = login("/employee/login", "emma");
+        MockHttpSession admin = login("/admin/login", "ada");
+        for (String page : new String[] {"applications", "claims"}) {
+            String legacy = "/employee/" + page + "/42";
+            String current = "/staff/" + page + "/42";
+            mvc.perform(get("/login").param("next", legacy)).andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                            .attribute("next", current));
+            mvc.perform(loginWithNext("emma", legacy)).andExpect(redirectedUrl(current));
+            mvc.perform(loginWithNext("emma", legacy + "?source=mail"))
+                    .andExpect(redirectedUrl(current + "?source=mail"));
+            mvc.perform(get(legacy).session(staff)).andExpect(redirectedUrl(current));
+            mvc.perform(get(legacy).session(admin)).andExpect(status().isForbidden());
+            MockHttpSession saved = (MockHttpSession) mvc.perform(get(legacy))
+                    .andExpect(redirectedUrl("/employee/login"))
+                    .andReturn().getRequest().getSession(false);
+            mvc.perform(post("/employee/login").session(saved).param("username", "emma")
+                            .param("password", Fixtures.PASSWORD).with(csrf()))
+                    // Spring Security appends this marker to its saved request URL.
+                    .andExpect(redirectedUrl(current + "?continue"));
+        }
+    }
+
+    @Test
     void expiringSessionsForcesSignInAgain() throws Exception {
         fixtures.employee("emma");
         MockHttpSession session = login("/employee/login", "emma");

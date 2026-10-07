@@ -43,6 +43,7 @@ public class UserController {
 
     @GetMapping({"/employee/login", "/login"})
     public String staffLogin(@RequestParam(required = false) String next, Model model) {
+        next = EntryPoint.STAFF.canonicalRedirect(next);
         model.addAttribute("next", EntryPoint.STAFF.isSafeRedirect(next) ? next : null);
         addDemo(model, STAFF_ACCOUNTS);
         return "auth/login";

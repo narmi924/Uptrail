@@ -63,6 +63,7 @@ The default is pure MVC. Add rest-enhanced later for live eligibility, catalogue
 - Current-year history, annual usage and overlapping approved team courses belong to the basic flow.
 - Keep CATS's existing numeric ID types/enums when moving code. Uptrail uses Long IDs and BigDecimal money.
 - Annual limits belong to TrainingEntitlement; User/Staff do not duplicate yearly budgets.
+- Pre-V6 application/claim email links under /employee redirect to the Staff detail pages. The same role and ownership checks still apply.
 
 ## AI, delivery and validation
 

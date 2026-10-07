@@ -70,9 +70,15 @@ class MvcReferenceIT extends AbstractApplicationIT {
                         .param("expectedVersion", Long.toString(version(id))))
                 .andExpect(redirectedUrl("/manager/approvals"));
         assertThat(statusOf(id)).isEqualTo("APPROVED");
+        mvc.perform(get("/employee/applications/" + id).session(employeeSession))
+                .andExpect(redirectedUrl("/staff/applications/" + id));
         mvc.perform(get("/staff/applications/" + id).session(employeeSession))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Useful for our team project.")));
+        MockHttpSession otherStaff = staffSession(fixtures.employee("other"));
+        mvc.perform(get("/employee/applications/" + id).session(otherStaff))
+                .andExpect(redirectedUrl("/staff/applications/" + id));
+        mvc.perform(get("/staff/applications/" + id).session(otherStaff)).andExpect(status().isNotFound());
         mvc.perform(get("/staff/home").session(managerSession)).andExpect(status().isOk());
     }
 

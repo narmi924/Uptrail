@@ -36,7 +36,7 @@ public class EntrySuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws ServletException, IOException {
-        String next = request.getParameter("next");
+        String next = entryPoint.canonicalRedirect(request.getParameter("next"));
         SavedRequest saved = requestCache.getRequest(request, response);
         requestCache.removeRequest(request, response);
         User user = identities.current(authentication, request.getSession());
@@ -45,7 +45,7 @@ public class EntrySuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         if (entryPoint.isSafeRedirect(next)) {
             target = next;
         } else if (saved != null) {
-            String path = pathOf(saved.getRedirectUrl(), request);
+            String path = entryPoint.canonicalRedirect(pathOf(saved.getRedirectUrl(), request));
             if (entryPoint.isSafeRedirect(path)) {
                 target = path;
             }

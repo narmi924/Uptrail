@@ -116,6 +116,9 @@ class MvcReferenceFlowE2E {
             manager.waitForURL(Pattern.compile(".*/manager/approvals"));
             employee.reload();
             assertThat(employee.locator("body").innerText()).contains("Useful for our team's MVC implementation.");
+            employee.navigate(url("/employee/applications/" + id));
+            assertThat(employee.url()).endsWith("/staff/applications/" + id);
+            assertThat(employee.locator("body").innerText()).contains("Useful for our team's MVC implementation.");
 
             manager.navigate(url("/staff/home"));
             assertThat(manager.locator("body").innerText()).contains("Daniel");

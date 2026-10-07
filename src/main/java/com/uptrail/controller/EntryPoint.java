@@ -40,13 +40,24 @@ public enum EntryPoint {
         return home;
     }
 
+    /** Keep links from pre-V6 queued and delivered emails inside the same Staff workspace. */
+    public String canonicalRedirect(String target) {
+        if (this == STAFF && target != null
+                && target.matches("/employee/(applications|claims)/[0-9]+(?:\\?[^\\r\\n]*)?")) {
+            return "/staff" + target.substring("/employee".length());
+        }
+        return target;
+    }
+
     /** Only same-site paths inside this workspace may be used as the post-login destination. */
     public boolean isSafeRedirect(String target) {
+        target = canonicalRedirect(target);
         if (target == null || target.isBlank() || !target.startsWith("/") || target.startsWith("//")
                 || target.contains("\\") || target.contains("://") || target.contains("\r")
                 || target.contains("\n")) {
             return false;
         }
-        return redirectPrefixes.stream().anyMatch(target::startsWith);
+        String path = target;
+        return redirectPrefixes.stream().anyMatch(path::startsWith);
     }
 }

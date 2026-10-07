@@ -93,7 +93,8 @@ public class SecurityConfig {
                         // The training calendar is available to every signed-in user, in either workspace.
                         .requestMatchers("/calendar", "/api/v1/calendar").authenticated()
                         .requestMatchers("/manager/**").access(allOf(staff, hasRole("MANAGER")))
-                        .requestMatchers("/staff/**", "/claims/**", "/api/v1/applications/**",
+                        .requestMatchers("/staff/**", "/employee/applications/**", "/employee/claims/**",
+                                "/claims/**", "/api/v1/applications/**",
                                 "/api/v1/catalogue/**").access(allOf(staff, hasRole("STAFF")))
                         .anyRequest().authenticated())
                 .formLogin(form -> form
