@@ -3,6 +3,7 @@ package com.uptrail.catalogue.api;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +18,7 @@ import com.uptrail.catalogue.service.CatalogueQueryService;
  */
 @RestController
 @RequestMapping("/api/v1/catalogue")
+@ConditionalOnProperty(prefix = "uptrail.web", name = "rest-enabled", havingValue = "true", matchIfMissing = true)
 public class CatalogueApiController {
 
     public record CatalogueCourseDto(Long id, CategoryCode category, String title, String providerName,

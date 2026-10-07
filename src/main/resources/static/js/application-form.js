@@ -11,6 +11,7 @@
     return;
   }
   var U = window.Uptrail;
+  var previewUrl = panel.getAttribute('data-preview-url');
   var field = function (name) { return form.elements.namedItem(name); };
   var timer = null;
   var sequence = 0;
@@ -133,12 +134,12 @@
   }
 
   function check() {
-    if (!value('category') || !value('startDate') || !value('endDate')) {
+    if (!previewUrl || !value('category') || !value('startDate') || !value('endDate')) {
       return;
     }
     var mine = ++sequence;
     panel.setAttribute('aria-busy', 'true');
-    U.requestJson(panel.getAttribute('data-preview-url'), { method: 'POST', body: requestBody() })
+    U.requestJson(previewUrl, { method: 'POST', body: requestBody() })
       .then(function (response) {
         if (mine !== sequence) {
           return;

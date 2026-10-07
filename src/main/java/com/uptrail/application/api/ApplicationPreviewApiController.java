@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +26,7 @@ import com.uptrail.identity.service.UptrailUserPrincipal;
  */
 @RestController
 @RequestMapping("/api/v1/applications")
+@ConditionalOnProperty(prefix = "uptrail.web", name = "rest-enabled", havingValue = "true", matchIfMissing = true)
 public class ApplicationPreviewApiController {
 
     public record PreviewRequest(Long applicationId, CategoryCode category, Long catalogueId, String courseTitle,

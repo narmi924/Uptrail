@@ -33,7 +33,7 @@
           <div class="ut-card-body">
             <section class="ut-form-section">
               <h3>Course details</h3>
-              <div class="mb-3" id="catalogue-picker">
+              <div class="mb-3" id="catalogue-picker" th:if="${restEnabled}">
                 <label class="form-label" for="catalogue-search">Find a common course (optional)</label>
                 <input class="form-control" id="catalogue-search" type="search" autocomplete="off"
                        placeholder="Type part of a course title" th:attr="data-api=@{/api/v1/catalogue}"
@@ -147,9 +147,10 @@
         <aside class="ut-card ut-sticky" aria-live="polite">
           <div class="ut-card-header"><h2>Eligibility check</h2></div>
           <div class="ut-card-body" id="eligibility"
-               th:attr="data-preview-url=@{/api/v1/applications/preview},data-application-id=${editing != null ? editing.id : ''}">
-            <p class="text-muted-ut mb-0">Enter the category and dates to see the training days counted, excluded dates and your remaining balance.</p>
-            <noscript><p class="text-muted-ut">The live check needs JavaScript. The server checks everything when you submit.</p></noscript>
+               th:attr="data-preview-url=${restEnabled} ? @{/api/v1/applications/preview} : null,data-application-id=${editing != null ? editing.id : ''}">
+            <p class="text-muted-ut mb-0" th:if="${restEnabled}">Enter the category and dates to see the training days counted, excluded dates and your remaining balance.</p>
+            <p class="text-muted-ut mb-0" th:unless="${restEnabled}">Training days, balance and eligibility are checked when you submit. Any problems are shown next to the form.</p>
+            <noscript th:if="${restEnabled}"><p class="text-muted-ut">The live check needs JavaScript. The server checks everything when you submit.</p></noscript>
           </div>
           <div class="ut-card-footer small-ut text-muted-ut">
             Approving manager: <span th:text="${approverName != null} ? ${approverName} : 'not configured'">Manager</span>

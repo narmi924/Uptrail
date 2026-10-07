@@ -6,6 +6,8 @@ Employees apply for internal training, external courses and professional certifi
 
 **Live demo: <https://uptrail-demo.vercel.app>** — the sign-in page lists demo accounts you can use with one click.
 
+**For the CATS team:** [MVC-first implementation reference](docs/cats-team-reference.md) maps common blockers to working code, explains the model differences, and includes a no-REST reference mode. Start there when adapting a small implementation into the team repository.
+
 ## What it does
 
 | Role | Main functions |
@@ -61,6 +63,14 @@ The first start with the `dev` profile creates the schema and loads the sample o
 - Emails sent by the application: <http://localhost:8025> (Mailpit)
 - Health: <http://localhost:8080/actuator/health>
 
+For ordinary MVC forms without the optional REST enhancements, start with both profiles:
+
+```bash
+./mvnw spring-boot:run "-Dspring-boot.run.profiles=dev,mvc-reference"
+```
+
+The application still supports submission and approvals. Eligibility is checked on submit, catalogue search is hidden, and the calendar uses server-rendered lists and form navigation. Remove `mvc-reference` later to enable the live checks, search and interactive calendar.
+
 To run the packaged application instead:
 
 ```bash
@@ -111,6 +121,7 @@ The application reads environment variables; defaults suit the Docker Compose se
 | `UPTRAIL_DB_USER` | `uptrail` | Database user |
 | `UPTRAIL_DB_PASSWORD` | `uptrail_dev_password` in `dev`, empty otherwise | Database password (must match the Compose database) |
 | `UPTRAIL_PORT` | `8080` | HTTP port |
+| `UPTRAIL_REST_ENABLED` | `true` | Optional JSON enhancements; the `mvc-reference` profile disables them |
 | `UPTRAIL_BASE_URL` | `http://localhost:8080` | Base of the links in emails |
 | `UPTRAIL_DOCUMENTS_ROOT` | `var/documents` | Private folder for claim documents |
 | `UPTRAIL_MAIL_TRANSPORT` | `smtp` | `smtp`, or `file` to write emails as text files |
@@ -159,10 +170,12 @@ var/                           runtime files (documents, captured mail); not in 
 | No emails in Mailpit | Check that Mailpit runs and look at Operations → Email outbox for errors. Failed emails are retried automatically and can be queued again there. |
 | "Files too large" when claiming | Each document may be at most 5 MB (PDF, PNG or JPEG). |
 | Integration tests fail at start-up | Docker is not running and no `UPTRAIL_TEST_DB_URL` is set. The tests fail on purpose instead of skipping. |
+| Windows startup fails with "Unable to establish loopback connection" and `UnixDomainSockets` in the stack | Try an existing directory with its full path for `-Djdk.net.unixdomain.tmpdir`, through `JAVA_TOOL_OPTIONS` in the current shell. The Windows browser tests passed with this setting. |
 | `./mvnw package` fails with "Unable to rename … .jar" on Windows | The JAR is still running; stop the application first. |
 
 ## Documents
 
+- [docs/cats-team-reference.md](docs/cats-team-reference.md) — MVC-first source map, routing, ID/session contracts, adaptation and delivery checklist
 - [docs/architecture.md](docs/architecture.md) — modules, security, write protocol, ledger, email, documents, tests
 - [docs/data-model.md](docs/data-model.md) — tables, constraints and how balances are computed
 - [docs/api.md](docs/api.md) — JSON API, CSV exports and document downloads

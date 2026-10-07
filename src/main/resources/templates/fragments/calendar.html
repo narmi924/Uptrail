@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<table class="ut-table" th:fragment="entries(data)">
+  <thead><tr><th>Staff member</th><th>Course</th><th>Category</th><th>Dates</th></tr></thead>
+  <tbody>
+  <tr th:each="e : ${data.entries}">
+    <td th:text="${e.employeeName}">Name</td>
+    <td th:text="${e.courseTitle}">Course</td>
+    <td th:text="${e.categoryName}">Category</td>
+    <td th:text="${@formats.period(e.startDate, e.startSession.name(), e.endDate, e.endSession.name())}">dates</td>
+  </tr>
+  <tr class="ut-empty" th:if="${#lists.isEmpty(data.entries)}"><td colspan="4">No approved courses this month.</td></tr>
+  </tbody>
+</table>
+</body>
+</html>
