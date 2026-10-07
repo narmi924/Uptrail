@@ -1,10 +1,10 @@
 # Uptrail — HTTP interfaces
 
-This document describes the JSON API used by the browser, the CSV exports and the document downloads. Everything else is server-rendered HTML with ordinary form posts.
+The JSON API requires the rest-enhanced profile; the default application uses MVC. This document describes the optional JSON API, the CSV exports and the document downloads. Everything else is server-rendered HTML with ordinary form posts.
 
 ## Conventions
 
-- **Authentication.** All endpoints use the signed-in session of the staff workspace (`/login`). The administration workspace (`/admin/login`) can call the calendar API only. There are no API keys or tokens.
+- **Authentication.** All endpoints use the signed-in session of the staff workspace (`/employee/login`). The administration workspace (`/admin/login`) can call the calendar API only. There are no API keys or tokens.
 - **CSRF.** Every `POST` must carry the CSRF token. Pages expose it in `<meta name="_csrf">` and `<meta name="_csrf_header">`; `static/js/uptrail.js` adds the header to every `fetch` it makes.
 - **Errors.** API errors are JSON, never a login page or HTML:
 

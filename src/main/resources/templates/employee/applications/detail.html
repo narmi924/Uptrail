@@ -3,7 +3,7 @@
       th:replace="~{layout/base :: page(${app.referenceNo}, 'applications', ~{::#page})}">
 <body>
 <div id="page">
-  <div class="ut-breadcrumb"><a th:href="@{/employee/applications}">My Applications</a></div>
+  <div class="ut-breadcrumb"><a th:href="@{/staff/applications}">My Applications</a></div>
   <div th:replace="~{fragments/application :: header(${app})}"></div>
 
   <div class="row g-4">
@@ -18,18 +18,18 @@
             No further actions: this application is <span th:text="${#strings.toLowerCase(app.status.label())}">closed</span>.</p>
 
           <th:block th:if="${app.actions.canEdit}">
-            <a class="btn btn-primary w-100 mb-2" th:href="@{/employee/applications/{id}/edit(id=${app.id})}">Edit application</a>
+            <a class="btn btn-primary w-100 mb-2" th:href="@{/staff/applications/{id}/edit(id=${app.id})}">Edit application</a>
           </th:block>
 
           <form th:if="${app.actions.canDelete}" method="post" class="mb-3"
-                th:action="@{/employee/applications/{id}/delete(id=${app.id})}"
+                th:action="@{/staff/applications/{id}/delete(id=${app.id})}"
                 data-ut-confirm="Delete this application? It stays in your history as Deleted and its reservation is released.">
             <input type="hidden" name="expectedVersion" th:value="${app.version}">
             <button type="submit" class="btn btn-outline-danger w-100">Delete application</button>
           </form>
 
           <form th:if="${app.actions.canComplete}" method="post" class="mb-3"
-                th:action="@{/employee/applications/{id}/complete(id=${app.id})}">
+                th:action="@{/staff/applications/{id}/complete(id=${app.id})}">
             <input type="hidden" name="expectedVersion" th:value="${app.version}">
             <label class="form-label" for="experienceComments">Confirm attendance <span class="ut-required">(required)</span></label>
             <textarea class="form-control mb-2" id="experienceComments" name="experienceComments" rows="3"
@@ -40,7 +40,7 @@
           <p class="ut-action-note" th:if="${app.actions.completeNote != null}" th:text="${app.actions.completeNote}">Note</p>
 
           <form th:if="${app.actions.canCancel}" method="post"
-                th:action="@{/employee/applications/{id}/cancel(id=${app.id})}"
+                th:action="@{/staff/applications/{id}/cancel(id=${app.id})}"
                 data-ut-confirm="Cancel this approved course? The approved days and budget are released.">
             <input type="hidden" name="expectedVersion" th:value="${app.version}">
             <label class="form-label" for="cancelReason">Cancel the course <span class="ut-required">(reason required)</span></label>
@@ -51,9 +51,9 @@
           </form>
 
           <a th:if="${app.actions.canClaim}" class="btn btn-secondary w-100 mt-2"
-             th:href="@{/employee/claims/new(applicationId=${app.id})}">Claim course fee</a>
+             th:href="@{/staff/claims/new(applicationId=${app.id})}">Claim course fee</a>
           <a th:if="${app.actions.claimId != null}" class="btn btn-secondary w-100 mt-2"
-             th:href="@{/employee/claims/{id}(id=${app.actions.claimId})}">View fee claim</a>
+             th:href="@{/staff/claims/{id}(id=${app.actions.claimId})}">View fee claim</a>
         </div>
       </div>
       <div th:replace="~{fragments/application :: timeline(${app.timeline})}"></div>

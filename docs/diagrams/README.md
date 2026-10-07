@@ -4,8 +4,9 @@ PlantUML sources (`*.puml`) and the compiled SVG files (`svg/`). The SVG files a
 
 | Diagram | Source | Compiled |
 | --- | --- | --- |
+| User inheritance | [user-hierarchy.puml](user-hierarchy.puml) | [svg/user-hierarchy.svg](svg/user-hierarchy.svg) |
 | Components and call rules | [architecture.puml](architecture.puml) | [svg/architecture.svg](svg/architecture.svg) |
-| Data model (17 tables) | [data-model.puml](data-model.puml) | [svg/data-model.svg](svg/data-model.svg) |
+| Data model (16 tables) | [data-model.puml](data-model.puml) | [svg/data-model.svg](svg/data-model.svg) |
 | Course application states | [application-states.puml](application-states.puml) | [svg/application-states.svg](svg/application-states.svg) |
 | Fee claim states | [claim-states.puml](claim-states.puml) | [svg/claim-states.svg](svg/claim-states.svg) |
 | Training calendar year states | [calendar-year-states.puml](calendar-year-states.puml) | [svg/calendar-year-states.svg](svg/calendar-year-states.svg) |

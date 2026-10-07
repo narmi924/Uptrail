@@ -38,12 +38,12 @@
           <th>Approver</th><th>Status</th></tr></thead>
         <tbody>
         <tr th:each="s : ${view.content}">
-          <td class="mono" th:text="${s.staffNo}">S1001</td>
-          <td><a th:href="@{/admin/staff/{id}(id=${s.id})}" th:text="${s.fullName}">Name</a>
+          <td class="mono" th:text="${s.staffId}">S1001</td>
+          <td><a th:href="@{/admin/staff/{id}(id=${s.id})}" th:text="${s.name}">Name</a>
             <div class="small-ut text-muted-ut" th:text="${s.username}">username</div></td>
           <td th:text="${s.department}">Dept</td>
           <td th:text="${s.designation.label()}">Professional</td>
-          <td th:text="${s.rolesLabel()}">Employee</td>
+          <td th:text="${s.rolesLabel()}">User</td>
           <td th:text="${s.approverName != null} ? ${s.approverName} : '—'">Manager</td>
           <td><span th:replace="~{fragments/messages :: status(${s.active} ? 'active' : 'inactive', ${s.active} ? 'Active' : 'Inactive')}"></span></td>
         </tr>

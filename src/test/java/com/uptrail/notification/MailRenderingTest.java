@@ -17,11 +17,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import com.uptrail.notification.domain.MailTemplate;
-import com.uptrail.notification.service.FileMailTransport;
-import com.uptrail.notification.service.MailRenderer;
-import com.uptrail.notification.service.MailRenderer.RenderedMail;
-import com.uptrail.notification.service.MailTransport.OutgoingMail;
+import com.uptrail.model.MailTemplate;
+import com.uptrail.service.FileMailTransport;
+import com.uptrail.service.MailRenderer;
+import com.uptrail.service.MailRenderer.RenderedMail;
+import com.uptrail.service.MailTransport.OutgoingMail;
 import com.uptrail.shared.time.BusinessClock;
 
 /**
@@ -44,7 +44,7 @@ class MailRenderingTest {
         values.put("amount", "SGD 600.00");
         values.put("revision", "1");
         values.put("reimbursementReference", "SIM-20261016-000001");
-        values.put("link", "http://localhost:8080/login?next=/employee/applications/1");
+        values.put("link", "http://localhost:8080/employee/login?next=/staff/applications/1");
         return values;
     }
 
@@ -55,7 +55,7 @@ class MailRenderingTest {
 
         assertThat(mail.subject()).isNotBlank().doesNotContain("\n").contains("UPT-2026-000001");
         assertThat(mail.body()).contains("Hello Siti Rahman,")
-                .contains("http://localhost:8080/login?next=/employee/applications/1")
+                .contains("http://localhost:8080/employee/login?next=/staff/applications/1")
                 .doesNotContain("null").doesNotContain("[(").doesNotContain("Subject:");
     }
 

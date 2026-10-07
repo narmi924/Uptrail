@@ -6,13 +6,13 @@ Employees apply for internal training, external courses and professional certifi
 
 **Live demo: <https://uptrail-demo.vercel.app>** — the sign-in page lists demo accounts you can use with one click.
 
-**For the CATS team:** [MVC-first implementation reference](docs/cats-team-reference.md) maps common blockers to working code, explains the model differences, and includes a no-REST reference mode. Start there when adapting a small implementation into the team repository.
+**For the CATS team:** [CATS implementation reference](docs/cats-team-reference.md) uses the same User -> Staff -> Manager and User -> Admin hierarchy, model/repo/service/controller layers, inherited staffId and session "user". The default application is pure MVC. Start there when adapting a small implementation into the team repository.
 
 ## What it does
 
 | Role | Main functions |
 | --- | --- |
-| Employee | Apply with a live eligibility check (training days, holidays, overlaps, remaining days and budget); update, delete or cancel; confirm attendance after the course; claim the fee of a completed course with receipt and certificate; see the year's balance and every movement behind it |
+| Staff | Apply with a server-validated eligibility check (training days, holidays, overlaps, remaining days and budget); update, delete or cancel; confirm attendance after the course; claim the fee of a completed course with receipt and certificate; see the year's balance and every movement behind it |
 | Manager | Decide applications grouped by staff member, with the person's usage and the team's courses in the same period; decide fee claims after checking the documents; team history; participation and budget reports with CSV export and print view |
 | Administrator | Staff and roles, approval routing, annual entitlements, catalogue, public holidays and calendar years, reimbursement registration, audit trail, email outbox and ledger check |
 | Everyone signed in | Training calendar of approved and completed courses |
@@ -27,7 +27,7 @@ Java 21 · Spring Boot 4.1 (Spring MVC, Thymeleaf, Spring Security, Spring Data 
 
 ### Online demo
 
-Open <https://uptrail-demo.vercel.app>. Staff sign in at `/login`, administrators at `/admin/login`; both pages list demo accounts.
+Open <https://uptrail-demo.vercel.app>. Staff sign in at `/employee/login`, administrators at `/admin/login`; both pages list demo accounts.
 
 - Everything is synthetic sample data, created fresh when the demo starts.
 - The demo sleeps after a few idle minutes and forgets all changes. The first page after a pause can take up to a minute.
@@ -58,18 +58,18 @@ docker compose up -d                                     # MySQL on 127.0.0.1:33
 
 The first start with the `dev` profile creates the schema and loads the sample organisation into the empty database. Then open:
 
-- Staff sign-in: <http://localhost:8080/login>
+- Staff sign-in: <http://localhost:8080/employee/login>
 - Administration sign-in: <http://localhost:8080/admin/login>
 - Emails sent by the application: <http://localhost:8025> (Mailpit)
 - Health: <http://localhost:8080/actuator/health>
 
-For ordinary MVC forms without the optional REST enhancements, start with both profiles:
+The default application uses MVC forms and server-rendered calendar navigation. REST controllers are not registered. To enable the optional live checks, catalogue search and interactive calendar later:
 
 ```bash
-./mvnw spring-boot:run "-Dspring-boot.run.profiles=dev,mvc-reference"
+./mvnw spring-boot:run "-Dspring-boot.run.profiles=dev,rest-enhanced"
 ```
 
-The application still supports submission and approvals. Eligibility is checked on submit, catalogue search is hidden, and the calendar uses server-rendered lists and form navigation. Remove `mvc-reference` later to enable the live checks, search and interactive calendar.
+Staff starts at `/staff/home`, Manager at `/manager/home` (and can use Staff pages), and Admin at `/admin/home`. All pages share the password-free session `user`.
 
 To run the packaged application instead:
 
@@ -86,7 +86,7 @@ To start again from an empty database: stop the application, run `docker compose
 
 ## Sample accounts
 
-All sample people, addresses and documents are synthetic. Every sample account has the password **`Uptrail#2026`** (change it with `UPTRAIL_SAMPLE_PASSWORD` before the first start). Staff sign in at `/login`, administrators at `/admin/login`.
+All sample people, addresses and documents are synthetic. Every sample account has the password **`Uptrail#2026`** (change it with `UPTRAIL_SAMPLE_PASSWORD` before the first start). Staff sign in at `/employee/login`, administrators at `/admin/login`.
 
 | Username | Name | Roles | Notes |
 | --- | --- | --- | --- |
@@ -95,10 +95,10 @@ All sample people, addresses and documents are synthetic. Every sample account h
 | `grace` | Grace Lim | Manager | Director; approves the other managers and has no approver |
 | `daniel` | Daniel Wong | Manager | Leads Software Engineering |
 | `priya` | Priya Nair | Manager | Leads Data and Analytics |
-| `siti`, `marcus`, `weiling`, `arjun`, `hannah`, `farid`, `jasmine`, `kelvin` | | Employee | Report to Daniel; `jasmine` has no account for next year |
-| `meiling`, `rahul`, `nora`, `junhao`, `aisha`, `clara` | | Employee | Report to Priya |
-| `benjamin` | Benjamin Ong | Employee | Inactive: cannot sign in |
-| `ethan` | Ethan Koh | Employee | Has no approving manager, so cannot apply |
+| `siti`, `marcus`, `weiling`, `arjun`, `hannah`, `farid`, `jasmine`, `kelvin` | | Staff | Report to Daniel; `jasmine` has no account for next year |
+| `meiling`, `rahul`, `nora`, `junhao`, `aisha`, `clara` | | Staff | Report to Priya |
+| `benjamin` | Benjamin Ong | Staff | Inactive: cannot sign in |
+| `ethan` | Ethan Koh | Staff | Has no approving manager, so cannot apply |
 
 The sample activity is created through the application's own services, relative to today's date, and covers every application status (including a course that runs into next year) and every claim status:
 
@@ -121,7 +121,7 @@ The application reads environment variables; defaults suit the Docker Compose se
 | `UPTRAIL_DB_USER` | `uptrail` | Database user |
 | `UPTRAIL_DB_PASSWORD` | `uptrail_dev_password` in `dev`, empty otherwise | Database password (must match the Compose database) |
 | `UPTRAIL_PORT` | `8080` | HTTP port |
-| `UPTRAIL_REST_ENABLED` | `true` | Optional JSON enhancements; the `mvc-reference` profile disables them |
+| `UPTRAIL_REST_ENABLED` | `false` | Optional JSON enhancements; enable with `rest-enhanced` |
 | `UPTRAIL_BASE_URL` | `http://localhost:8080` | Base of the links in emails |
 | `UPTRAIL_DOCUMENTS_ROOT` | `var/documents` | Private folder for claim documents |
 | `UPTRAIL_MAIL_TRANSPORT` | `smtp` | `smtp`, or `file` to write emails as text files |
@@ -146,8 +146,8 @@ Integration and end-to-end tests need Docker. Without Docker, point the integrat
 ## Project layout
 
 ```text
-src/main/java/com/uptrail/     one package per business area (see docs/architecture.md)
-src/main/resources/db/migration/   Flyway migrations V1–V5
+src/main/java/com/uptrail/     model / repo / service / controller layers
+src/main/resources/db/migration/   Flyway migrations V1–V6 (preserves existing V5 data)
 src/main/resources/templates/  Thymeleaf pages
 src/main/resources/mail/       plain-text email templates
 src/main/resources/holidays/   bundled Singapore public holidays 2026–2027 with source note
@@ -165,7 +165,7 @@ var/                           runtime files (documents, captured mail); not in 
 | The application cannot connect to MySQL | Check `docker compose ps`. Port 3307 in use: set `UPTRAIL_DB_PORT` for Compose and the matching `UPTRAIL_DB_URL` for the application. |
 | `Access denied for user 'uptrail'` | The application's password differs from the one the database volume was created with. Export the same `UPTRAIL_DB_PASSWORD`, or recreate the database with `docker compose down -v`. |
 | No sample data | Sample data loads only with the `dev` profile into an empty database. Reset as described under "For development". |
-| Sign-in fails for a correct password, or a page shows 403 | Administrators sign in at `/admin/login`, staff at `/login`; each session belongs to the workspace it signed in to. |
+| Sign-in fails for a correct password, or a page shows 403 | Administrators sign in at `/admin/login`, staff at `/employee/login`; each session belongs to the workspace it signed in to. |
 | Applications are refused because the holiday calendar is not confirmed | An administrator confirms the year on Public Holidays. The bundled 2026–2027 holidays were retrieved from the Ministry of Manpower on 2026-09-28; check them against the official list. |
 | No emails in Mailpit | Check that Mailpit runs and look at Operations → Email outbox for errors. Failed emails are retried automatically and can be queued again there. |
 | "Files too large" when claiming | Each document may be at most 5 MB (PDF, PNG or JPEG). |
@@ -175,7 +175,7 @@ var/                           runtime files (documents, captured mail); not in 
 
 ## Documents
 
-- [docs/cats-team-reference.md](docs/cats-team-reference.md) — MVC-first source map, routing, ID/session contracts, adaptation and delivery checklist
+- [docs/cats-team-reference.md](docs/cats-team-reference.md) — shared hierarchy, direct source map, routing, session and delivery guide
 - [docs/architecture.md](docs/architecture.md) — modules, security, write protocol, ledger, email, documents, tests
 - [docs/data-model.md](docs/data-model.md) — tables, constraints and how balances are computed
 - [docs/api.md](docs/api.md) — JSON API, CSV exports and document downloads

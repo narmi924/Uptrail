@@ -70,7 +70,7 @@ logging:
 
 uptrail:
   web:
-    rest-enabled: ${UPTRAIL_REST_ENABLED:true}
+    rest-enabled: ${UPTRAIL_REST_ENABLED:false}
   base-url: ${UPTRAIL_BASE_URL:http://localhost:8080}
   documents:
     root: ${UPTRAIL_DOCUMENTS_ROOT:var/documents}

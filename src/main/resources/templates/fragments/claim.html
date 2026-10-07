@@ -42,13 +42,13 @@
 </div>
 
 <!-- Manager decision and reimbursement registration, when present. -->
-<div th:fragment="outcome(claim)" class="ut-card" th:if="${claim.reviewComment != null or claim.reimbursementReference != null}">
+<div th:fragment="outcome(claim)" class="ut-card" th:if="${claim.decisionReason != null or claim.reimbursementReference != null}">
   <div class="ut-card-header"><h2>Decision and reimbursement</h2></div>
   <div class="ut-card-body">
     <dl class="ut-dl">
-      <th:block th:if="${claim.reviewComment != null}">
+      <th:block th:if="${claim.decisionReason != null}">
         <dt>Decided by</dt><dd th:text="${claim.reviewerName} + ' on ' + ${@formats.dateTime(claim.reviewedAt)}">Manager</dd>
-        <dt>Manager's reason</dt><dd th:text="${claim.reviewComment}">Reason</dd>
+        <dt>Manager's reason</dt><dd th:text="${claim.decisionReason}">Reason</dd>
       </th:block>
       <th:block th:if="${claim.reimbursementReference != null}">
         <dt>Reimbursement reference</dt><dd class="mono" th:text="${claim.reimbursementReference}">SIM-</dd>

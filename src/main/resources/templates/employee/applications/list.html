@@ -9,13 +9,13 @@
       <div class="ut-subtitle" th:text="|Personal course history for ${year}: applications with training days in ${year}.|">History</div>
     </div>
     <div class="ut-actions">
-      <a class="btn btn-primary" th:href="@{/employee/applications/new}"><svg th:replace="~{fragments/ui :: icon('plus')}"></svg>Apply for a Course</a>
+      <a class="btn btn-primary" th:href="@{/staff/applications/new}"><svg th:replace="~{fragments/ui :: icon('plus')}"></svg>Apply for a Course</a>
     </div>
   </div>
 
   <div class="ut-card">
     <div class="ut-card-body">
-      <form class="ut-filters" method="get" th:action="@{/employee/applications}">
+      <form class="ut-filters" method="get" th:action="@{/staff/applications}">
         <div class="ut-filter">
           <label class="form-label" for="status">Status</label>
           <select class="form-select" id="status" name="status">
@@ -36,7 +36,7 @@
         </div>
         <div>
           <button class="btn btn-secondary" type="submit">Apply filters</button>
-          <a class="btn btn-ghost" th:href="@{/employee/applications}" th:if="${status != null or category != null or (q != null and !#strings.isEmpty(q))}">Reset filters</a>
+          <a class="btn btn-ghost" th:href="@{/staff/applications}" th:if="${status != null or category != null or (q != null and !#strings.isEmpty(q))}">Reset filters</a>
         </div>
       </form>
     </div>
@@ -59,8 +59,8 @@
         </thead>
         <tbody>
         <tr th:each="row : ${view.content}">
-          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">UPT-2026-000001</a></td>
-          <td><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a>
+          <td class="mono"><a th:href="@{/staff/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">UPT-2026-000001</a></td>
+          <td><a th:href="@{/staff/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a>
             <div class="small-ut text-muted-ut" th:text="${row.providerName}">Provider</div></td>
           <td th:text="${row.categoryName}">External Course</td>
           <td th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">Period</td>
@@ -73,9 +73,9 @@
           <td colspan="8">
             <span th:if="${status == null and category == null and (q == null or #strings.isEmpty(q))}">
               You have no applications with training days this year.
-              <a th:href="@{/employee/applications/new}">Apply for a course.</a></span>
+              <a th:href="@{/staff/applications/new}">Apply for a course.</a></span>
             <span th:unless="${status == null and category == null and (q == null or #strings.isEmpty(q))}">
-              No applications match these filters. <a th:href="@{/employee/applications}">Reset filters.</a></span>
+              No applications match these filters. <a th:href="@{/staff/applications}">Reset filters.</a></span>
           </td>
         </tr>
         </tbody>

@@ -5,11 +5,11 @@
 <div id="page" th:with="b=${dash.balance}">
   <div class="ut-page-header">
     <div>
-      <h1 th:text="'Welcome, ' + ${profile.fullName}">Welcome</h1>
+      <h1 th:text="'Welcome, ' + ${profile.name}">Welcome</h1>
       <div class="ut-subtitle" th:text="|${profile.department} · ${profile.designation.label()} · Training year ${dash.year}|">Department</div>
     </div>
     <div class="ut-actions">
-      <a class="btn btn-primary" th:href="@{/employee/applications/new}"><svg th:replace="~{fragments/ui :: icon('plus')}"></svg>Apply for a Course</a>
+      <a class="btn btn-primary" th:href="@{/staff/applications/new}"><svg th:replace="~{fragments/ui :: icon('plus')}"></svg>Apply for a Course</a>
     </div>
   </div>
 
@@ -23,7 +23,7 @@
   </div>
 
   <div class="ut-tiles" th:if="${b.configured}">
-    <a class="ut-tile" th:href="@{/employee/entitlement}">
+    <a class="ut-tile" th:href="@{/staff/entitlement}">
       <div class="ut-tile-top">
         <span class="ut-tile-icon"><svg th:replace="~{fragments/ui :: icon('calendar')}"></svg></span>
         <span class="ut-tile-label">Training days available</span>
@@ -32,7 +32,7 @@
       <div class="ut-meter" aria-hidden="true"><span th:class="${@formats.meter(@formats.percent(b.usedUnits(), b.entitledUnits))}"></span></div>
       <div class="ut-tile-note" th:text="|of ${@formats.days(b.entitledUnits)}: ${@formats.days(b.reservedUnits)} pending, ${@formats.days(b.committedUnits)} approved|">note</div>
     </a>
-    <a class="ut-tile" th:href="@{/employee/entitlement}">
+    <a class="ut-tile" th:href="@{/staff/entitlement}">
       <div class="ut-tile-top">
         <span class="ut-tile-icon"><svg th:replace="~{fragments/ui :: icon('wallet')}"></svg></span>
         <span class="ut-tile-label">Budget available</span>
@@ -41,7 +41,7 @@
       <div class="ut-meter" aria-hidden="true"><span th:class="${@formats.meter(@formats.percent(b.usedAmount(), b.budget))}"></span></div>
       <div class="ut-tile-note" th:text="|of ${@formats.money(b.budget)}: ${@formats.money(b.reservedAmount)} pending, ${@formats.money(b.committedAmount)} approved|">note</div>
     </a>
-    <a class="ut-tile" th:href="@{/employee/applications}">
+    <a class="ut-tile" th:href="@{/staff/applications}">
       <div class="ut-tile-top">
         <span class="ut-tile-icon tone-warning"><svg th:replace="~{fragments/ui :: icon('hourglass')}"></svg></span>
         <span class="ut-tile-label">Waiting for a decision</span>
@@ -67,9 +67,9 @@
           <table class="ut-table">
             <tbody>
             <tr th:each="row : ${dash.readyToComplete}">
-              <td><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a>
+              <td><a th:href="@{/staff/applications/{id}(id=${row.id})}" th:text="${row.courseTitle}">Course</a>
                 <div class="small-ut text-muted-ut" th:text="|Ended ${@formats.date(row.endDate)}. Confirm attendance to complete it.|">Ended</div></td>
-              <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/employee/applications/{id}(id=${row.id})}">Confirm attendance</a></td>
+              <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/staff/applications/{id}(id=${row.id})}">Confirm attendance</a></td>
             </tr>
             <tr class="ut-empty" th:if="${#lists.isEmpty(dash.readyToComplete)}"><td>Nothing needs your action.</td></tr>
             </tbody>
@@ -82,7 +82,7 @@
         <div class="ut-card-header"><h2><svg th:replace="~{fragments/ui :: icon('user')}"></svg>Your profile</h2></div>
         <div class="ut-card-body">
           <dl class="ut-dl">
-            <dt>Staff number</dt><dd class="mono" th:text="${profile.staffNo}">S0001</dd>
+            <dt>Staff number</dt><dd class="mono" th:text="${profile.staffId}">S0001</dd>
             <dt>Email</dt><dd th:text="${profile.email}">email</dd>
             <dt>Approving manager</dt>
             <dd th:text="${profile.approverName != null} ? ${profile.approverName} : 'Not configured'">Manager</dd>
@@ -94,19 +94,19 @@
 
   <div class="ut-card">
     <div class="ut-card-header"><h2><svg th:replace="~{fragments/ui :: icon('file-text')}"></svg>Recent applications</h2>
-      <div class="ut-card-actions"><a th:href="@{/employee/applications}">All applications this year</a></div></div>
+      <div class="ut-card-actions"><a th:href="@{/staff/applications}">All applications this year</a></div></div>
     <div class="ut-table-wrap">
       <table class="ut-table">
         <thead><tr><th>Reference</th><th>Course</th><th>Period</th><th>Status</th></tr></thead>
         <tbody>
         <tr th:each="row : ${dash.recent}">
-          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">ref</a></td>
+          <td class="mono"><a th:href="@{/staff/applications/{id}(id=${row.id})}" th:text="${row.referenceNo}">ref</a></td>
           <td th:text="${row.courseTitle}">Course</td>
           <td th:text="${@formats.period(row.startDate, row.startSession.name(), row.endDate, row.endSession.name())}">Period</td>
           <td><span th:replace="~{fragments/messages :: status(${row.status.name()}, ${row.status.label()})}"></span></td>
         </tr>
         <tr class="ut-empty" th:if="${#lists.isEmpty(dash.recent)}">
-          <td colspan="4">No applications yet. <a th:href="@{/employee/applications/new}">Apply for a course.</a></td>
+          <td colspan="4">No applications yet. <a th:href="@{/staff/applications/new}">Apply for a course.</a></td>
         </tr>
         </tbody>
       </table>

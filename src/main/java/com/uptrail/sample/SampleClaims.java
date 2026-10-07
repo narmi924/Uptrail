@@ -12,18 +12,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.uptrail.application.domain.CourseApplication;
-import com.uptrail.application.repository.CourseApplicationRepository;
-import com.uptrail.claim.domain.CourseClaim;
-import com.uptrail.claim.repository.CourseClaimRepository;
-import com.uptrail.claim.service.ClaimCommandService;
-import com.uptrail.claim.service.ClaimCommandService.Decision;
-import com.uptrail.claim.service.DocumentStorage.Upload;
-import com.uptrail.identity.domain.Actor;
-import com.uptrail.identity.domain.Role;
-import com.uptrail.identity.domain.UserAccount;
-import com.uptrail.identity.repository.UserAccountRepository;
-import com.uptrail.organisation.domain.Employee;
+import com.uptrail.model.CourseApplication;
+import com.uptrail.repo.CourseApplicationRepo;
+import com.uptrail.model.CourseFeeApplication;
+import com.uptrail.repo.CourseFeeApplicationRepo;
+import com.uptrail.service.ClaimCommandService;
+import com.uptrail.service.ClaimCommandService.Decision;
+import com.uptrail.service.DocumentStorage.Upload;
+import com.uptrail.model.User;
+import com.uptrail.model.Role;
+import com.uptrail.repo.UserRepo;
 import com.uptrail.shared.error.BusinessException;
 import com.uptrail.shared.time.BusinessClock;
 
@@ -37,13 +35,13 @@ public class SampleClaims {
     private static final Logger log = LoggerFactory.getLogger(SampleClaims.class);
 
     private final ClaimCommandService commands;
-    private final CourseClaimRepository claims;
-    private final CourseApplicationRepository applications;
-    private final UserAccountRepository accounts;
+    private final CourseFeeApplicationRepo claims;
+    private final CourseApplicationRepo applications;
+    private final UserRepo accounts;
     private final BusinessClock clock;
 
-    public SampleClaims(ClaimCommandService commands, CourseClaimRepository claims,
-            CourseApplicationRepository applications, UserAccountRepository accounts, BusinessClock clock) {
+    public SampleClaims(ClaimCommandService commands, CourseFeeApplicationRepo claims,
+            CourseApplicationRepo applications, UserRepo accounts, BusinessClock clock) {
         this.commands = commands;
         this.claims = claims;
         this.applications = applications;
@@ -70,7 +68,7 @@ public class SampleClaims {
             decide(staff, "daniel", id, Decision.REJECT,
                     "The receipt shows a different course. Attach the receipt for Data Engineering with Python.",
                     created, "weiling-data", 9);
-            Actor actor = actor(staff, "weiling");
+            User actor = actor(staff, "weiling");
             clock.callAt(after(created, "weiling-data", 12), () -> {
                 commands.resubmit(actor, id, version(id), new BigDecimal("700.00"), true,
                         receipt(created, "weiling-data", "700.00"), certificate(created, "weiling-data"));
@@ -90,14 +88,14 @@ public class SampleClaims {
     private Long submit(SampleOrganisation.Staff staff, Map<String, Long> created, String key, String claimant,
             String amount, int daysAfterEnd) {
         Long applicationId = required(created, key);
-        Actor actor = actor(staff, claimant);
+        User actor = actor(staff, claimant);
         return clock.callAt(after(created, key, daysAfterEnd), () -> commands.submit(actor, applicationId,
                 new BigDecimal(amount), true, receipt(created, key, amount), certificate(created, key)));
     }
 
     private void decide(SampleOrganisation.Staff staff, String manager, Long claimId, Decision decision,
             String reason, Map<String, Long> created, String key, int daysAfterEnd) {
-        Actor actor = actor(staff, manager);
+        User actor = actor(staff, manager);
         clock.callAt(after(created, key, daysAfterEnd), () -> {
             commands.decide(actor, claimId, decision, reason, version(claimId));
             return null;
@@ -106,7 +104,7 @@ public class SampleClaims {
 
     private void register(SampleOrganisation.Staff staff, String admin, Long claimId, Map<String, Long> created,
             String key, int daysAfterEnd) {
-        Actor actor = actor(staff, admin);
+        User actor = actor(staff, admin);
         clock.callAt(after(created, key, daysAfterEnd),
                 () -> commands.registerReimbursement(actor, claimId, version(claimId)));
     }
@@ -147,14 +145,14 @@ public class SampleClaims {
     }
 
     private long version(Long claimId) {
-        return claims.findById(claimId).map(CourseClaim::getVersion).orElseThrow();
+        return claims.findById(claimId).map(CourseFeeApplication::getVersion).orElseThrow();
     }
 
-    private Actor actor(SampleOrganisation.Staff staff, String username) {
-        Employee employee = staff.get(username);
-        UserAccount account = accounts.findByEmployeeId(employee.getId()).orElseThrow();
-        return new Actor(employee.getId(), employee.getFullName(),
-                account.getRoles().isEmpty() ? Set.of(Role.EMPLOYEE) : account.getRoles());
+    private User actor(SampleOrganisation.Staff staff, String username) {
+        User employee = staff.get(username);
+        User account = accounts.findById(employee.getUserId()).orElseThrow();
+        return User.identity(employee.getUserId(), employee.getName(),
+                account.getRoles().isEmpty() ? Set.of(Role.STAFF) : account.getRoles());
     }
 
     private int step(String key, Runnable step) {

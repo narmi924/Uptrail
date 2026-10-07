@@ -30,7 +30,7 @@
           <td><span th:text="${c.courseTitle}">Course</span><div class="small-ut text-muted-ut mono" th:text="${c.applicationReference}">ref</div></td>
           <td class="num" th:text="${@formats.amount(c.amount)}">0.00</td>
           <td><span th:text="${c.reviewerName}">Manager</span>
-            <div class="small-ut text-muted-ut ut-truncate" th:text="${c.reviewComment}" th:title="${c.reviewComment}">Reason</div></td>
+            <div class="small-ut text-muted-ut ut-truncate" th:text="${c.decisionReason}" th:title="${c.decisionReason}">Reason</div></td>
           <td th:if="${tab == 'awaiting'}" th:text="${@formats.dateTime(c.reviewedAt)}">date</td>
           <td th:if="${tab == 'registered'}" class="mono" th:text="${c.reimbursementReference}">SIM-</td>
           <td th:if="${tab == 'registered'}" th:text="${@formats.dateTime(c.reimbursedAt)}">date</td>

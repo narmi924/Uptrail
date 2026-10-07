@@ -5,7 +5,7 @@ skinparam componentStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Arial
 
-actor "Employee / Manager" as staff
+actor "Staff / Manager" as staff
 actor "Administrator" as admin
 
 node "Browser" {
@@ -14,10 +14,10 @@ node "Browser" {
 }
 
 node "Uptrail (Spring Boot)" {
-  [Staff security chain\n/login, /employee, /manager,\n/claims, /calendar, /api/v1] as staffChain
+  [Staff security chain\n/employee/login, /staff, /manager,\n/claims, /calendar, /api/v1] as staffChain
   [Admin security chain\n/admin/**] as adminChain
-  [Page controllers\n(*.web)] as web
-  [REST controllers\n(*.api)] as api
+  [Page controllers\n(controller)] as web
+  [REST controllers\n(controller, opt-in)] as api
   [Services\n(transactions, rules, scope,\naudit, ledger, outbox)] as services
   [Repositories\n(Spring Data JPA)] as repos
   [Outbox worker\n(scheduled)] as worker

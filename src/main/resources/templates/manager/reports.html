@@ -35,7 +35,7 @@
           <div class="ut-filter"><label class="form-label" for="employeeId">Staff member</label>
             <select class="form-select" id="employeeId" name="employeeId">
               <option value="">All my staff</option>
-              <option th:each="p : ${team}" th:value="${p.id}" th:text="${p.fullName}" th:selected="${p.id == employeeId}">x</option>
+              <option th:each="p : ${team}" th:value="${p.id}" th:text="${p.name}" th:selected="${p.id == employeeId}">x</option>
             </select></div>
           <div><button class="btn btn-secondary" type="submit">Show report</button></div>
         </form>
@@ -105,7 +105,7 @@
           <div class="ut-filter"><label class="form-label" for="budget-employee">Staff member</label>
             <select class="form-select" id="budget-employee" name="employeeId">
               <option value="">All my staff</option>
-              <option th:each="p : ${team}" th:value="${p.id}" th:text="${p.fullName}" th:selected="${p.id == employeeId}">x</option>
+              <option th:each="p : ${team}" th:value="${p.id}" th:text="${p.name}" th:selected="${p.id == employeeId}">x</option>
             </select></div>
           <div><button class="btn btn-secondary" type="submit">Show report</button></div>
         </form>
@@ -142,7 +142,7 @@
           </thead>
           <tbody>
           <tr th:each="row : ${r.rows}" th:with="b=${row.balance}">
-            <td class="ut-nowrap"><span th:text="${row.employeeName}">Name</span><div class="small-ut text-muted-ut" th:text="${row.staffNo}">S</div></td>
+            <td class="ut-nowrap"><span th:text="${row.employeeName}">Name</span><div class="small-ut text-muted-ut" th:text="${row.staffId}">S</div></td>
             <th:block th:if="${b.configured}">
               <td class="num ut-group-start" th:text="${@formats.dayValue(b.entitledUnits)}">10</td>
               <td class="num" th:text="${@formats.dayValue(b.reservedUnits)}">0</td>

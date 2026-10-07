@@ -25,10 +25,10 @@ import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
-import com.uptrail.application.service.ApplicationCommandService;
-import com.uptrail.claim.service.ClaimCommandService.Decision;
-import com.uptrail.claim.service.DocumentStorage.Upload;
-import com.uptrail.entitlement.service.EntitlementService.Balance;
+import com.uptrail.service.CourseApplicationService;
+import com.uptrail.service.ClaimCommandService.Decision;
+import com.uptrail.service.DocumentStorage.Upload;
+import com.uptrail.service.EntitlementService.Balance;
 import com.uptrail.shared.error.BusinessException;
 import com.uptrail.shared.error.ErrorCode;
 import com.uptrail.shared.error.NotFoundException;
@@ -72,7 +72,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         assertThat(count("SELECT COUNT(*) FROM email_outbox WHERE template_code = 'CLAIM_SUBMITTED' "
                 + "AND recipient_employee_id = ?", manager.id())).isEqualTo(1);
         assertThat(count("SELECT COUNT(*) FROM training_ledger")).isEqualTo(ledgerRows);
-        assertThat(jdbc.queryForObject("SELECT approver_id FROM course_claim WHERE id = ?", Long.class, claimId))
+        assertThat(jdbc.queryForObject("SELECT approver_id FROM course_fee_application WHERE id = ?", Long.class, claimId))
                 .isEqualTo(manager.id());
     }
 
@@ -80,12 +80,12 @@ class ClaimLifecycleIT extends AbstractClaimIT {
     void onlyCompletedFeePayingCoursesCanBeClaimed() {
         Long approvedOnly = submit(employee, external(FRI_16_OCT.plusDays(3), FRI_16_OCT.plusDays(3), "300.00"))
                 .applicationId();
-        commands.decide(manager.actor(), approvedOnly, ApplicationCommandService.Decision.APPROVE, "OK",
+        commands.decide(manager.actor(), approvedOnly, CourseApplicationService.Decision.APPROVE, "OK",
                 version(approvedOnly));
 
         expectCode(() -> submitClaim(approvedOnly, "300.00"), ErrorCode.CLAIM_NOT_ELIGIBLE);
         expectCode(() -> submitClaim(internalId, "10.00"), ErrorCode.CLAIM_NOT_ELIGIBLE);
-        assertThat(count("SELECT COUNT(*) FROM course_claim")).isZero();
+        assertThat(count("SELECT COUNT(*) FROM course_fee_application")).isZero();
     }
 
     @Test
@@ -101,7 +101,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         assertThatThrownBy(() -> claims.submit(employee.actor(), externalId, new BigDecimal("600.00"), true, null,
                 null)).isInstanceOfSatisfying(BusinessException.class,
                         e -> assertThat(e.fieldErrors()).containsKeys("receipt", "certificate"));
-        assertThat(count("SELECT COUNT(*) FROM course_claim")).isZero();
+        assertThat(count("SELECT COUNT(*) FROM course_fee_application")).isZero();
     }
 
     @Test
@@ -118,7 +118,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         submitClaim(externalId, "600.00");
 
         expectCode(() -> submitClaim(externalId, "600.00"), ErrorCode.CLAIM_NOT_ELIGIBLE);
-        assertThat(count("SELECT COUNT(*) FROM course_claim")).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM course_fee_application")).isEqualTo(1);
     }
 
     @Test
@@ -143,14 +143,14 @@ class ClaimLifecycleIT extends AbstractClaimIT {
                 pdf("receipt-2.pdf"), pdf("certificate-2.pdf"));
 
         assertThat(claimStatus(claimId)).isEqualTo("SUBMITTED");
-        assertThat(jdbc.queryForObject("SELECT revision FROM course_claim WHERE id = ?", Integer.class, claimId))
+        assertThat(jdbc.queryForObject("SELECT revision FROM course_fee_application WHERE id = ?", Integer.class, claimId))
                 .isEqualTo(2);
-        assertThat(jdbc.queryForObject("SELECT amount FROM course_claim WHERE id = ?", BigDecimal.class, claimId))
+        assertThat(jdbc.queryForObject("SELECT amount FROM course_fee_application WHERE id = ?", BigDecimal.class, claimId))
                 .isEqualByComparingTo("580.00");
         assertThat(count("SELECT COUNT(*) FROM claim_document WHERE claim_id = ?", claimId)).isEqualTo(4);
-        assertThat(jdbc.queryForObject("SELECT review_comment FROM course_claim WHERE id = ?", String.class, claimId))
+        assertThat(jdbc.queryForObject("SELECT decision_reason FROM course_fee_application WHERE id = ?", String.class, claimId))
                 .isNull();
-        assertThat(count("SELECT COUNT(*) FROM course_claim")).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM course_fee_application")).isEqualTo(1);
         assertThat(count("SELECT COUNT(*) FROM email_outbox WHERE template_code = 'CLAIM_SUBMITTED'")).isEqualTo(2);
         expectCode(() -> claims.resubmit(employee.actor(), claimId, claimVersion(claimId), new BigDecimal("580.00"),
                 true, pdf("r.pdf"), pdf("c.pdf")), ErrorCode.INVALID_STATE);
@@ -184,7 +184,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         fixtures.account(manager, 2026, 20, "2000.00");
         clock.setDate(MON_12_OCT.minusDays(7));
         Long own = submit(manager, external(MON_12_OCT, MON_12_OCT, "400.00")).applicationId();
-        commands.decide(director.actor(), own, ApplicationCommandService.Decision.APPROVE, "OK", version(own));
+        commands.decide(director.actor(), own, CourseApplicationService.Decision.APPROVE, "OK", version(own));
         clock.setDate(FRI_16_OCT);
         commands.complete(manager.actor(), own, version(own), "Good.");
         Long claimId = claims.submit(manager.actor(), own, new BigDecimal("400.00"), true, pdf("r.pdf"),
@@ -192,7 +192,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
 
         expectCode(() -> claims.decide(manager.actor(), claimId, Decision.APPROVE, "Mine", claimVersion(claimId)),
                 ErrorCode.SELF_APPROVAL);
-        assertThat(jdbc.queryForObject("SELECT approver_id FROM course_claim WHERE id = ?", Long.class, claimId))
+        assertThat(jdbc.queryForObject("SELECT approver_id FROM course_fee_application WHERE id = ?", Long.class, claimId))
                 .isEqualTo(director.id());
     }
 
@@ -235,13 +235,13 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         assertThatThrownBy(() -> claims.registerReimbursement(admin.actor(), claimId, claimVersion(claimId)))
                 .isInstanceOf(NotFoundException.class);
 
-        Person hybrid = fixtures.person("hybrid", com.uptrail.organisation.domain.Designation.PROFESSIONAL,
-                com.uptrail.identity.domain.Role.ADMIN, com.uptrail.identity.domain.Role.EMPLOYEE);
+        Person hybrid = fixtures.person("hybrid", com.uptrail.model.Designation.PROFESSIONAL,
+                com.uptrail.model.Role.ADMIN, com.uptrail.model.Role.STAFF);
         fixtures.route(hybrid, manager);
         fixtures.account(hybrid, 2026, 20, "2000.00");
         clock.setDate(MON_12_OCT.minusDays(7));
         Long own = submit(hybrid, external(MON_12_OCT, MON_12_OCT, "200.00")).applicationId();
-        commands.decide(manager.actor(), own, ApplicationCommandService.Decision.APPROVE, "OK", version(own));
+        commands.decide(manager.actor(), own, CourseApplicationService.Decision.APPROVE, "OK", version(own));
         clock.setDate(FRI_16_OCT);
         commands.complete(hybrid.actor(), own, version(own), "Good.");
         Long ownClaim = claims.submit(hybrid.actor(), own, new BigDecimal("200.00"), true, pdf("r.pdf"), pdf("c.pdf"));
@@ -343,7 +343,7 @@ class ClaimLifecycleIT extends AbstractClaimIT {
         });
 
         assertThat(storage.exists(keys[0])).isFalse();
-        assertThat(count("SELECT COUNT(*) FROM course_claim")).isZero();
+        assertThat(count("SELECT COUNT(*) FROM course_fee_application")).isZero();
         assertThat(count("SELECT COUNT(*) FROM claim_document")).isZero();
     }
 

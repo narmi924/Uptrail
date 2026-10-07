@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: page('Manager Dashboard', 'manager-home', ~{::#page})}">
+<body>
+<div id="page">
+  <div class="ut-page-header">
+    <div>
+      <h1 th:text="|Welcome, ${user.name}|">Manager Dashboard</h1>
+      <div class="ut-subtitle">Manage your own training and review your team's requests.</div>
+    </div>
+    <div class="ut-actions"><a class="btn btn-primary" th:href="@{/staff/home}">My Staff Workspace</a></div>
+  </div>
+  <div class="ut-tiles">
+    <div class="ut-tile"><div class="ut-tile-label">Course applications</div><div class="ut-tile-value" th:text="${pendingCount}">0</div></div>
+    <div class="ut-tile"><div class="ut-tile-label">Fee claims</div><div class="ut-tile-value" th:text="${claimCount}">0</div></div>
+    <div class="ut-tile"><div class="ut-tile-label">Direct reports</div><div class="ut-tile-value" th:text="${teamCount}">0</div></div>
+  </div>
+  <div class="ut-card">
+    <div class="ut-card-header"><h2>Team workspace</h2></div>
+    <div class="ut-card-body">
+      <p>Only requests assigned to you can be approved or rejected. Every decision needs a reason.</p>
+      <div class="ut-actions">
+        <a class="btn btn-primary" th:href="@{/manager/approvals}">Review Course Applications</a>
+        <a class="btn btn-secondary" th:href="@{/manager/claims}">Review Fee Claims</a>
+        <a class="btn btn-secondary" th:href="@{/manager/team/history}">Team Course History</a>
+        <a class="btn btn-secondary" th:href="@{/manager/reports}">Reports</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

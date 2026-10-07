@@ -9,12 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.uptrail.entitlement.domain.DaySession;
-import com.uptrail.entitlement.domain.Session;
-import com.uptrail.entitlement.domain.TrainingDayCalculator;
-import com.uptrail.entitlement.domain.TrainingDayCalculator.Problem;
-import com.uptrail.entitlement.domain.TrainingDayCalculator.Request;
-import com.uptrail.entitlement.domain.TrainingDayCalculator.Result;
+import com.uptrail.model.DaySession;
+import com.uptrail.model.Session;
+import com.uptrail.model.TrainingDayCalculator;
+import com.uptrail.model.TrainingDayCalculator.Problem;
+import com.uptrail.model.TrainingDayCalculator.Request;
+import com.uptrail.model.TrainingDayCalculator.Result;
 
 /**
  * Working-day and half-day rules. Holidays here are synthetic fixtures.

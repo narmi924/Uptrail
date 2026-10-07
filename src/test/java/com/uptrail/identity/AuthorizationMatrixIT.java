@@ -23,9 +23,9 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.uptrail.application.AbstractApplicationIT;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
-import com.uptrail.claim.service.ClaimCommandService;
-import com.uptrail.claim.service.DocumentStorage.Upload;
+import com.uptrail.service.CourseApplicationService.Decision;
+import com.uptrail.service.ClaimCommandService;
+import com.uptrail.service.DocumentStorage.Upload;
 import com.uptrail.support.Fixtures;
 
 /**
@@ -73,7 +73,7 @@ class AuthorizationMatrixIT extends AbstractApplicationIT {
         claimId = claims.submit(employee.actor(), applicationId, new BigDecimal("600.00"), true,
                 new Upload("receipt.pdf", pdf), new Upload("certificate.pdf", pdf));
         claims.decide(manager.actor(), claimId, ClaimCommandService.Decision.APPROVE, "OK",
-                jdbc.queryForObject("SELECT version FROM course_claim WHERE id = ?", Long.class, claimId));
+                jdbc.queryForObject("SELECT version FROM course_fee_application WHERE id = ?", Long.class, claimId));
         documentId = jdbc.queryForObject("SELECT MIN(id) FROM claim_document", Long.class);
 
         sessions.put(Who.ANONYMOUS, new MockHttpSession());
@@ -85,14 +85,14 @@ class AuthorizationMatrixIT extends AbstractApplicationIT {
 
     private List<Cell> pages() {
         return List.of(
-                // Employee workspace (managers hold the employee role as well)
-                new Cell("/employee/dashboard", LOGIN, OK, OK, FORBIDDEN),
-                new Cell("/employee/applications", LOGIN, OK, OK, FORBIDDEN),
-                new Cell("/employee/applications/new", LOGIN, OK, OK, FORBIDDEN),
-                new Cell("/employee/applications/" + applicationId, LOGIN, OK, NOT_FOUND, FORBIDDEN),
-                new Cell("/employee/claims", LOGIN, OK, OK, FORBIDDEN),
-                new Cell("/employee/claims/" + claimId, LOGIN, OK, NOT_FOUND, FORBIDDEN),
-                new Cell("/employee/entitlement", LOGIN, OK, OK, FORBIDDEN),
+                // User workspace (managers hold the employee role as well)
+                new Cell("/staff/home", LOGIN, OK, OK, FORBIDDEN),
+                new Cell("/staff/applications", LOGIN, OK, OK, FORBIDDEN),
+                new Cell("/staff/applications/new", LOGIN, OK, OK, FORBIDDEN),
+                new Cell("/staff/applications/" + applicationId, LOGIN, OK, NOT_FOUND, FORBIDDEN),
+                new Cell("/staff/claims", LOGIN, OK, OK, FORBIDDEN),
+                new Cell("/staff/claims/" + claimId, LOGIN, OK, NOT_FOUND, FORBIDDEN),
+                new Cell("/staff/entitlement", LOGIN, OK, OK, FORBIDDEN),
                 new Cell("/claims/documents/" + documentId, LOGIN, OK, OK, FORBIDDEN),
                 // Manager workspace
                 new Cell("/manager/approvals", LOGIN, FORBIDDEN, OK, FORBIDDEN),
@@ -108,7 +108,7 @@ class AuthorizationMatrixIT extends AbstractApplicationIT {
                 // Shared
                 new Cell("/calendar", LOGIN, OK, OK, OK),
                 // Administration workspace (a staff session is not an administration session)
-                new Cell("/admin/dashboard", LOGIN, FORBIDDEN, FORBIDDEN, OK),
+                new Cell("/admin/home", LOGIN, FORBIDDEN, FORBIDDEN, OK),
                 new Cell("/admin/staff", LOGIN, FORBIDDEN, FORBIDDEN, OK),
                 new Cell("/admin/staff/new", LOGIN, FORBIDDEN, FORBIDDEN, OK),
                 new Cell("/admin/staff/" + employee.id(), LOGIN, FORBIDDEN, FORBIDDEN, OK),
@@ -148,7 +148,7 @@ class AuthorizationMatrixIT extends AbstractApplicationIT {
                 }
                 if (response.getStatus() == LOGIN) {
                     String target = response.getRedirectedUrl();
-                    String expectedLogin = cell.path().startsWith("/admin/") ? "/admin/login" : "/login";
+                    String expectedLogin = cell.path().startsWith("/admin/") ? "/admin/login" : "/employee/login";
                     if (target == null || !target.endsWith(expectedLogin)) {
                         mismatches.add(who + " GET " + cell.path() + " redirected to " + target);
                     }
@@ -176,7 +176,7 @@ class AuthorizationMatrixIT extends AbstractApplicationIT {
     void stateChangesNeedPostWithACsrfToken() throws Exception {
         String approve = "/manager/applications/" + applicationId + "/decision";
         String reimburse = "/admin/claims/" + claimId + "/reimburse";
-        String delete = "/employee/applications/" + applicationId + "/delete";
+        String delete = "/staff/applications/" + applicationId + "/delete";
 
         assertThat(perform(post(approve).param("decision", "APPROVE").param("reason", "x"), Who.MANAGER).getStatus())
                 .isEqualTo(FORBIDDEN);
@@ -185,12 +185,12 @@ class AuthorizationMatrixIT extends AbstractApplicationIT {
         assertThat(perform(post("/logout"), Who.EMPLOYEE).getStatus()).isEqualTo(FORBIDDEN);
         assertThat(perform(post(delete), Who.EMPLOYEE).getContentType())
                 .as("a page form without a token gets the error page, not JSON").isNull();
-        for (String path : List.of(approve, reimburse, delete, "/employee/applications/" + applicationId + "/cancel",
+        for (String path : List.of(approve, reimburse, delete, "/staff/applications/" + applicationId + "/cancel",
                 "/manager/claims/" + claimId + "/decision")) {
             Who who = path.startsWith("/admin/") ? Who.ADMIN : path.startsWith("/manager/") ? Who.MANAGER : Who.EMPLOYEE;
             assertThat(perform(get(path), who).getStatus()).as("GET " + path).isEqualTo(405);
         }
-        assertThat(jdbc.queryForObject("SELECT status FROM course_claim WHERE id = ?", String.class, claimId))
+        assertThat(jdbc.queryForObject("SELECT status FROM course_fee_application WHERE id = ?", String.class, claimId))
                 .isEqualTo("APPROVED");
     }
 
@@ -203,7 +203,7 @@ class AuthorizationMatrixIT extends AbstractApplicationIT {
                 .getStatus()).isEqualTo(FORBIDDEN);
         assertThat(perform(post("/admin/staff/new").with(csrf()).param("username", "intruder"), Who.EMPLOYEE)
                 .getStatus()).isEqualTo(FORBIDDEN);
-        assertThat(jdbc.queryForObject("SELECT status FROM course_claim WHERE id = ?", String.class, claimId))
+        assertThat(jdbc.queryForObject("SELECT status FROM course_fee_application WHERE id = ?", String.class, claimId))
                 .isEqualTo("APPROVED");
     }
 }

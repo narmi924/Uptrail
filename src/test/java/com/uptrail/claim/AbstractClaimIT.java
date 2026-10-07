@@ -8,11 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.uptrail.application.AbstractApplicationIT;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
-import com.uptrail.claim.service.ClaimCommandService;
-import com.uptrail.claim.service.DocumentStorage;
-import com.uptrail.claim.service.DocumentStorage.Upload;
-import com.uptrail.entitlement.domain.Session;
+import com.uptrail.service.CourseApplicationService.Decision;
+import com.uptrail.service.ClaimCommandService;
+import com.uptrail.service.DocumentStorage;
+import com.uptrail.service.DocumentStorage.Upload;
+import com.uptrail.model.Session;
 import com.uptrail.support.Fixtures.Person;
 
 /**
@@ -44,7 +44,7 @@ abstract class AbstractClaimIT extends AbstractApplicationIT {
         commands.complete(employee.actor(), internalId, version(internalId), "Useful session.");
     }
 
-    private Long completed(Person person, com.uptrail.application.domain.ApplicationDetails details) {
+    private Long completed(Person person, com.uptrail.model.ApplicationDetails details) {
         Long id = submit(person, details).applicationId();
         commands.decide(manager.actor(), id, Decision.APPROVE, "OK", version(id));
         return id;
@@ -60,11 +60,11 @@ abstract class AbstractClaimIT extends AbstractApplicationIT {
     }
 
     long claimVersion(Long claimId) {
-        return jdbc.queryForObject("SELECT version FROM course_claim WHERE id = ?", Long.class, claimId);
+        return jdbc.queryForObject("SELECT version FROM course_fee_application WHERE id = ?", Long.class, claimId);
     }
 
     String claimStatus(Long claimId) {
-        return jdbc.queryForObject("SELECT status FROM course_claim WHERE id = ?", String.class, claimId);
+        return jdbc.queryForObject("SELECT status FROM course_fee_application WHERE id = ?", String.class, claimId);
     }
 
     Long approvedClaim() {

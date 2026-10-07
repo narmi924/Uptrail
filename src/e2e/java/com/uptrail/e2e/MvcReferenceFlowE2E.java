@@ -25,7 +25,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.AriaRole;
-import com.uptrail.catalogue.service.HolidayCalendarService;
+import com.uptrail.service.HolidayCalendarService;
 import com.uptrail.shared.time.BusinessClock;
 import com.uptrail.support.MySqlTestDatabase;
 
@@ -85,7 +85,7 @@ class MvcReferenceFlowE2E {
             }
             Page employee = employeeContext.newPage();
             signIn(employee, "hannah");
-            employee.navigate(url("/employee/applications/new"));
+            employee.navigate(url("/staff/applications/new"));
             assertThat(employee.locator("#catalogue-search").count()).isZero();
             assertThat(employee.locator("#eligibility").innerText()).contains("checked when you submit");
             employee.locator("#category").selectOption("INTERNAL");
@@ -98,11 +98,16 @@ class MvcReferenceFlowE2E {
             employee.screenshot(new Page.ScreenshotOptions().setPath(screens.resolve("mvc-reference-form.png"))
                     .setFullPage(true));
             employee.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Submit application")).click();
-            employee.waitForURL(Pattern.compile(".*/employee/applications/\\d+"));
+            employee.waitForURL(Pattern.compile(".*/staff/applications/\\d+"));
             String id = employee.url().substring(employee.url().lastIndexOf('/') + 1);
 
             Page manager = managerContext.newPage();
             signIn(manager, "daniel");
+            assertThat(manager.url()).endsWith("/manager/home");
+            assertThat(manager.getByRole(AriaRole.LINK, new Page.GetByRoleOptions()
+                    .setName("My Staff Workspace").setExact(true)).isVisible()).isTrue();
+            manager.screenshot(new Page.ScreenshotOptions().setPath(screens.resolve("mvc-reference-manager-home.png"))
+                    .setFullPage(true));
             manager.navigate(url("/manager/applications/" + id));
             manager.onDialog(dialog -> dialog.accept());
             manager.locator("#decision-approve").check();
@@ -112,7 +117,7 @@ class MvcReferenceFlowE2E {
             employee.reload();
             assertThat(employee.locator("body").innerText()).contains("Useful for our team's MVC implementation.");
 
-            manager.navigate(url("/employee/dashboard"));
+            manager.navigate(url("/staff/home"));
             assertThat(manager.locator("body").innerText()).contains("Daniel");
             manager.navigate(url("/calendar?month=" + day.toString().substring(0, 7) + "&category=INTERNAL"));
             assertThat(manager.locator("#calendar").innerText()).contains("MVC browser reference course");
@@ -132,10 +137,10 @@ class MvcReferenceFlowE2E {
     }
 
     private void signIn(Page page, String username) {
-        page.navigate(url("/login"));
+        page.navigate(url("/employee/login"));
         page.locator("#username").fill(username);
         page.locator("#password").fill(password);
         page.locator("button[type=submit]").click();
-        page.waitForURL(Pattern.compile(".*/(employee|manager)/.*"));
+        page.waitForURL(Pattern.compile(".*/(staff|manager)/.*"));
     }
 }

@@ -30,30 +30,37 @@ class ArchitectureTest {
 
     @Test
     void webAndApiLayersDoNotUseRepositories() {
-        noClasses().that().resideInAnyPackage("..web..", "..api..")
-                .should().dependOnClassesThat().resideInAPackage("..repository..")
+        noClasses().that().resideInAnyPackage("..controller..")
+                .should().dependOnClassesThat().resideInAPackage("..repo..")
                 .check(CLASSES);
     }
 
     @Test
     void controllersLiveInWebOrApiPackages() {
         classes().that().areAnnotatedWith(Controller.class).or().areAnnotatedWith(RestController.class)
-                .should().resideInAnyPackage("..web..", "..api..")
+                .should().resideInAnyPackage("..controller..")
                 .check(CLASSES);
     }
 
     @Test
     void repositoriesAreOnlyUsedByServicesAndSampleData() {
-        classes().that().resideInAPackage("..repository..")
-                .should().onlyBeAccessed().byAnyPackage("..repository..", "..service..", "..sample..")
+        classes().that().resideInAPackage("..repo..")
+                .should().onlyBeAccessed().byAnyPackage("..repo..", "..service..", "..sample..")
                 .check(CLASSES);
     }
 
     @Test
     void domainDoesNotDependOnOuterLayers() {
-        noClasses().that().resideInAPackage("..domain..")
-                .should().dependOnClassesThat().resideInAnyPackage("..web..", "..api..", "..service..",
-                        "..repository..")
+        noClasses().that().resideInAPackage("..model..")
+                .should().dependOnClassesThat().resideInAnyPackage("..controller..", "..service..",
+                        "..repo..")
+                .check(CLASSES);
+    }
+
+    @Test
+    void servicesDoNotDependOnControllers() {
+        noClasses().that().resideInAPackage("..service..")
+                .should().dependOnClassesThat().resideInAPackage("..controller..")
                 .check(CLASSES);
     }
 
@@ -81,7 +88,7 @@ class ArchitectureTest {
                                 .anyMatch(type -> type.isAnnotatedWith(Entity.class));
                 if (entity) {
                     events.add(SimpleConditionEvent.violated(method,
-                            method.getFullName() + " exposes a JPA entity in its response"));
+                            method.getName() + " exposes a JPA entity in its response"));
                 }
             }
         };

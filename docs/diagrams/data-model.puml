@@ -1,27 +1,22 @@
 @startuml data-model
 !pragma layout smetana
-title Uptrail - data model (17 tables)
+title Uptrail - data model (16 tables)
 hide circle
 skinparam shadowing false
 skinparam defaultFontName Arial
 
-entity employee {
-  * id
+entity users {
+  * id (Java userId)
   --
-  staff_no (unique)
-  full_name, email, department
-  designation_code, active
+  user_type (Staff / Manager / Admin)
+  staff_id (unique), name, email
+  user_name (unique), password_hash
+  department, designation_code, active, enabled
 }
-entity user_account {
-  * id
-  --
-  employee_id (unique)
-  username (unique), password_hash, enabled
-}
-entity user_role {
+entity user_roles {
   * user_id, role_code
 }
-entity approval_assignment {
+entity approval_hierarchy {
   * employee_id
   --
   manager_id
@@ -48,13 +43,13 @@ entity training_calendar_year {
   status (DRAFT / CONFIRMED)
   source_note, confirmed_by
 }
-entity public_holiday {
+entity excluded_days {
   * holiday_date
   --
   name, source_note
   calendar_year (generated)
 }
-entity training_account {
+entity training_entitlement {
   * id
   --
   employee_id + calendar_year (unique)
@@ -64,7 +59,7 @@ entity course_application {
   * id
   --
   reference_no (unique)
-  employee_id, approver_id, reviewed_by
+  applicant_id, approver_id, reviewed_by
   category_code, course_title, provider_name
   start/end date and session, course_fee
   status, version
@@ -74,7 +69,7 @@ entity application_day {
   --
   units (1 or 2), session_code
 }
-entity course_claim {
+entity course_fee_application {
   * id
   --
   application_id (unique)
@@ -111,21 +106,20 @@ entity email_outbox {
   lease_until, sent_at, last_error
 }
 
-employee ||--o| user_account
-user_account ||--o{ user_role
-employee ||--o| approval_assignment
-approval_assignment }o--|| employee : manager
+users ||--o{ user_roles
+users ||--o| approval_hierarchy
+approval_hierarchy }o--|| users : manager
 course_category ||--o{ course_catalogue
 training_provider |o--o{ course_catalogue
-training_calendar_year ||--o{ public_holiday
-employee ||--o{ training_account
-employee ||--o{ course_application
+training_calendar_year ||--o{ excluded_days
+users ||--o{ training_entitlement
+users ||--o{ course_application
 course_application ||--|{ application_day
-course_application ||--o| course_claim
-course_claim ||--o{ claim_document
-training_account ||--o{ training_ledger
+course_application ||--o| course_fee_application
+course_fee_application ||--o{ claim_document
+training_entitlement ||--o{ training_ledger
 audit_event ||--o{ training_ledger
 audit_event ||--o{ email_outbox
 course_application |o--o{ training_ledger
-course_claim |o--o{ training_ledger
+course_fee_application |o--o{ training_ledger
 @enduml

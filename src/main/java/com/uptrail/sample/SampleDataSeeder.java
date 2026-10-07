@@ -7,7 +7,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.uptrail.organisation.repository.EmployeeRepository;
+import com.uptrail.repo.UserRepo;
 
 /**
  * Loads the synthetic sample organisation when {@code uptrail.sample-data.enabled=true} and the database
@@ -19,12 +19,12 @@ public class SampleDataSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeeder.class);
 
-    private final EmployeeRepository employees;
+    private final UserRepo employees;
     private final SampleOrganisation organisation;
     private final SampleActivity activity;
     private final SampleClaims claims;
 
-    public SampleDataSeeder(EmployeeRepository employees, SampleOrganisation organisation, SampleActivity activity,
+    public SampleDataSeeder(UserRepo employees, SampleOrganisation organisation, SampleActivity activity,
             SampleClaims claims) {
         this.employees = employees;
         this.organisation = organisation;

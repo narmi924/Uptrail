@@ -18,7 +18,7 @@ class DemoModeIT extends AbstractMySqlIT {
 
     @Test
     void theStaffSignInListsStaffAccounts() throws Exception {
-        mvc.perform(get("/login"))
+        mvc.perform(get("/employee/login"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Public demo")))
                 .andExpect(content().string(Matchers.containsString("Demo-password-1")))

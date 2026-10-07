@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 
 import com.uptrail.application.AbstractApplicationIT;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
+import com.uptrail.service.CourseApplicationService.Decision;
 import com.uptrail.support.Fixtures;
 
 /**
@@ -84,7 +84,7 @@ class OperationsIT extends AbstractApplicationIT {
         jdbc.update("UPDATE course_application SET course_fee = 700.00 WHERE id = ?", id);
         mvc.perform(get("/admin/operations").param("tab", "ledger").session(session))
                 .andExpect(content().string(Matchers.containsString("1 mismatches")))
-                .andExpect(content().string(Matchers.containsString(employee.employee().getFullName())));
+                .andExpect(content().string(Matchers.containsString(employee.employee().getName())));
     }
 
     @Test
@@ -100,14 +100,14 @@ class OperationsIT extends AbstractApplicationIT {
         commands.decide(manager.actor(), id, Decision.APPROVE, "OK", version(id));
         MockHttpSession session = staffSession(employee);
 
-        String page = mvc.perform(get("/employee/entitlement").session(session))
+        String page = mvc.perform(get("/staff/entitlement").session(session))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
         assertThat(page).contains("SGD 1,400.00").contains("Reserved for a pending application").contains("Approved")
-                .contains("/employee/applications/" + id).contains("Approved +600.00").contains("Pending -600.00");
-        mvc.perform(get("/employee/entitlement").param("year", "2025").session(session))
+                .contains("/staff/applications/" + id).contains("Approved +600.00").contains("Pending -600.00");
+        mvc.perform(get("/staff/entitlement").param("year", "2025").session(session))
                 .andExpect(content().string(Matchers.containsString("No entitlement is configured for 2025")));
-        mvc.perform(get("/employee/entitlement").param("year", "1999").session(session))
+        mvc.perform(get("/staff/entitlement").param("year", "1999").session(session))
                 .andExpect(content().string(Matchers.containsString("SGD 1,400.00")));
     }
 }

@@ -26,9 +26,9 @@ class SchemaMigrationIT extends AbstractMySqlIT {
                 String.class);
 
         assertThat(tables).containsExactlyInAnyOrder(
-                "employee", "user_account", "user_role", "approval_assignment", "training_account",
-                "course_category", "training_provider", "course_catalogue", "public_holiday",
-                "training_calendar_year", "course_application", "application_day", "course_claim",
+                "users", "user_roles", "approval_hierarchy", "training_entitlement",
+                "course_category", "training_provider", "course_catalogue", "excluded_days",
+                "training_calendar_year", "course_application", "application_day", "course_fee_application",
                 "claim_document", "audit_event", "training_ledger", "email_outbox");
     }
 
@@ -37,7 +37,7 @@ class SchemaMigrationIT extends AbstractMySqlIT {
         List<String> versions = jdbc.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success = 1 ORDER BY installed_rank", String.class);
 
-        assertThat(versions).containsExactly("1", "2", "3", "4", "5");
+        assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6");
     }
 
     @Test
@@ -58,13 +58,13 @@ class SchemaMigrationIT extends AbstractMySqlIT {
     @Test
     void aHolidayNeedsItsCalendarYear() {
         assertThatThrownBy(() -> jdbc.update(
-                "INSERT INTO public_holiday (holiday_date, name, source_note, updated_at) "
+                "INSERT INTO excluded_days (holiday_date, name, source_note, updated_at) "
                         + "VALUES ('2031-01-01', 'New Year', 'FIXTURE', NOW(6))"))
                 .isInstanceOf(DataIntegrityViolationException.class);
 
         jdbc.update("INSERT INTO training_calendar_year (calendar_year, status, source_note, version, created_at, "
                 + "updated_at) VALUES (2031, 'DRAFT', 'FIXTURE', 0, NOW(6), NOW(6))");
-        int inserted = jdbc.update("INSERT INTO public_holiday (holiday_date, name, source_note, updated_at) "
+        int inserted = jdbc.update("INSERT INTO excluded_days (holiday_date, name, source_note, updated_at) "
                 + "VALUES ('2031-01-01', 'New Year', 'FIXTURE', NOW(6))");
 
         assertThat(inserted).isEqualTo(1);

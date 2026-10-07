@@ -45,8 +45,8 @@
           <th class="num">Available</th><th class="num">Reimbursed</th><th>Change (reason required)</th></tr></thead>
         <tbody>
         <tr th:each="r : ${view.content}" th:with="b=${r.balance}">
-          <td><span th:text="${r.fullName}">Name</span>
-            <div class="small-ut text-muted-ut" th:text="${r.staffNo} + ' · ' + ${r.designation.label()}">x</div></td>
+          <td><span th:text="${r.name}">Name</span>
+            <div class="small-ut text-muted-ut" th:text="${r.staffId} + ' · ' + ${r.designation.label()}">x</div></td>
           <td class="num" th:if="${b.configured}"><span th:text="${@formats.days(b.entitledUnits)}">x</span><div class="small-ut" th:text="${@formats.money(b.budget)}">x</div></td>
           <td class="num" th:if="${b.configured}"><span th:text="${@formats.days(b.reservedUnits)}">x</span><div class="small-ut" th:text="${@formats.money(b.reservedAmount)}">x</div></td>
           <td class="num" th:if="${b.configured}"><span th:text="${@formats.days(b.committedUnits)}">x</span><div class="small-ut" th:text="${@formats.money(b.committedAmount)}">x</div></td>
@@ -57,11 +57,11 @@
             <form class="d-flex flex-wrap gap-2 align-items-center" method="post"
                   th:action="@{/admin/entitlements/{e}/{y}(e=${r.employeeId},y=${year})}">
               <input class="form-control form-control-sm ut-w-days" name="days" type="number" min="0" step="0.5"
-                     th:value="${b.configured} ? ${b.entitledUnits / 2.0} : ''" th:attr="aria-label='Days for ' + ${r.fullName}" placeholder="Days" required>
+                     th:value="${b.configured} ? ${b.entitledUnits / 2.0} : ''" th:attr="aria-label='Days for ' + ${r.name}" placeholder="Days" required>
               <input class="form-control form-control-sm ut-w-money" name="budget" type="number" min="0" step="0.01"
-                     th:value="${b.configured} ? ${b.budget} : ''" th:attr="aria-label='Budget for ' + ${r.fullName}" placeholder="SGD" required>
+                     th:value="${b.configured} ? ${b.budget} : ''" th:attr="aria-label='Budget for ' + ${r.name}" placeholder="SGD" required>
               <input class="form-control form-control-sm ut-w-reason" name="reason" maxlength="2000"
-                     th:attr="aria-label='Reason for ' + ${r.fullName}" placeholder="Reason" required>
+                     th:attr="aria-label='Reason for ' + ${r.name}" placeholder="Reason" required>
               <button class="btn btn-secondary btn-sm" type="submit" th:text="${b.configured} ? 'Save' : 'Create'">Save</button>
             </form>
           </td>

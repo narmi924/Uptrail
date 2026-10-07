@@ -11,6 +11,7 @@ Working notes for AI coding assistants (and anyone else) changing Uptrail. Start
 ## Code
 
 - Stack: Java 21, Spring Boot 4.1, Thymeleaf, Spring Security, Spring Data JPA, MySQL 8.4, Flyway. Do not add other frameworks or infrastructure.
+- Keep the CATS hierarchy User -> Staff -> Manager and User -> Admin, inherited staffId, and session "user". Core code uses model / repo / service / controller. MVC is the default; REST is opt-in.
 - Controllers call services; services call repositories. Services own transactions, business rules, access checks and the audit, ledger and outbox writes.
 - Change the schema only with a new Flyway migration. Never edit a migration that has already been released.
 - Keep CSRF protection and the role and data-scope checks on every page, API, export and download. Never change data on a `GET`.

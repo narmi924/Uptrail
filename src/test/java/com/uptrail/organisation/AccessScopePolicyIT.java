@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.uptrail.organisation.service.AccessScopePolicy;
+import com.uptrail.service.AccessScopePolicy;
 import com.uptrail.shared.error.NotFoundException;
 import com.uptrail.support.AbstractMySqlIT;
 import com.uptrail.support.Fixtures.Person;
