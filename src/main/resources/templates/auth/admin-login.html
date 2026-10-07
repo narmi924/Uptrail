@@ -2,5 +2,5 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/plain :: page('Administrator sign-in',
         ~{auth/login-form :: form(@{/admin/login}, 'Administrator sign-in', 'Uptrail · Administration',
-          @{/login}, 'Staff member? Use the staff sign-in')})}">
+          @{/employee/login}, 'Staff member? Use the staff sign-in')})}">
 </html>

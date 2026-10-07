@@ -9,7 +9,7 @@ import java.util.Set;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import com.uptrail.application.domain.ApplicationStatus;
+import com.uptrail.model.ApplicationStatus;
 
 /**
  * Every legal and illegal transition of the application state machine

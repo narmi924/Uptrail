@@ -18,11 +18,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
-import com.uptrail.application.domain.ApplicationDetails;
-import com.uptrail.application.service.ApplicationCommandService.SubmitResult;
-import com.uptrail.catalogue.domain.CategoryCode;
-import com.uptrail.entitlement.domain.Session;
-import com.uptrail.entitlement.service.EntitlementService.Balance;
+import com.uptrail.model.ApplicationDetails;
+import com.uptrail.service.CourseApplicationService.SubmitResult;
+import com.uptrail.model.CategoryCode;
+import com.uptrail.model.Session;
+import com.uptrail.service.EntitlementService.Balance;
 import com.uptrail.shared.error.BusinessException;
 import com.uptrail.shared.error.ErrorCode;
 import com.uptrail.support.Fixtures.Person;
@@ -222,7 +222,7 @@ class ApplicationSubmissionIT extends AbstractApplicationIT {
                 .andExpect(jsonPath("$.excludedDates[2].reason").value(Matchers.startsWith("Public holiday")))
                 .andExpect(jsonPath("$.annualAllocations[0].budgetAvailableBefore").value(2000.00))
                 .andExpect(jsonPath("$.problems[0].code").value("INSUFFICIENT_BUDGET"))
-                .andExpect(jsonPath("$.approverName").value(manager.employee().getFullName()));
+                .andExpect(jsonPath("$.approverName").value(manager.employee().getName()));
 
         assertThat(count("SELECT COUNT(*) FROM course_application")).isZero();
         assertThat(count("SELECT COUNT(*) FROM training_ledger")).isZero();
@@ -256,15 +256,15 @@ class ApplicationSubmissionIT extends AbstractApplicationIT {
     void theApplicationFormSubmitsAndRedirectsToTheNewApplication() throws Exception {
         MockHttpSession session = staffSession(employee);
 
-        mvc.perform(post("/employee/applications").session(session).with(csrf())
+        mvc.perform(post("/staff/applications").session(session).with(csrf())
                         .param("category", "EXTERNAL").param("courseTitle", "Cloud Architecture Foundations")
                         .param("providerName", "Cloud Guild Academy").param("startDate", "2026-10-19")
                         .param("endDate", "2026-10-20").param("startSession", "AM").param("endSession", "PM")
                         .param("courseFee", "850.00").param("justification", "Design reviews for our platform.")
                         .param("clientRequestId", UUID.randomUUID().toString()))
-                .andExpect(redirectedUrlPattern("/employee/applications/*"));
+                .andExpect(redirectedUrlPattern("/staff/applications/*"));
 
-        mvc.perform(post("/employee/applications").session(session).with(csrf())
+        mvc.perform(post("/staff/applications").session(session).with(csrf())
                         .param("category", "EXTERNAL").param("courseTitle", "Too expensive")
                         .param("providerName", "P").param("startDate", "2026-11-02").param("endDate", "2026-11-02")
                         .param("courseFee", "5000.00").param("justification", "Reason")

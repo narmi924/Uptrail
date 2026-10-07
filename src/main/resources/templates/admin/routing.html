@@ -19,14 +19,14 @@
           <label class="form-label" for="fromManagerId">From manager</label>
           <select class="form-select" id="fromManagerId" name="fromManagerId" required>
             <option value="">Choose</option>
-            <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.fullName}">Manager</option>
+            <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.name}">Manager</option>
           </select>
         </div>
         <div class="ut-filter-grow">
           <label class="form-label" for="toManagerId">To manager</label>
           <select class="form-select" id="toManagerId" name="toManagerId" required>
             <option value="">Choose</option>
-            <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.fullName}">Manager</option>
+            <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.name}">Manager</option>
           </select>
         </div>
         <div><button class="btn btn-secondary" type="submit">Move team</button></div>
@@ -53,8 +53,8 @@
         <thead><tr><th>Staff member</th><th>Current approver</th><th>Change approver</th></tr></thead>
         <tbody>
         <tr th:each="r : ${view.content}">
-          <td><a th:href="@{/admin/staff/{id}(id=${r.employeeId})}" th:text="${r.fullName}">Name</a>
-            <div class="small-ut text-muted-ut" th:text="${r.staffNo} + ' · ' + ${r.department}">dept</div></td>
+          <td><a th:href="@{/admin/staff/{id}(id=${r.employeeId})}" th:text="${r.name}">Name</a>
+            <div class="small-ut text-muted-ut" th:text="${r.staffId} + ' · ' + ${r.department}">dept</div></td>
           <td>
             <span th:if="${r.managerName != null}" th:text="${r.managerName}">Manager</span>
             <span th:if="${r.managerName == null}" class="ut-badge state-critical">Not configured</span>
@@ -63,9 +63,9 @@
           </td>
           <td>
             <form class="d-flex flex-wrap gap-2 align-items-center" method="post" th:action="@{/admin/routing/{id}(id=${r.employeeId})}">
-              <select class="form-select form-select-sm w-auto" name="managerId" th:attr="aria-label='Approver for ' + ${r.fullName}">
+              <select class="form-select form-select-sm w-auto" name="managerId" th:attr="aria-label='Approver for ' + ${r.name}">
                 <option value="">No approver</option>
-                <option th:each="m : ${managers}" th:if="${m.id != r.employeeId}" th:value="${m.id}" th:text="${m.fullName}"
+                <option th:each="m : ${managers}" th:if="${m.id != r.employeeId}" th:value="${m.id}" th:text="${m.name}"
                         th:selected="${m.id == r.managerId}">Manager</option>
               </select>
               <label class="small-ut"><input type="checkbox" name="reassignPending" value="true" checked> move waiting items</label>

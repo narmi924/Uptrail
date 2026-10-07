@@ -19,9 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
-import com.uptrail.identity.domain.Role;
-import com.uptrail.identity.service.SessionControlService;
-import com.uptrail.organisation.domain.Designation;
+import com.uptrail.model.Role;
+import com.uptrail.service.SessionControlService;
+import com.uptrail.model.Designation;
 import com.uptrail.support.AbstractMySqlIT;
 import com.uptrail.support.Fixtures;
 import com.uptrail.support.Fixtures.Person;
@@ -44,14 +44,14 @@ class AuthenticationIT extends AbstractMySqlIT {
     void staffSignInOpensTheStaffWorkspace() throws Exception {
         Person employee = fixtures.employee("emma");
 
-        mvc.perform(formLogin("/login").user("emma").password(Fixtures.PASSWORD))
-                .andExpect(redirectedUrl("/employee/dashboard"))
+        mvc.perform(formLogin("/employee/login").user("emma").password(Fixtures.PASSWORD))
+                .andExpect(redirectedUrl("/staff/home"))
                 .andExpect(authenticated().withUsername("emma"));
 
-        MockHttpSession session = login("/login", "emma");
-        mvc.perform(get("/employee/dashboard").session(session))
+        MockHttpSession session = login("/employee/login", "emma");
+        mvc.perform(get("/staff/home").session(session))
                 .andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString(employee.employee().getFullName())))
+                .andExpect(content().string(Matchers.containsString(employee.employee().getName())))
                 .andExpect(content().string(Matchers.containsString("Staff workspace")));
     }
 
@@ -60,10 +60,10 @@ class AuthenticationIT extends AbstractMySqlIT {
         fixtures.admin("ada");
 
         mvc.perform(formLogin("/admin/login").user("ada").password(Fixtures.PASSWORD))
-                .andExpect(redirectedUrl("/admin/dashboard"));
+                .andExpect(redirectedUrl("/admin/home"));
 
         MockHttpSession session = login("/admin/login", "ada");
-        mvc.perform(get("/admin/dashboard").session(session))
+        mvc.perform(get("/admin/home").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Year readiness")));
     }
@@ -73,8 +73,8 @@ class AuthenticationIT extends AbstractMySqlIT {
         fixtures.admin("ada");
         fixtures.employee("emma");
 
-        mvc.perform(formLogin("/login").user("ada").password(Fixtures.PASSWORD))
-                .andExpect(redirectedUrl("/login?error"))
+        mvc.perform(formLogin("/employee/login").user("ada").password(Fixtures.PASSWORD))
+                .andExpect(redirectedUrl("/employee/login?error"))
                 .andExpect(unauthenticated());
         mvc.perform(formLogin("/admin/login").user("emma").password(Fixtures.PASSWORD))
                 .andExpect(redirectedUrl("/admin/login?error"))
@@ -87,18 +87,18 @@ class AuthenticationIT extends AbstractMySqlIT {
         fixtures.deactivate(leaver);
         fixtures.employee("emma");
 
-        mvc.perform(formLogin("/login").user("emma").password("wrong-password"))
-                .andExpect(redirectedUrl("/login?error"));
-        mvc.perform(formLogin("/login").user("nobody").password(Fixtures.PASSWORD))
-                .andExpect(redirectedUrl("/login?error"));
-        mvc.perform(formLogin("/login").user("leaver").password(Fixtures.PASSWORD))
-                .andExpect(redirectedUrl("/login?error"))
+        mvc.perform(formLogin("/employee/login").user("emma").password("wrong-password"))
+                .andExpect(redirectedUrl("/employee/login?error"));
+        mvc.perform(formLogin("/employee/login").user("nobody").password(Fixtures.PASSWORD))
+                .andExpect(redirectedUrl("/employee/login?error"));
+        mvc.perform(formLogin("/employee/login").user("leaver").password(Fixtures.PASSWORD))
+                .andExpect(redirectedUrl("/employee/login?error"))
                 .andExpect(unauthenticated());
     }
 
     @Test
     void signInPagesShowNoDemoAccountsOutsideDemoMode() throws Exception {
-        mvc.perform(get("/login")).andExpect(status().isOk())
+        mvc.perform(get("/employee/login")).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.not(Matchers.containsString("Public demo"))))
                 .andExpect(content().string(Matchers.not(Matchers.containsString("data-ut-demo-password"))));
         mvc.perform(get("/admin/login")).andExpect(status().isOk())
@@ -109,27 +109,27 @@ class AuthenticationIT extends AbstractMySqlIT {
     void usernamesAreCaseInsensitive() throws Exception {
         fixtures.employee("emma");
 
-        mvc.perform(formLogin("/login").user("  EMMA ").password(Fixtures.PASSWORD))
+        mvc.perform(formLogin("/employee/login").user("  EMMA ").password(Fixtures.PASSWORD))
                 .andExpect(authenticated().withUsername("emma"));
     }
 
     @Test
     void accountWithBothRolesCanUseEachEntryButEachSessionKeepsItsWorkspace() throws Exception {
-        fixtures.person("hybrid", Designation.ADMINISTRATIVE, Role.ADMIN, Role.EMPLOYEE);
+        fixtures.person("hybrid", Designation.ADMINISTRATIVE, Role.ADMIN, Role.STAFF);
 
-        MockHttpSession staffSession = login("/login", "hybrid");
-        mvc.perform(get("/employee/dashboard").session(staffSession)).andExpect(status().isOk());
-        mvc.perform(get("/admin/dashboard").session(staffSession)).andExpect(status().isForbidden());
+        MockHttpSession staffSession = login("/employee/login", "hybrid");
+        mvc.perform(get("/staff/home").session(staffSession)).andExpect(status().isOk());
+        mvc.perform(get("/admin/home").session(staffSession)).andExpect(status().isForbidden());
 
         MockHttpSession adminSession = login("/admin/login", "hybrid");
-        mvc.perform(get("/admin/dashboard").session(adminSession)).andExpect(status().isOk());
-        mvc.perform(get("/employee/dashboard").session(adminSession)).andExpect(status().isForbidden());
+        mvc.perform(get("/admin/home").session(adminSession)).andExpect(status().isOk());
+        mvc.perform(get("/staff/home").session(adminSession)).andExpect(status().isForbidden());
     }
 
     @Test
     void employeesCannotOpenManagerOrAdministratorPages() throws Exception {
         fixtures.employee("emma");
-        MockHttpSession session = login("/login", "emma");
+        MockHttpSession session = login("/employee/login", "emma");
 
         mvc.perform(get("/manager/approvals").session(session)).andExpect(status().isForbidden());
         mvc.perform(get("/admin/staff").session(session)).andExpect(status().isForbidden());
@@ -137,8 +137,8 @@ class AuthenticationIT extends AbstractMySqlIT {
 
     @Test
     void anonymousPageRequestsGoToTheMatchingSignInPage() throws Exception {
-        mvc.perform(get("/employee/dashboard")).andExpect(redirectedUrl("/login"));
-        mvc.perform(get("/admin/dashboard")).andExpect(redirectedUrl("/admin/login"));
+        mvc.perform(get("/staff/home")).andExpect(redirectedUrl("/employee/login"));
+        mvc.perform(get("/admin/home")).andExpect(redirectedUrl("/admin/login"));
     }
 
     @Test
@@ -154,9 +154,9 @@ class AuthenticationIT extends AbstractMySqlIT {
     @Test
     void stateChangingRequestsWithoutCsrfTokenAreRejected() throws Exception {
         fixtures.employee("emma");
-        MockHttpSession session = login("/login", "emma");
+        MockHttpSession session = login("/employee/login", "emma");
 
-        mvc.perform(post("/login").param("username", "emma").param("password", Fixtures.PASSWORD))
+        mvc.perform(post("/employee/login").param("username", "emma").param("password", Fixtures.PASSWORD))
                 .andExpect(status().isForbidden());
         mvc.perform(post("/api/v1/applications/preview").session(session)
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
@@ -168,49 +168,76 @@ class AuthenticationIT extends AbstractMySqlIT {
     void postLoginRedirectOnlyFollowsSafePathsInTheSameWorkspace() throws Exception {
         fixtures.employee("emma");
 
-        mvc.perform(loginWithNext("emma", "/employee/applications/42"))
-                .andExpect(redirectedUrl("/employee/applications/42"));
-        for (String unsafe : new String[] {"//evil.example.com/x", "https://evil.example.com", "/admin/dashboard",
+        mvc.perform(loginWithNext("emma", "/staff/applications/42"))
+                .andExpect(redirectedUrl("/staff/applications/42"));
+        for (String unsafe : new String[] {"//evil.example.com/x", "https://evil.example.com", "/admin/home",
                 "/employee\\..\\x", "employee/dashboard"}) {
-            mvc.perform(loginWithNext("emma", unsafe)).andExpect(redirectedUrl("/employee/dashboard"));
+            mvc.perform(loginWithNext("emma", unsafe)).andExpect(redirectedUrl("/staff/home"));
         }
     }
 
     private static org.springframework.test.web.servlet.RequestBuilder loginWithNext(String user, String next) {
-        return post("/login").param("username", user).param("password", Fixtures.PASSWORD).param("next", next)
+        return post("/employee/login").param("username", user).param("password", Fixtures.PASSWORD).param("next", next)
                 .with(csrf());
+    }
+
+    @Test
+    void legacyEmailLinksKeepTheirDestinationAndWorkspaceThroughLogin() throws Exception {
+        fixtures.employee("emma");
+        fixtures.admin("ada");
+        MockHttpSession staff = login("/employee/login", "emma");
+        MockHttpSession admin = login("/admin/login", "ada");
+        for (String page : new String[] {"applications", "claims"}) {
+            String legacy = "/employee/" + page + "/42";
+            String current = "/staff/" + page + "/42";
+            mvc.perform(get("/login").param("next", legacy)).andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                            .attribute("next", current));
+            mvc.perform(loginWithNext("emma", legacy)).andExpect(redirectedUrl(current));
+            mvc.perform(loginWithNext("emma", legacy + "?source=mail"))
+                    .andExpect(redirectedUrl(current + "?source=mail"));
+            mvc.perform(get(legacy).session(staff)).andExpect(redirectedUrl(current));
+            mvc.perform(get(legacy).session(admin)).andExpect(status().isForbidden());
+            MockHttpSession saved = (MockHttpSession) mvc.perform(get(legacy))
+                    .andExpect(redirectedUrl("/employee/login"))
+                    .andReturn().getRequest().getSession(false);
+            mvc.perform(post("/employee/login").session(saved).param("username", "emma")
+                            .param("password", Fixtures.PASSWORD).with(csrf()))
+                    // Spring Security appends this marker to its saved request URL.
+                    .andExpect(redirectedUrl(current + "?continue"));
+        }
     }
 
     @Test
     void expiringSessionsForcesSignInAgain() throws Exception {
         fixtures.employee("emma");
-        MockHttpSession session = login("/login", "emma");
-        mvc.perform(get("/employee/dashboard").session(session)).andExpect(status().isOk());
+        MockHttpSession session = login("/employee/login", "emma");
+        mvc.perform(get("/staff/home").session(session)).andExpect(status().isOk());
 
         int expired = sessionControl.expireSessionsOf("emma");
 
         assertThat(expired).isGreaterThanOrEqualTo(1);
-        mvc.perform(get("/employee/dashboard").session(session))
-                .andExpect(redirectedUrl("/login?expired"));
+        mvc.perform(get("/staff/home").session(session))
+                .andExpect(redirectedUrl("/employee/login?expired"));
     }
 
     @Test
     void signOutRequiresPost() throws Exception {
         fixtures.employee("emma");
-        MockHttpSession session = login("/login", "emma");
+        MockHttpSession session = login("/employee/login", "emma");
 
         mvc.perform(get("/logout").session(session)).andExpect(status().isNotFound());
-        mvc.perform(get("/employee/dashboard").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/staff/home").session(session)).andExpect(status().isOk());
 
         mvc.perform(post("/logout").session(session).with(csrf()))
-                .andExpect(redirectedUrl("/login?logout"));
-        mvc.perform(get("/employee/dashboard").session(session))
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(redirectedUrl("/employee/login?logout"));
+        mvc.perform(get("/staff/home").session(session))
+                .andExpect(redirectedUrl("/employee/login"));
     }
 
     @Test
     void responsesCarrySecurityHeaders() throws Exception {
-        mvc.perform(get("/login"))
+        mvc.perform(get("/employee/login"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Security-Policy", Matchers.containsString("default-src 'self'")))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))

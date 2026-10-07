@@ -22,18 +22,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 
-import com.uptrail.admin.service.CatalogueAdminService;
-import com.uptrail.admin.service.EntitlementAdminService;
-import com.uptrail.admin.service.HolidayAdminService;
-import com.uptrail.admin.service.RoutingAdminService;
-import com.uptrail.admin.service.StaffAdminService;
-import com.uptrail.application.domain.ApplicationDetails;
-import com.uptrail.application.service.ApplicationCommandService;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
-import com.uptrail.catalogue.domain.CategoryCode;
-import com.uptrail.entitlement.domain.Session;
-import com.uptrail.identity.domain.Role;
-import com.uptrail.organisation.domain.Designation;
+import com.uptrail.service.CatalogueAdminService;
+import com.uptrail.service.EntitlementAdminService;
+import com.uptrail.service.HolidayAdminService;
+import com.uptrail.service.RoutingAdminService;
+import com.uptrail.service.StaffAdminService;
+import com.uptrail.model.ApplicationDetails;
+import com.uptrail.service.CourseApplicationService;
+import com.uptrail.service.CourseApplicationService.Decision;
+import com.uptrail.model.CategoryCode;
+import com.uptrail.model.Session;
+import com.uptrail.model.Role;
+import com.uptrail.model.Designation;
 import com.uptrail.shared.error.BusinessException;
 import com.uptrail.shared.error.ErrorCode;
 import com.uptrail.shared.error.NotFoundException;
@@ -60,7 +60,7 @@ class AdministrationIT extends AbstractMySqlIT {
     @Autowired
     private HolidayAdminService holidays;
     @Autowired
-    private ApplicationCommandService applications;
+    private CourseApplicationService applications;
 
     private Person admin;
     private Person manager;
@@ -104,13 +104,12 @@ class AdministrationIT extends AbstractMySqlIT {
                 "new.manager@example.com", "Research", Designation.MANAGEMENT, "NewMgr", "long-enough-pw",
                 EnumSet.of(Role.MANAGER), manager.id(), true));
 
-        assertThat(count("SELECT COUNT(*) FROM user_role r JOIN user_account u ON u.id = r.user_id "
-                + "WHERE u.employee_id = ?", id)).isEqualTo(2);
-        assertThat(jdbc.queryForObject("SELECT username FROM user_account WHERE employee_id = ?", String.class, id))
+        assertThat(count("SELECT COUNT(*) FROM user_roles WHERE user_id = ?", id)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("SELECT user_name FROM users WHERE id = ?", String.class, id))
                 .isEqualTo("newmgr");
-        assertThat(count("SELECT COUNT(*) FROM approval_assignment WHERE employee_id = ? AND manager_id = ?", id,
+        assertThat(count("SELECT COUNT(*) FROM approval_hierarchy WHERE employee_id = ? AND manager_id = ?", id,
                 manager.id())).isEqualTo(1);
-        assertThat(count("SELECT entitled_units FROM training_account WHERE employee_id = ? AND calendar_year = 2026",
+        assertThat(count("SELECT entitled_units FROM training_entitlement WHERE employee_id = ? AND calendar_year = 2026",
                 id)).isEqualTo(20);
         assertThat(count("SELECT COUNT(*) FROM audit_event WHERE aggregate_type = 'STAFF' AND event_type = "
                 + "'STAFF_CREATED'")).isEqualTo(1);
@@ -119,10 +118,10 @@ class AdministrationIT extends AbstractMySqlIT {
     @Test
     void duplicateUsernameAndStaffNumberAreReportedPerField() {
         assertThatThrownBy(() -> staff.create(admin.actor(), new StaffAdminService.NewStaff(employee.employee()
-                .getStaffNo(), "Copy", "copy@example.com", "Dept", Designation.PROFESSIONAL, "EMP", "long-enough-pw",
-                EnumSet.of(Role.EMPLOYEE), null, false)))
+                .getStaffId(), "Copy", "copy@example.com", "Dept", Designation.PROFESSIONAL, "EMP", "long-enough-pw",
+                EnumSet.of(Role.STAFF), null, false)))
                 .isInstanceOfSatisfying(BusinessException.class,
-                        e -> assertThat(e.fieldErrors()).containsKeys("staffNo", "username"));
+                        e -> assertThat(e.fieldErrors()).containsKeys("staffId", "username"));
     }
 
     @Test
@@ -130,27 +129,26 @@ class AdministrationIT extends AbstractMySqlIT {
         expectCode(() -> staff.deactivate(admin.actor(), admin.id()), ErrorCode.RULE_VIOLATION);
         expectCode(() -> staff.deactivate(admin.actor(), manager.id()), ErrorCode.RULE_VIOLATION);
 
-        MockHttpSession session = (MockHttpSession) mvc.perform(formLogin("/login").user("emp")
+        MockHttpSession session = (MockHttpSession) mvc.perform(formLogin("/employee/login").user("emp")
                 .password(Fixtures.PASSWORD)).andReturn().getRequest().getSession(false);
         staff.deactivate(admin.actor(), employee.id());
 
-        assertThat(count("SELECT COUNT(*) FROM employee WHERE id = ? AND active = 0", employee.id())).isEqualTo(1);
-        mvc.perform(get("/employee/dashboard").session(session))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl("/login?expired"));
-        mvc.perform(formLogin("/login").user("emp").password(Fixtures.PASSWORD)).andExpect(unauthenticated());
+        assertThat(count("SELECT COUNT(*) FROM users WHERE id = ? AND active = 0", employee.id())).isEqualTo(1);
+        mvc.perform(get("/staff/home").session(session))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl("/employee/login?expired"));
+        mvc.perform(formLogin("/employee/login").user("emp").password(Fixtures.PASSWORD)).andExpect(unauthenticated());
     }
 
     @Test
     void theLastAdministratorKeepsTheRole() {
         Person other = fixtures.employee("other");
-        expectCode(() -> staff.changeRoles(admin.actor(), admin.id(), EnumSet.of(Role.EMPLOYEE)),
+        expectCode(() -> staff.changeRoles(admin.actor(), admin.id(), EnumSet.of(Role.STAFF)),
                 ErrorCode.RULE_VIOLATION);
 
-        staff.changeRoles(admin.actor(), other.id(), EnumSet.of(Role.EMPLOYEE, Role.ADMIN));
-        staff.changeRoles(admin.actor(), admin.id(), EnumSet.of(Role.EMPLOYEE));
+        staff.changeRoles(admin.actor(), other.id(), EnumSet.of(Role.STAFF, Role.ADMIN));
+        staff.changeRoles(admin.actor(), admin.id(), EnumSet.of(Role.STAFF));
 
-        assertThat(count("SELECT COUNT(*) FROM user_role r JOIN user_account u ON u.id = r.user_id "
-                + "WHERE u.employee_id = ? AND r.role_code = 'ADMIN'", admin.id())).isZero();
+        assertThat(count("SELECT COUNT(*) FROM user_roles WHERE user_id = ? AND role_code = 'ADMIN'", admin.id())).isZero();
     }
 
     @Test
@@ -158,11 +156,11 @@ class AdministrationIT extends AbstractMySqlIT {
         Person newManager = fixtures.manager("newmgr");
         Long pending = submit(employee, "100.00");
 
-        expectCode(() -> staff.changeRoles(admin.actor(), manager.id(), EnumSet.of(Role.EMPLOYEE)),
+        expectCode(() -> staff.changeRoles(admin.actor(), manager.id(), EnumSet.of(Role.STAFF)),
                 ErrorCode.RULE_VIOLATION);
 
         routing.moveTeam(admin.actor(), manager.id(), newManager.id());
-        staff.changeRoles(admin.actor(), manager.id(), EnumSet.of(Role.EMPLOYEE));
+        staff.changeRoles(admin.actor(), manager.id(), EnumSet.of(Role.STAFF));
 
         assertThat(count("SELECT approver_id FROM course_application WHERE id = ?", pending)).isEqualTo(newManager.id());
     }
@@ -175,8 +173,8 @@ class AdministrationIT extends AbstractMySqlIT {
         expectCode(() -> staff.delete(admin.actor(), employee.id()), ErrorCode.RULE_VIOLATION);
         staff.delete(admin.actor(), mistake.id());
 
-        assertThat(count("SELECT COUNT(*) FROM employee WHERE id = ?", mistake.id())).isZero();
-        assertThat(count("SELECT COUNT(*) FROM employee WHERE id = ?", employee.id())).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM users WHERE id = ?", mistake.id())).isZero();
+        assertThat(count("SELECT COUNT(*) FROM users WHERE id = ?", employee.id())).isEqualTo(1);
     }
 
     // ------------------------------------------------------------------ routing
@@ -229,7 +227,7 @@ class AdministrationIT extends AbstractMySqlIT {
 
         entitlements.save(admin.actor(), employee.id(), 2026, new BigDecimal("7.5"), new BigDecimal("600.00"),
                 "Reduced for the second half");
-        assertThat(count("SELECT entitled_units FROM training_account WHERE employee_id = ? AND calendar_year = 2026",
+        assertThat(count("SELECT entitled_units FROM training_entitlement WHERE employee_id = ? AND calendar_year = 2026",
                 employee.id())).isEqualTo(15);
         assertThat(count("SELECT COUNT(*) FROM audit_event WHERE event_type = 'ENTITLEMENT_CHANGED' AND reason = "
                 + "'Reduced for the second half'")).isEqualTo(1);
@@ -241,7 +239,7 @@ class AdministrationIT extends AbstractMySqlIT {
 
         // Applicants are the manager and the employee; the administrator has no employee role.
         assertThat(opened).isEqualTo(2);
-        assertThat(count("SELECT COUNT(*) FROM training_account WHERE calendar_year = 2027")).isEqualTo(2);
+        assertThat(count("SELECT COUNT(*) FROM training_entitlement WHERE calendar_year = 2027")).isEqualTo(2);
         assertThat(entitlements.openMissing(admin.actor(), 2027)).isZero();
         expectCode(() -> entitlements.openMissing(admin.actor(), 2029), ErrorCode.YEAR_NOT_OPEN);
     }
@@ -320,7 +318,7 @@ class AdministrationIT extends AbstractMySqlIT {
         expectCode(() -> holidays.confirmYear(admin.actor(), 2028, " "), ErrorCode.VALIDATION_FAILED);
         expectCode(() -> holidays.addHoliday(admin.actor(), LocalDate.of(2029, 1, 1), "x", "y"), ErrorCode.RULE_VIOLATION);
 
-        jdbc.update("DELETE FROM public_holiday WHERE YEAR(holiday_date) = 2027");
+        jdbc.update("DELETE FROM excluded_days WHERE YEAR(holiday_date) = 2027");
         int imported = holidays.importBundled(admin.actor(), 2027);
         assertThat(imported).isEqualTo(12);
         assertThat(jdbc.queryForObject("SELECT status FROM training_calendar_year WHERE calendar_year = 2027",
@@ -339,7 +337,7 @@ class AdministrationIT extends AbstractMySqlIT {
                 "/admin/holidays?year=2028"}) {
             mvc.perform(get(page).session(adminSession)).andExpect(status().isOk());
         }
-        MockHttpSession staffSession = (MockHttpSession) mvc.perform(formLogin("/login").user("emp")
+        MockHttpSession staffSession = (MockHttpSession) mvc.perform(formLogin("/employee/login").user("emp")
                 .password(Fixtures.PASSWORD)).andReturn().getRequest().getSession(false);
         mvc.perform(get("/admin/staff").session(staffSession)).andExpect(status().isForbidden());
     }
@@ -354,11 +352,11 @@ class AdministrationIT extends AbstractMySqlIT {
                         .param("name", "Fixture").param("sourceNote", "FIXTURE"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Applications that include this date")));
-        assertThat(count("SELECT COUNT(*) FROM public_holiday WHERE holiday_date = '2026-10-12'")).isZero();
+        assertThat(count("SELECT COUNT(*) FROM excluded_days WHERE holiday_date = '2026-10-12'")).isZero();
 
         mvc.perform(post("/admin/holidays/add").session(adminSession).with(csrf()).param("date", "2026-10-12")
                         .param("name", "Fixture").param("sourceNote", "FIXTURE").param("confirmed", "true"))
                 .andExpect(status().is3xxRedirection());
-        assertThat(count("SELECT COUNT(*) FROM public_holiday WHERE holiday_date = '2026-10-12'")).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM excluded_days WHERE holiday_date = '2026-10-12'")).isEqualTo(1);
     }
 }

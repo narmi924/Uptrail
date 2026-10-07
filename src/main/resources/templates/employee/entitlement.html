@@ -11,7 +11,7 @@
   </div>
 
   <nav class="ut-tabs" aria-label="Year">
-    <a th:each="y : ${o.years}" th:href="@{/employee/entitlement(year=${y})}" th:classappend="${y == o.year} ? 'active'" th:text="${y}">2026</a>
+    <a th:each="y : ${o.years}" th:href="@{/staff/entitlement(year=${y})}" th:classappend="${y == o.year} ? 'active'" th:text="${y}">2026</a>
   </nav>
 
   <div class="ut-strip state-critical" th:if="${!b.configured}">
@@ -65,10 +65,10 @@
             <span th:case="'REIMBURSE'">Reimbursement registered</span>
           </td>
           <td>
-            <a th:if="${l.applicationId != null}" th:href="@{/employee/applications/{id}(id=${l.applicationId})}">
+            <a th:if="${l.applicationId != null}" th:href="@{/staff/applications/{id}(id=${l.applicationId})}">
               <span class="mono" th:text="${l.applicationReference}">ref</span></a>
             <div class="small-ut text-muted-ut" th:text="${l.courseTitle}">Course</div>
-            <a class="small-ut" th:if="${l.claimId != null}" th:href="@{/employee/claims/{id}(id=${l.claimId})}">Fee claim</a>
+            <a class="small-ut" th:if="${l.claimId != null}" th:href="@{/staff/claims/{id}(id=${l.claimId})}">Fee claim</a>
           </td>
           <td class="num small-ut">
             <div th:if="${l.reservedUnits != 0}" th:text="'Pending ' + ${@formats.signedDays(l.reservedUnits)}">+1 day</div>

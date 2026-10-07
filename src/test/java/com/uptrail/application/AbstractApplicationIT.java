@@ -10,12 +10,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 
-import com.uptrail.application.domain.ApplicationDetails;
-import com.uptrail.application.service.ApplicationCommandService;
-import com.uptrail.application.service.ApplicationCommandService.SubmitResult;
-import com.uptrail.catalogue.domain.CategoryCode;
-import com.uptrail.entitlement.domain.Session;
-import com.uptrail.entitlement.service.EntitlementService;
+import com.uptrail.model.ApplicationDetails;
+import com.uptrail.service.CourseApplicationService;
+import com.uptrail.service.CourseApplicationService.SubmitResult;
+import com.uptrail.model.CategoryCode;
+import com.uptrail.model.Session;
+import com.uptrail.service.EntitlementService;
 import com.uptrail.support.AbstractMySqlIT;
 import com.uptrail.support.Fixtures;
 import com.uptrail.support.Fixtures.Person;
@@ -31,7 +31,7 @@ public abstract class AbstractApplicationIT extends AbstractMySqlIT {
     protected static final LocalDate FIXTURE_HOLIDAY = LocalDate.of(2026, 10, 14);
 
     @Autowired
-    protected ApplicationCommandService commands;
+    protected CourseApplicationService commands;
 
     @Autowired
     protected EntitlementService entitlements;
@@ -80,7 +80,7 @@ public abstract class AbstractApplicationIT extends AbstractMySqlIT {
     }
 
     protected MockHttpSession staffSession(Person person) throws Exception {
-        return (MockHttpSession) mvc.perform(formLogin("/login").user(person.username()).password(Fixtures.PASSWORD))
+        return (MockHttpSession) mvc.perform(formLogin("/employee/login").user(person.username()).password(Fixtures.PASSWORD))
                 .andReturn().getRequest().getSession(false);
     }
 }

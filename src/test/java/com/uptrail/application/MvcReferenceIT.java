@@ -41,21 +41,21 @@ class MvcReferenceIT extends AbstractApplicationIT {
     @Test
     void employeeSubmitsAndManagerApprovesThroughHtmlFormsOnly() throws Exception {
         MockHttpSession employeeSession = staffSession(employee);
-        mvc.perform(get("/employee/applications/new").session(employeeSession))
+        mvc.perform(get("/staff/applications/new").session(employeeSession))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("checked when you submit")))
                 .andExpect(content().string(not(containsString("data-preview-url"))))
                 .andExpect(content().string(not(containsString("catalogue-search"))));
 
-        mvc.perform(post("/employee/applications").session(employeeSession).with(csrf())
+        mvc.perform(post("/staff/applications").session(employeeSession).with(csrf())
                         .param("category", "EXTERNAL").param("courseTitle", "MVC Reference Course")
                         .param("providerName", "Sample Provider").param("courseFee", "100.00")
                         .param("startDate", MON_12_OCT.toString()).param("endDate", MON_12_OCT.toString())
                         .param("startSession", "AM").param("endSession", "PM")
                         .param("justification", "Apply this training to our project.")
                         .param("clientRequestId", UUID.randomUUID().toString()))
-                .andExpect(redirectedUrlPattern("/employee/applications/*"));
-        Long id = jdbc.queryForObject("SELECT id FROM course_application WHERE employee_id = ?", Long.class,
+                .andExpect(redirectedUrlPattern("/staff/applications/*"));
+        Long id = jdbc.queryForObject("SELECT id FROM course_application WHERE applicant_id = ?", Long.class,
                 employee.id());
         assertThat(statusOf(id)).isEqualTo("APPLIED");
         assertThat(jdbc.queryForObject("SELECT approver_id FROM course_application WHERE id = ?", Long.class, id))
@@ -71,9 +71,15 @@ class MvcReferenceIT extends AbstractApplicationIT {
                 .andExpect(redirectedUrl("/manager/approvals"));
         assertThat(statusOf(id)).isEqualTo("APPROVED");
         mvc.perform(get("/employee/applications/" + id).session(employeeSession))
+                .andExpect(redirectedUrl("/staff/applications/" + id));
+        mvc.perform(get("/staff/applications/" + id).session(employeeSession))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Useful for our team project.")));
-        mvc.perform(get("/employee/dashboard").session(managerSession)).andExpect(status().isOk());
+        MockHttpSession otherStaff = staffSession(fixtures.employee("other"));
+        mvc.perform(get("/employee/applications/" + id).session(otherStaff))
+                .andExpect(redirectedUrl("/staff/applications/" + id));
+        mvc.perform(get("/staff/applications/" + id).session(otherStaff)).andExpect(status().isNotFound());
+        mvc.perform(get("/staff/home").session(managerSession)).andExpect(status().isOk());
     }
 
     @Test

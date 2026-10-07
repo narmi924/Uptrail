@@ -3,10 +3,10 @@ title Submitting a course application
 skinparam shadowing false
 skinparam defaultFontName Arial
 
-actor Employee
+actor Staff
 participant "Browser" as B
-participant "EmployeeApplicationController" as C
-participant "ApplicationCommandService" as S
+participant "StaffController" as C
+participant "CourseApplicationService" as S
 participant "ApplicationEvaluator" as E
 participant "EntitlementService" as L
 participant "AuditService" as A
@@ -15,18 +15,18 @@ database "MySQL" as DB
 participant "OutboxWorker" as W
 participant "SMTP" as M
 
-Employee -> B : fill in the form
+Staff -> B : fill in the form
 B -> B : live eligibility check\n(POST /api/v1/applications/preview)
-Employee -> B : Submit application
-B -> C : POST /employee/applications (CSRF, clientRequestId)
-C -> S : submit(actor, details, clientRequestId)
+Staff -> B : Submit application
+B -> C : POST /staff/applications (CSRF, clientRequestId)
+C -> S : submit(user, details, clientRequestId)
 activate S
 note over S, DB : one READ COMMITTED transaction
-S -> DB : SELECT employee FOR UPDATE
-S -> DB : replayed request? (employee + clientRequestId)
+S -> DB : SELECT users FOR UPDATE
+S -> DB : replayed request? (users + clientRequestId)
 S -> E : evaluate(details)\n(dates, holidays, overlap, days, budget)
 S -> L : lockAccounts(years, ascending)
-L -> DB : SELECT training_account FOR UPDATE
+L -> DB : SELECT training_entitlement FOR UPDATE
 S -> E : re-check inside the locks
 S -> DB : INSERT course_application, application_day
 S -> A : record SUBMITTED

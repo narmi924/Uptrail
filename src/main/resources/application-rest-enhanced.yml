@@ -1,0 +1,4 @@
+# Optional browser JSON enhancements. The default application is pure MVC.
+uptrail:
+  web:
+    rest-enabled: true

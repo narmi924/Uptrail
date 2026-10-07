@@ -20,12 +20,12 @@
         <thead><tr><th>Reference</th><th>Course</th><th>Category</th><th>Period</th><th class="num">Course fee (SGD)</th><th></th></tr></thead>
         <tbody>
         <tr th:each="a : ${claimable}">
-          <td class="mono"><a th:href="@{/employee/applications/{id}(id=${a.id})}" th:text="${a.referenceNo}">ref</a></td>
+          <td class="mono"><a th:href="@{/staff/applications/{id}(id=${a.id})}" th:text="${a.referenceNo}">ref</a></td>
           <td th:text="${a.courseTitle}">Course</td>
           <td th:text="${a.categoryName}">Category</td>
           <td th:text="${@formats.period(a.startDate, a.startSession.name(), a.endDate, a.endSession.name())}">Period</td>
           <td class="num" th:text="${@formats.amount(a.fee)}">0.00</td>
-          <td class="num"><a class="btn btn-primary btn-sm" th:href="@{/employee/claims/new(applicationId=${a.id})}">Claim fee</a></td>
+          <td class="num"><a class="btn btn-primary btn-sm" th:href="@{/staff/claims/new(applicationId=${a.id})}">Claim fee</a></td>
         </tr>
         </tbody>
       </table>
@@ -45,7 +45,7 @@
           <td><span th:replace="~{fragments/messages :: status(${c.status.name()}, ${c.status.label()})}"></span></td>
           <td class="num" th:text="${c.revision}">1</td>
           <td th:text="${@formats.dateTime(c.lastActivity)}">date</td>
-          <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/employee/claims/{id}(id=${c.id})}">View</a></td>
+          <td class="num"><a class="btn btn-secondary btn-sm" th:href="@{/staff/claims/{id}(id=${c.id})}">View</a></td>
         </tr>
         <tr class="ut-empty" th:if="${view.isEmpty()}"><td colspan="7">You have not submitted any fee claims.</td></tr>
         </tbody>

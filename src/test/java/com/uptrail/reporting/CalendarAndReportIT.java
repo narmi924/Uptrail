@@ -20,15 +20,15 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
 import com.uptrail.application.AbstractApplicationIT;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
-import com.uptrail.application.service.ApplicationCommandService.SubmitResult;
-import com.uptrail.catalogue.domain.CategoryCode;
-import com.uptrail.entitlement.domain.Session;
-import com.uptrail.reporting.service.ReportQueryService;
-import com.uptrail.reporting.service.ReportQueryService.BudgetFilter;
-import com.uptrail.reporting.service.ReportQueryService.BudgetReport;
-import com.uptrail.reporting.service.ReportQueryService.TrainingFilter;
-import com.uptrail.reporting.service.ReportQueryService.TrainingReport;
+import com.uptrail.service.CourseApplicationService.Decision;
+import com.uptrail.service.CourseApplicationService.SubmitResult;
+import com.uptrail.model.CategoryCode;
+import com.uptrail.model.Session;
+import com.uptrail.service.ReportQueryService;
+import com.uptrail.service.ReportQueryService.BudgetFilter;
+import com.uptrail.service.ReportQueryService.BudgetReport;
+import com.uptrail.service.ReportQueryService.TrainingFilter;
+import com.uptrail.service.ReportQueryService.TrainingReport;
 import com.uptrail.shared.error.NotFoundException;
 import com.uptrail.support.Fixtures.Person;
 
@@ -80,7 +80,7 @@ class CalendarAndReportIT extends AbstractApplicationIT {
                 .andExpect(jsonPath("$.previousMonth").value("2026-09"))
                 .andExpect(jsonPath("$.nextMonth").value("2026-11"))
                 .andExpect(jsonPath("$.entries.length()").value(2))
-                .andExpect(jsonPath("$.entries[0].employeeName").value(employee.employee().getFullName()))
+                .andExpect(jsonPath("$.entries[0].employeeName").value(employee.employee().getName()))
                 .andExpect(jsonPath("$.entries[0].courseTitle").value("Spring Application Development"))
                 .andExpect(jsonPath("$.entries[0].startDate").value("2026-10-12"))
                 .andExpect(jsonPath("$.entries[1].category").value("INTERNAL"))
@@ -157,7 +157,7 @@ class CalendarAndReportIT extends AbstractApplicationIT {
 
         assertThat(october.rows()).hasSize(2);
         assertThat(october.rows()).extracting(ReportQueryService.TrainingRow::employeeName)
-                .containsOnly(employee.employee().getFullName());
+                .containsOnly(employee.employee().getName());
         assertThat(october.totalUnits()).isEqualTo(3);
         assertThat(october.unitsByCategory()).containsEntry(CategoryCode.EXTERNAL, 2).containsEntry(CategoryCode.INTERNAL, 1);
         assertThat(october.feesOfCoursesStartingInPeriod()).isEqualByComparingTo("300.00");
@@ -258,7 +258,7 @@ class CalendarAndReportIT extends AbstractApplicationIT {
         commands.complete(employee.actor(), done, version(done), "Useful course.");
         // A direct row keeps this test independent of the claim service.
         jdbc.update("""
-                INSERT INTO course_claim (application_id, revision, amount, paid_by_employee, approver_id, status,
+                INSERT INTO course_fee_application (application_id, revision, amount, paid_by_employee, approver_id, status,
                                           submitted_at, version)
                 VALUES (?, 1, 550.00, TRUE, ?, 'SUBMITTED', UTC_TIMESTAMP(6), 0)
                 """, done, manager.id());
@@ -267,7 +267,7 @@ class CalendarAndReportIT extends AbstractApplicationIT {
 
         assertThat(report.rows()).hasSize(2);
         ReportQueryService.BudgetRow row = report.rows().stream()
-                .filter(r -> r.employeeName().equals(employee.employee().getFullName())).findFirst().orElseThrow();
+                .filter(r -> r.employeeName().equals(employee.employee().getName())).findFirst().orElseThrow();
         assertThat(row.balance().budget()).isEqualByComparingTo("2000.00");
         assertThat(row.balance().committedAmount()).isEqualByComparingTo("600.00");
         assertThat(row.balance().reservedAmount()).isEqualByComparingTo("100.00");
@@ -275,7 +275,7 @@ class CalendarAndReportIT extends AbstractApplicationIT {
         assertThat(row.completedUnits()).isEqualTo(2);
         assertThat(row.claimsSubmitted()).isEqualByComparingTo("550.00");
         ReportQueryService.BudgetRow unconfigured = report.rows().stream()
-                .filter(r -> r.employeeName().equals(newcomer.employee().getFullName())).findFirst().orElseThrow();
+                .filter(r -> r.employeeName().equals(newcomer.employee().getName())).findFirst().orElseThrow();
         assertThat(unconfigured.balance().configured()).isFalse();
         assertThat(report.totals().budget()).isEqualByComparingTo("2000.00");
         assertThat(report.totals().committedAmount()).isEqualByComparingTo("600.00");

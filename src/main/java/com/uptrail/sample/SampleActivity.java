@@ -13,19 +13,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.uptrail.application.domain.ApplicationDetails;
-import com.uptrail.application.domain.CourseApplication;
-import com.uptrail.application.repository.CourseApplicationRepository;
-import com.uptrail.application.service.ApplicationCommandService;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
-import com.uptrail.catalogue.domain.CategoryCode;
-import com.uptrail.catalogue.service.HolidayCalendarService;
-import com.uptrail.entitlement.domain.Session;
-import com.uptrail.identity.domain.Actor;
-import com.uptrail.identity.domain.Role;
-import com.uptrail.identity.domain.UserAccount;
-import com.uptrail.identity.repository.UserAccountRepository;
-import com.uptrail.organisation.domain.Employee;
+import com.uptrail.model.ApplicationDetails;
+import com.uptrail.model.CourseApplication;
+import com.uptrail.repo.CourseApplicationRepo;
+import com.uptrail.service.CourseApplicationService;
+import com.uptrail.service.CourseApplicationService.Decision;
+import com.uptrail.model.CategoryCode;
+import com.uptrail.service.HolidayCalendarService;
+import com.uptrail.model.Session;
+import com.uptrail.model.User;
+import com.uptrail.model.Role;
+import com.uptrail.repo.UserRepo;
 import com.uptrail.shared.error.BusinessException;
 import com.uptrail.shared.time.BusinessClock;
 
@@ -40,14 +38,14 @@ public class SampleActivity {
 
     private static final Logger log = LoggerFactory.getLogger(SampleActivity.class);
 
-    private final ApplicationCommandService commands;
-    private final CourseApplicationRepository applications;
-    private final UserAccountRepository accounts;
+    private final CourseApplicationService commands;
+    private final CourseApplicationRepo applications;
+    private final UserRepo accounts;
     private final HolidayCalendarService holidays;
     private final BusinessClock clock;
 
-    public SampleActivity(ApplicationCommandService commands, CourseApplicationRepository applications,
-            UserAccountRepository accounts, HolidayCalendarService holidays, BusinessClock clock) {
+    public SampleActivity(CourseApplicationService commands, CourseApplicationRepo applications,
+            UserRepo accounts, HolidayCalendarService holidays, BusinessClock clock) {
         this.commands = commands;
         this.applications = applications;
         this.accounts = accounts;
@@ -146,7 +144,7 @@ public class SampleActivity {
         LocalDate end = lastDay(start, days);
         run(key, () -> {
             Long id = submit(staff, applicant, course.details(start, end), submittedAt(start, 20));
-            Actor actor = actor(staff, applicant);
+            User actor = actor(staff, applicant);
             clock.callAt(submittedAt(start, 18), () -> {
                 commands.update(actor, id, course.withFee(newFee).details(start, end), version(id));
                 return null;
@@ -206,7 +204,7 @@ public class SampleActivity {
             Long id = submit(staff, applicant, course.details(start, end), submittedAt(start, 21));
             decide(staff, approver, id, Decision.APPROVE, "Directly relevant to current projects.",
                     submittedAt(start, 18));
-            Actor actor = actor(staff, applicant);
+            User actor = actor(staff, applicant);
             clock.callAt(at(end.plusDays(3), 10), () -> {
                 commands.complete(actor, id, version(id), experience);
                 return null;
@@ -220,7 +218,7 @@ public class SampleActivity {
         LocalDate start = workingDayOnOrAfter(from);
         run(key, () -> {
             Long id = submit(staff, applicant, course.details(start, lastDay(start, days)), submittedAt(start, 25));
-            Actor actor = actor(staff, applicant);
+            User actor = actor(staff, applicant);
             clock.callAt(submittedAt(start, 24), () -> {
                 commands.delete(actor, id, version(id));
                 return null;
@@ -235,7 +233,7 @@ public class SampleActivity {
         run(key, () -> {
             Long id = submit(staff, applicant, course.details(start, lastDay(start, days)), submittedAt(start, 30));
             decide(staff, approver, id, Decision.APPROVE, "Approved.", submittedAt(start, 28));
-            Actor actor = actor(staff, applicant);
+            User actor = actor(staff, applicant);
             clock.callAt(submittedAt(start, 20), () -> {
                 commands.cancel(actor, id, version(id), reason);
                 return null;
@@ -259,13 +257,13 @@ public class SampleActivity {
     // ------------------------------------------------------------------ helpers
 
     private Long submit(SampleOrganisation.Staff staff, String applicant, ApplicationDetails details, Instant at) {
-        Actor actor = actor(staff, applicant);
+        User actor = actor(staff, applicant);
         return clock.callAt(at, () -> commands.submit(actor, details, UUID.randomUUID().toString()).applicationId());
     }
 
     private void decide(SampleOrganisation.Staff staff, String approver, Long id, Decision decision, String reason,
             Instant at) {
-        Actor actor = actor(staff, approver);
+        User actor = actor(staff, approver);
         clock.callAt(at, () -> {
             commands.decide(actor, id, decision, reason, version(id));
             return null;
@@ -276,11 +274,11 @@ public class SampleActivity {
         return applications.findById(applicationId).map(CourseApplication::getVersion).orElseThrow();
     }
 
-    private Actor actor(SampleOrganisation.Staff staff, String username) {
-        Employee employee = staff.get(username);
-        UserAccount account = accounts.findByEmployeeId(employee.getId()).orElseThrow();
-        return new Actor(employee.getId(), employee.getFullName(), account.getRoles().isEmpty()
-                ? java.util.Set.of(Role.EMPLOYEE) : account.getRoles());
+    private User actor(SampleOrganisation.Staff staff, String username) {
+        User employee = staff.get(username);
+        User account = accounts.findById(employee.getUserId()).orElseThrow();
+        return User.identity(employee.getUserId(), employee.getName(), account.getRoles().isEmpty()
+                ? java.util.Set.of(Role.STAFF) : account.getRoles());
     }
 
     /** Submission instant a number of days before the course, but never in the future. */

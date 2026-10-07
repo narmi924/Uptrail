@@ -24,6 +24,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 })
 @AutoConfigureMockMvc
 @Import({TestClockConfig.class, Fixtures.class})
+@org.springframework.test.context.ActiveProfiles("rest-enhanced")
 public abstract class AbstractMySqlIT {
 
     @Autowired

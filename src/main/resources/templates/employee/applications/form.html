@@ -4,7 +4,7 @@
 <body>
 <div id="page">
   <div class="ut-breadcrumb" th:if="${editing != null}">
-    <a th:href="@{/employee/applications/{id}(id=${editing.id})}" th:text="${editing.referenceNo}">UPT-2026-000001</a>
+    <a th:href="@{/staff/applications/{id}(id=${editing.id})}" th:text="${editing.referenceNo}">UPT-2026-000001</a>
   </div>
   <div class="ut-page-header">
     <div>
@@ -20,7 +20,7 @@
   </div>
 
   <form method="post" th:object="${form}"
-        th:action="${editing != null} ? @{/employee/applications/{id}/update(id=${editing.id})} : @{/employee/applications}"
+        th:action="${editing != null} ? @{/staff/applications/{id}/update(id=${editing.id})} : @{/staff/applications}"
         id="application-form" novalidate>
     <div th:replace="~{fragments/messages :: formErrors('form')}"></div>
     <input type="hidden" th:field="*{clientRequestId}">
@@ -136,7 +136,7 @@
               <button type="submit" class="btn btn-primary"
                       th:text="${editing != null} ? 'Save changes' : 'Submit application'">Submit application</button>
               <a class="btn btn-secondary"
-                 th:href="${editing != null} ? @{/employee/applications/{id}(id=${editing.id})} : @{/employee/applications}">Cancel</a>
+                 th:href="${editing != null} ? @{/staff/applications/{id}(id=${editing.id})} : @{/staff/applications}">Cancel</a>
               <span class="ut-action-note">The server checks every rule again when you submit.</span>
             </div>
           </div>

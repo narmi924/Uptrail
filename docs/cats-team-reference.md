@@ -1,105 +1,79 @@
-# CATS team: MVC-first implementation reference
+# CATS team implementation reference
 
-Use Uptrail to find a working example when a CATS task is blocked. The assignment and the team's current diagrams define the product; `bbcares1/CATS_System` defines the team's models and code. Adapt a small, relevant implementation rather than replacing the team project with this application.
+Uptrail is a complete MVC training application with the CATS inheritance and layer names. Open the files for your module below. The assignment, latest diagrams and agreed team contracts define requirements.
 
-## Start with the mandatory MVC flow
+## Shared model and session
 
-Uptrail's submissions, application lifecycle, approvals, history and administration use `@Controller`, Thymeleaf and ordinary HTML form posts. Services validate the commands and repositories persist them. REST is an optional enhancement, not a requirement for these flows.
+```text
+User
+├── Staff
+│   └── Manager
+└── Admin
+```
 
-Run the MVC-only reference on Java 21 with Docker:
+One User owns one userId, userName, name and staffId. Manager inherits through Staff. There is no separate Employee/UserAccount entity or duplicated employee fields. Code uses model / repo / service / controller.
+
+Login stores a password-free, correctly typed User in session "user". CurrentUserService resolves it for all pages; client parameters cannot replace it. Spring Security supplies password checking, CSRF and session protection behind this contract.
+
+## Run the complete MVC application
+
+Java 21 and Docker:
 
 ```bash
 git clone https://github.com/narmi924/Uptrail.git
 cd Uptrail
 docker compose up -d
-./mvnw spring-boot:run "-Dspring-boot.run.profiles=dev,mvc-reference"
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-On Windows use `mvnw.cmd` with the same arguments. Open [staff login](http://localhost:8080/login) or [admin login](http://localhost:8080/admin/login). The sample password is `Uptrail#2026`; use `hannah` as an employee, `daniel` as the employee's manager and `alex` as administrator.
+Windows: use mvnw.cmd. See README for a UnixDomainSockets loopback workaround.
 
-The `mvc-reference` profile does not register the three REST controllers. The application form validates on submission, catalogue search is hidden, and the calendar uses server-rendered lists and GET form navigation. Submission, manager decisions and the ordinary employee/manager/admin pages continue to work. Remove the profile later to enable live eligibility checks, catalogue search and the interactive calendar. The public online demo uses that full mode.
+| Role | Login | Account | First page |
+| --- | --- | --- | --- |
+| Staff | /employee/login | hannah | /staff/home |
+| Manager | /employee/login | daniel | /manager/home |
+| Admin | /admin/login | alex | /admin/home |
 
-## Find the example for your problem
+Sample password: Uptrail#2026. Manager also uses /staff/home to apply; a different assigned manager decides. All data is synthetic.
 
-Paths below start at `src/main/java/com/uptrail/`, unless they point to templates.
+The default is pure MVC. Add rest-enhanced later for live eligibility, catalogue search and interactive calendar. Submission, decisions, history and calendar navigation already work without REST.
 
-| Problem | Working source | What to reuse |
-| --- | --- | --- |
-| Login, identity and workspace changes | [SecurityConfig](../src/main/java/com/uptrail/identity/web/SecurityConfig.java), [UptrailUserPrincipal](../src/main/java/com/uptrail/identity/service/UptrailUserPrincipal.java), [CurrentUserAdvice](../src/main/java/com/uptrail/identity/web/CurrentUserAdvice.java) | One authenticated identity shared by controllers; a selected workspace does not grant a role |
-| Who approves an employee's request? | [ApprovalAssignment](../src/main/java/com/uptrail/organisation/domain/ApprovalAssignment.java), [RoutingAdminService](../src/main/java/com/uptrail/admin/service/RoutingAdminService.java) | One current manager per employee, validated assignment and an explicit option for reassigning pending records |
-| Keep the approver after routing changes | [CourseApplication](../src/main/java/com/uptrail/application/domain/CourseApplication.java), [ApplicationCommandService](../src/main/java/com/uptrail/application/service/ApplicationCommandService.java) | Copy the approver onto an application at submission; retain its applicant, decision author and history |
-| Employees submit and edit with MVC | [EmployeeApplicationController](../src/main/java/com/uptrail/application/web/EmployeeApplicationController.java), [application form](../src/main/resources/templates/employee/applications/form.html) | GET form, bound POST, server validation errors and redirect after success |
-| Category, dates, days, budget and overlaps | [ApplicationEvaluator](../src/main/java/com/uptrail/application/service/ApplicationEvaluator.java), [TrainingDayCalculator](../src/main/java/com/uptrail/entitlement/domain/TrainingDayCalculator.java) | Shared validation on every write; half days only for internal training; exclude weekends and holidays |
-| Approve or reject with a required reason | [ManagerApprovalController](../src/main/java/com/uptrail/approval/web/ManagerApprovalController.java), [ApplicationCommandService](../src/main/java/com/uptrail/application/service/ApplicationCommandService.java) | POST decision, assigned-manager check, pending-status check, reason and decision metadata |
-| Manager worklist and decision support | [ManagerApplicationService](../src/main/java/com/uptrail/approval/service/ManagerApplicationService.java), [manager review](../src/main/resources/templates/manager/review.html) | Group by employee; show annual usage and other team courses in the same period |
-| Subordinate history and access scope | [ManagerTeamController](../src/main/java/com/uptrail/approval/web/ManagerTeamController.java), [AccessScopePolicy](../src/main/java/com/uptrail/organisation/service/AccessScopePolicy.java) | Current-year history for the appropriate employee; limit reads to the manager's scope |
-| Fee claims, if there is time | [EmployeeClaimController](../src/main/java/com/uptrail/claim/web/EmployeeClaimController.java), [ClaimCommandService](../src/main/java/com/uptrail/claim/service/ClaimCommandService.java) | Completed external/certification course, receipt and certificate, decision reason |
-| Startup and database configuration | [application.yml](../src/main/resources/application.yml), [Docker Compose](../docker-compose.yml), [migrations](../src/main/resources/db/migration/) | Matching schema/entity names, environment-based credentials and reproducible sample data |
+## Source map
 
-## Employee and manager IDs: settle the meaning once
+| Task | Files |
+| --- | --- |
+| Identity | [User](../src/main/java/com/uptrail/model/User.java), [Staff](../src/main/java/com/uptrail/model/Staff.java), [Manager](../src/main/java/com/uptrail/model/Manager.java), [Admin](../src/main/java/com/uptrail/model/Admin.java) |
+| Login/session | [UserController](../src/main/java/com/uptrail/controller/UserController.java), [UserService](../src/main/java/com/uptrail/service/UserService.java), [CurrentUserService](../src/main/java/com/uptrail/service/CurrentUserService.java), [EntrySuccessHandler](../src/main/java/com/uptrail/controller/EntrySuccessHandler.java) |
+| Staff form/lifecycle | [StaffController](../src/main/java/com/uptrail/controller/StaffController.java), [CourseApplicationService](../src/main/java/com/uptrail/service/CourseApplicationService.java), [form](../src/main/resources/templates/employee/applications/form.html) |
+| Application contract | [CourseApplication](../src/main/java/com/uptrail/model/CourseApplication.java), [CourseApplicationRepo](../src/main/java/com/uptrail/repo/CourseApplicationRepo.java) |
+| Manager decisions | [ManagerController](../src/main/java/com/uptrail/controller/ManagerController.java), [ManagerService](../src/main/java/com/uptrail/service/ManagerService.java), [ManagerRepo](../src/main/java/com/uptrail/repo/ManagerRepo.java), [review](../src/main/resources/templates/manager/review.html) |
+| Reporting relationship | [ApprovalHierarchy](../src/main/java/com/uptrail/model/ApprovalHierarchy.java), [RoutingAdminService](../src/main/java/com/uptrail/service/RoutingAdminService.java) |
+| Days/budget/overlaps | [ApplicationEvaluator](../src/main/java/com/uptrail/service/ApplicationEvaluator.java), [TrainingDayCalculator](../src/main/java/com/uptrail/model/TrainingDayCalculator.java), [TrainingEntitlement](../src/main/java/com/uptrail/model/TrainingEntitlement.java), [ExcludedDays](../src/main/java/com/uptrail/model/ExcludedDays.java) |
+| Subordinate history/scope | [ManagerTeamController](../src/main/java/com/uptrail/controller/ManagerTeamController.java), [AccessScopePolicy](../src/main/java/com/uptrail/service/AccessScopePolicy.java) |
+| Fee claims | [CourseFeeApplication](../src/main/java/com/uptrail/model/CourseFeeApplication.java), [StaffClaimController](../src/main/java/com/uptrail/controller/StaffClaimController.java), [ClaimCommandService](../src/main/java/com/uptrail/service/ClaimCommandService.java) |
+| Administration | [AdminStaffController](../src/main/java/com/uptrail/controller/AdminStaffController.java), [StaffAdminService](../src/main/java/com/uptrail/service/StaffAdminService.java) |
+| Startup/upgrade | [configuration](../src/main/resources/application.yml), [Docker Compose](../docker-compose.yml), [V6](../src/main/resources/db/migration/V6__cats_user_hierarchy.sql) |
 
-The important distinction is the database identity versus the employee's business number:
+## Shared contracts
 
-| Meaning | Uptrail | CATS adaptation |
-| --- | --- | --- |
-| Database identity | `Employee.id` (`Long`) | Use the team's inherited `userId` and its existing numeric type |
-| Employee number | `Employee.staffNo` (`String`) | Currently `Staff.staffId` (`String`) in team main; keep the team's agreed name |
-| Current reporting/approval relationship | `ApprovalAssignment.employeeId -> managerId` | A `Staff -> Manager` relationship or the existing routing entity, with one source of truth |
-| Approver of a submitted record | `CourseApplication.approverId` | A stored assigned approver on CourseApplication, separate from the current staff relationship |
+- userId is the database identity; staffId is the String business number. ManagerRepo.findByStaffId queries the inherited field.
+- CourseApplication stores applicantId, approverId, status, decisionReason, reviewedBy and reviewedAt. Applicant/assignedManager relationships resolve those same IDs; history survives role changes.
+- ApprovalHierarchy is the current manager. Submission snapshots that manager; pending reassignment is explicit and old decisions stay unchanged.
+- Only the assigned manager decides pending records, with a reason for both outcomes. Self-approval is rejected. Every write rechecks identity, ownership, state and version.
+- Current-year history, annual usage and overlapping approved team courses belong to the basic flow.
+- Keep CATS's existing numeric ID types/enums when moving code. Uptrail uses Long IDs and BigDecimal money.
+- Annual limits belong to TrainingEntitlement; User/Staff do not duplicate yearly budgets.
+- Pre-V6 application/claim email links under /employee redirect to the Staff detail pages. The same role and ownership checks still apply.
 
-An attribute named `monitorId` is not enough by itself. Decide whether it means the manager's database ID or business number, validate that it points to a real manager, use the same relation for course and claim routing, and filter both lists and decisions by the assigned approver. A typed relationship or foreign key makes that contract clearer than an unconstrained string.
+## AI, delivery and validation
 
-**Managing your own application is different from approving it.** Managers use the employee workspace to submit, edit or cancel their own applications. Those applications are routed to a different manager. Uptrail routes Daniel and Priya to Grace; Grace has no configured approver and cannot submit until one is assigned. Self-assignment and self-approval are rejected. If the team decides on a different rule, record it explicitly before adapting the decision service.
+Give the assistant the team files, agreed contract, failing flow and relevant reference files. Ask for a small patch in the owner's module. Review the diff, understand it, run compile/fast tests, and verify the actual login-to-feature flow before opening a PR.
 
-Changing a staff member's current manager should not silently change who approved their old applications. Uptrail keeps an approver snapshot; pending reassignment is an explicit administrative operation.
-
-## Adapt these differences; do not copy the entire model
-
-- CATS uses `User -> Staff -> Manager` and `User -> Admin`. Uptrail uses an employee record, a sign-in account and role assignments. Reuse the routing and validation behaviour while preserving the team's inheritance model.
-- CATS currently uses a manual session contract; Uptrail uses Spring Security's authenticated principal everywhere. For CATS, agree on one session key and one shared identity resolver for login, Staff and Manager. Do not resolve identity independently in each controller. Adding Spring Security can remain a later optional task.
-- Uptrail's `/login`, `/employee/...` and `/manager/approvals` are examples. Preserve the CATS login/dashboard routes and adapt form actions and redirects together.
-- Map enum constants, field names, numeric ID types and SQL column names to the actual team code. A green compile does not verify SQL seed data or login-to-course navigation.
-- The ledger, audit outbox, email retry, document storage and concurrency protocol go beyond the smallest mandatory implementation. Reuse what the chosen team scope needs; they are not prerequisites for finishing the basic MVC flow.
-
-## Use AI and small PRs to move faster
-
-For each blocked task, give the coding assistant the relevant team files, the failing command or flow, this source map and the agreed model/route/session contract. Ask for the smallest change within the owner's module.
-
-The author reviews the diff, understands the decision and checks these before opening a PR:
-
-1. The whole team project compiles and its fast tests pass.
-2. The actual affected flow works, including identity, ownership and invalid input; do not stop at resolving Git conflicts.
-3. The patch preserves other modules and adapts reference names instead of replacing shared models or personal database settings.
-4. The PR states the behaviour, checks performed and any remaining integration dependency.
-
-A short discussion should produce a named owner and a written contract. Continue with a tested patch rather than repeatedly reopening the same decision.
-
-## Delivery order and demonstration
-
-Finish the complete mandatory path first:
-
-```text
-Login and shared identity
-  -> Staff submits a valid application
-  -> Only its assigned manager sees and decides it, with a reason
-  -> Staff sees the new status and reason
-  -> Update/delete/cancel/complete and current-year history
-  -> Manager sees usage and overlapping approved team courses
-```
-
-Then stabilise the optional features already selected by the team. REST and a client that calls it can be added afterwards using the existing service layer.
-
-Reserve time before presentation for one deployment rehearsal and one demonstration rehearsal. Use a disposable staging database and known sample accounts. Verify the packaged JAR against MySQL, environment settings, seed data, upload paths and restarts. A persistent deployment should not drop its database whenever the application restarts.
-
-The 20-minute team presentation should explain responsibility split, architecture/dependencies, class or ER diagram, technologies and lessons learnt. Demonstrate one staff submission and manager decision, required-reason validation, a rejected invalid application and role-specific history. Every member should be able to explain the changes they contributed.
-
-Uptrail's public demo is temporary: it resets its data and is shared by visitors. It is useful for reviewing the reference flow; the final demonstration and submission should use the team's own CATS application.
-
-## Reference checks
+Complete login -> Staff submission -> assigned Manager decision/reason -> Staff result -> lifecycle/history -> usage/overlaps first. Leave time for MySQL startup, deployment and presentation rehearsal. Optional ledger/outbox/cleanup/report internals do not have to be learnt before implementing one page.
 
 ```bash
-./mvnw -B -ntp verify          # unit and MySQL integration tests, including MVC-only flows
-./mvnw -B -ntp -Pe2e verify   # browser flows with and without the REST enhancements
+./mvnw -B -ntp clean verify
+./mvnw -B -ntp -Pe2e verify
 ```
 
-The MVC reference checks cover form submission, assigned-manager approval, the manager's employee workspace, server-rendered calendar navigation, and the absence of REST controllers and browser API requests. Use these behaviours as regression goals when adapting the corresponding team modules.
+Regression checks cover real subtypes, inherited identifier lookup, one password-free session, spoofing protection, role changes with stable IDs, occupied-database upgrades preserving decisions, lifecycle/claims, concurrency and browser flows with/without REST.

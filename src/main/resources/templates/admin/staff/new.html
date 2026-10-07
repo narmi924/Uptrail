@@ -15,14 +15,14 @@
           <h3>Person</h3>
           <div class="row g-3">
             <div class="col-md-4">
-              <label class="form-label" for="staffNo">Staff number <span class="ut-required">(required)</span></label>
-              <input class="form-control" th:field="*{staffNo}" maxlength="30" th:classappend="${#fields.hasErrors('staffNo')} ? 'is-invalid'">
-              <div class="invalid-feedback" th:if="${#fields.hasErrors('staffNo')}" th:errors="*{staffNo}">Error</div>
+              <label class="form-label" for="staffId">Staff number <span class="ut-required">(required)</span></label>
+              <input class="form-control" th:field="*{staffId}" maxlength="30" th:classappend="${#fields.hasErrors('staffId')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('staffId')}" th:errors="*{staffId}">Error</div>
             </div>
             <div class="col-md-8">
-              <label class="form-label" for="fullName">Full name <span class="ut-required">(required)</span></label>
-              <input class="form-control" th:field="*{fullName}" maxlength="120" th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'">
-              <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Error</div>
+              <label class="form-label" for="name">Full name <span class="ut-required">(required)</span></label>
+              <input class="form-control" th:field="*{name}" maxlength="120" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Error</div>
             </div>
             <div class="col-md-6">
               <label class="form-label" for="email">Email <span class="ut-required">(required)</span></label>
@@ -62,7 +62,7 @@
                 <legend class="form-label">Roles</legend>
                 <div class="form-check form-check-inline" th:each="r : ${roles}">
                   <input class="form-check-input" type="checkbox" th:field="*{roles}" th:value="${r}">
-                  <label class="form-check-label" th:for="${#ids.prev('roles')}" th:text="${r.label()}">Employee</label>
+                  <label class="form-check-label" th:for="${#ids.prev('roles')}" th:text="${r.label()}">User</label>
                 </div>
                 <div class="ut-help">Managers automatically receive the employee role so they can apply for courses too.</div>
                 <div class="ut-field-error" th:if="${#fields.hasErrors('roles')}" th:errors="*{roles}">Error</div>
@@ -77,7 +77,7 @@
               <label class="form-label" for="approverId">Approving manager</label>
               <select class="form-select" th:field="*{approverId}" th:classappend="${#fields.hasErrors('approverId')} ? 'is-invalid'">
                 <option value="">Set later</option>
-                <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.fullName} + ' · ' + ${m.department}">Manager</option>
+                <option th:each="m : ${managers}" th:value="${m.id}" th:text="${m.name} + ' · ' + ${m.department}">Manager</option>
               </select>
               <div class="invalid-feedback" th:if="${#fields.hasErrors('approverId')}" th:errors="*{approverId}">Error</div>
             </div>

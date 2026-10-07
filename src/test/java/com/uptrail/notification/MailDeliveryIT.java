@@ -31,7 +31,7 @@ import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
 import com.uptrail.application.AbstractApplicationIT;
-import com.uptrail.notification.service.OutboxProcessor;
+import com.uptrail.service.OutboxProcessor;
 import com.uptrail.support.Fixtures;
 
 /**
@@ -112,13 +112,13 @@ class MailDeliveryIT extends AbstractApplicationIT {
         assertThat(received[0].getSubject()).contains("waiting for your decision");
         String body = GreenMailUtil.getBody(received[0]);
         String path = "/manager/applications/" + applicationId;
-        assertThat(body).contains("http://localhost:8080/login?next=" + path);
+        assertThat(body).contains("http://localhost:8080/employee/login?next=" + path);
         assertThat(outboxStatus()).isEqualTo("SENT");
         assertThat(count("SELECT COUNT(*) FROM email_outbox WHERE sent_at IS NOT NULL AND attempts = 1")).isEqualTo(1);
 
         Matcher next = Pattern.compile("login\\?next=(\\S+)").matcher(body);
         assertThat(next.find()).isTrue();
-        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/login")
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/employee/login")
                         .param("username", manager.username()).param("password", Fixtures.PASSWORD)
                         .param("next", next.group(1))
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors

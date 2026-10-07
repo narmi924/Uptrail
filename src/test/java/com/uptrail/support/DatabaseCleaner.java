@@ -12,10 +12,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 public final class DatabaseCleaner {
 
     private static final List<String> TABLES = List.of(
-            "email_outbox", "claim_document", "training_ledger", "course_claim", "audit_event",
-            "application_day", "course_application", "training_account", "public_holiday",
-            "training_calendar_year", "course_catalogue", "training_provider", "approval_assignment",
-            "user_role", "user_account", "employee");
+            "email_outbox", "claim_document", "training_ledger", "course_fee_application", "audit_event",
+            "application_day", "course_application", "training_entitlement", "excluded_days",
+            "training_calendar_year", "course_catalogue", "training_provider", "approval_hierarchy",
+            "user_roles", "users");
 
     private DatabaseCleaner() {
     }

@@ -14,10 +14,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
-import com.uptrail.application.domain.ApplicationDetails;
-import com.uptrail.application.service.ApplicationCommandService.Decision;
-import com.uptrail.application.service.ApplicationCommandService.SubmitResult;
-import com.uptrail.entitlement.service.EntitlementService.Balance;
+import com.uptrail.model.ApplicationDetails;
+import com.uptrail.service.CourseApplicationService.Decision;
+import com.uptrail.service.CourseApplicationService.SubmitResult;
+import com.uptrail.service.EntitlementService.Balance;
 import com.uptrail.shared.error.BusinessException;
 import com.uptrail.shared.error.ErrorCode;
 import com.uptrail.support.Fixtures.Person;
@@ -80,7 +80,7 @@ class ConcurrencyIT extends AbstractApplicationIT {
         Balance balance = entitlements.balance(racer.id(), 2026);
         assertThat(balance.reservedAmount()).isEqualByComparingTo("700.00");
         assertThat(balance.availableBudget()).isEqualByComparingTo("300.00");
-        assertThat(count("SELECT COUNT(*) FROM course_application WHERE employee_id = ?", racer.id())).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM course_application WHERE applicant_id = ?", racer.id())).isEqualTo(1);
         assertThat(count("SELECT COUNT(*) FROM training_ledger")).isEqualTo(1);
     }
 

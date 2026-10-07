@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 
-import com.uptrail.claim.service.ClaimCommandService.Decision;
+import com.uptrail.service.ClaimCommandService.Decision;
 import com.uptrail.support.Fixtures;
 import com.uptrail.support.Fixtures.Person;
 
@@ -46,32 +46,32 @@ class ClaimWebIT extends AbstractClaimIT {
     void theEmployeeSubmitsAClaimThroughTheForm() throws Exception {
         MockHttpSession session = staffSession(employee);
 
-        mvc.perform(get("/employee/claims").session(session))
+        mvc.perform(get("/staff/claims").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Spring Application Development")))
                 .andExpect(content().string(Matchers.containsString("Claim fee")));
-        mvc.perform(get("/employee/applications/{id}", externalId).session(session))
+        mvc.perform(get("/staff/applications/{id}", externalId).session(session))
                 .andExpect(content().string(Matchers.containsString("Claim course fee")));
-        mvc.perform(get("/employee/claims/new").param("applicationId", externalId.toString()).session(session))
+        mvc.perform(get("/staff/claims/new").param("applicationId", externalId.toString()).session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("enctype=\"multipart/form-data\"")));
 
-        mvc.perform(multipart("/employee/claims").file(file("receipt", "receipt.pdf"))
+        mvc.perform(multipart("/staff/claims").file(file("receipt", "receipt.pdf"))
                         .file(file("certificate", "certificate.pdf")).param("applicationId", externalId.toString())
                         .param("amount", "600.00").param("paidByEmployee", "true").session(session))
                 .andExpect(status().isForbidden());
-        mvc.perform(multipart("/employee/claims").file(file("receipt", "receipt.pdf"))
+        mvc.perform(multipart("/staff/claims").file(file("receipt", "receipt.pdf"))
                         .file(file("certificate", "certificate.pdf")).param("applicationId", externalId.toString())
                         .param("amount", "600.00").param("paidByEmployee", "true").session(session).with(csrf()))
-                .andExpect(redirectedUrlPattern("/employee/claims/*"))
+                .andExpect(redirectedUrlPattern("/staff/claims/*"))
                 .andExpect(flash().attribute("flashSuccess", Matchers.containsString("Claim submitted")));
 
-        Long claimId = jdbc.queryForObject("SELECT id FROM course_claim", Long.class);
-        mvc.perform(get("/employee/claims/{id}", claimId).session(session))
+        Long claimId = jdbc.queryForObject("SELECT id FROM course_fee_application", Long.class);
+        mvc.perform(get("/staff/claims/{id}", claimId).session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("receipt.pdf")))
                 .andExpect(content().string(Matchers.containsString("Waiting for")));
-        mvc.perform(get("/employee/applications/{id}", externalId).session(session))
+        mvc.perform(get("/staff/applications/{id}", externalId).session(session))
                 .andExpect(content().string(Matchers.containsString("View fee claim")));
     }
 
@@ -79,21 +79,21 @@ class ClaimWebIT extends AbstractClaimIT {
     void aRefusedSubmissionShowsTheReasonsNextToTheFieldsAndKeepsTheAmount() throws Exception {
         MockHttpSession session = staffSession(employee);
 
-        mvc.perform(multipart("/employee/claims").file(file("certificate", "certificate.pdf"))
+        mvc.perform(multipart("/staff/claims").file(file("certificate", "certificate.pdf"))
                         .param("applicationId", externalId.toString()).param("amount", "999.00")
                         .param("paidByEmployee", "true").session(session).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("cannot be more than the approved course fee")))
                 .andExpect(content().string(Matchers.containsString("Receipt: Attach the file.")))
                 .andExpect(content().string(Matchers.containsString("value=\"999.00\"")));
-        mvc.perform(multipart("/employee/claims").param("applicationId", externalId.toString())
+        mvc.perform(multipart("/staff/claims").param("applicationId", externalId.toString())
                         .param("amount", "abc").param("paidByEmployee", "true").session(session).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Enter the amount as a number")));
-        mvc.perform(get("/employee/claims/new").param("applicationId", internalId.toString()).session(session))
+        mvc.perform(get("/staff/claims/new").param("applicationId", internalId.toString()).session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("This course cannot be claimed")));
-        assertThat(count("SELECT COUNT(*) FROM course_claim")).isZero();
+        assertThat(count("SELECT COUNT(*) FROM course_fee_application")).isZero();
     }
 
     @Test
@@ -102,17 +102,17 @@ class ClaimWebIT extends AbstractClaimIT {
         claims.decide(manager.actor(), claimId, Decision.REJECT, "Receipt unreadable.", claimVersion(claimId));
         MockHttpSession session = staffSession(employee);
 
-        mvc.perform(get("/employee/claims/{id}", claimId).session(session))
+        mvc.perform(get("/staff/claims/{id}", claimId).session(session))
                 .andExpect(content().string(Matchers.containsString("Revise and resubmit")))
                 .andExpect(content().string(Matchers.containsString("Receipt unreadable.")));
-        mvc.perform(multipart("/employee/claims/{id}/resubmit", claimId).file(file("receipt", "receipt-2.pdf"))
+        mvc.perform(multipart("/staff/claims/{id}/resubmit", claimId).file(file("receipt", "receipt-2.pdf"))
                         .file(file("certificate", "certificate-2.pdf")).param("amount", "550.00")
                         .param("paidByEmployee", "true").param("expectedVersion", String.valueOf(claimVersion(claimId)))
                         .session(session).with(csrf()))
-                .andExpect(redirectedUrl("/employee/claims/" + claimId));
+                .andExpect(redirectedUrl("/staff/claims/" + claimId));
 
         assertThat(claimStatus(claimId)).isEqualTo("SUBMITTED");
-        mvc.perform(get("/employee/claims/{id}", claimId).session(session))
+        mvc.perform(get("/staff/claims/{id}", claimId).session(session))
                 .andExpect(content().string(Matchers.containsString("receipt-2.pdf")))
                 .andExpect(content().string(Matchers.containsString("(current)")));
     }
@@ -168,7 +168,7 @@ class ClaimWebIT extends AbstractClaimIT {
 
         mvc.perform(get("/admin/reimbursements").param("tab", "registered").session(session))
                 .andExpect(content().string(Matchers.containsString("SIM-20261016-")));
-        mvc.perform(get("/employee/claims/{id}", claimId).session(staffSession(employee)))
+        mvc.perform(get("/staff/claims/{id}", claimId).session(staffSession(employee)))
                 .andExpect(content().string(Matchers.containsString("Recorded in demo; no payment is initiated.")));
     }
 

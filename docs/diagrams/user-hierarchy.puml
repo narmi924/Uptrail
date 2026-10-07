@@ -1,0 +1,29 @@
+@startuml user-hierarchy
+!pragma layout smetana
+title Uptrail / CATS - shared user inheritance
+skinparam shadowing false
+skinparam defaultFontName Arial
+abstract class User {
+  userId : Long
+  userName : String
+  name : String
+  staffId : String
+}
+class Staff
+class Manager
+class Admin
+User <|-- Staff
+Staff <|-- Manager
+User <|-- Admin
+note right of Manager
+  Same inherited userId and staffId.
+  Uses Staff application pages.
+  Decides assigned team requests.
+  Cannot approve own application.
+end note
+note bottom of User
+  Login stores a password-free subtype
+  in session "user".
+  One identity across all MVC pages.
+end note
+@enduml

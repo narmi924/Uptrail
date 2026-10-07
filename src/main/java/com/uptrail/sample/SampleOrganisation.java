@@ -12,27 +12,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.uptrail.catalogue.domain.CatalogueCourse;
-import com.uptrail.catalogue.domain.CategoryCode;
-import com.uptrail.catalogue.domain.PublicHoliday;
-import com.uptrail.catalogue.domain.TrainingCalendarYear;
-import com.uptrail.catalogue.domain.TrainingProvider;
-import com.uptrail.catalogue.repository.CatalogueCourseRepository;
-import com.uptrail.catalogue.repository.PublicHolidayRepository;
-import com.uptrail.catalogue.repository.TrainingCalendarYearRepository;
-import com.uptrail.catalogue.repository.TrainingProviderRepository;
-import com.uptrail.catalogue.service.OfficialHolidayData;
-import com.uptrail.entitlement.domain.TrainingAccount;
-import com.uptrail.entitlement.repository.TrainingAccountRepository;
-import com.uptrail.entitlement.service.EntitlementDefaults;
-import com.uptrail.identity.domain.Role;
-import com.uptrail.identity.domain.UserAccount;
-import com.uptrail.identity.repository.UserAccountRepository;
-import com.uptrail.organisation.domain.ApprovalAssignment;
-import com.uptrail.organisation.domain.Designation;
-import com.uptrail.organisation.domain.Employee;
-import com.uptrail.organisation.repository.ApprovalAssignmentRepository;
-import com.uptrail.organisation.repository.EmployeeRepository;
+import com.uptrail.model.CatalogueCourse;
+import com.uptrail.model.CategoryCode;
+import com.uptrail.model.ExcludedDays;
+import com.uptrail.model.TrainingCalendarYear;
+import com.uptrail.model.TrainingProvider;
+import com.uptrail.repo.CatalogueCourseRepo;
+import com.uptrail.repo.ExcludedDaysRepo;
+import com.uptrail.repo.TrainingCalendarYearRepo;
+import com.uptrail.repo.TrainingProviderRepo;
+import com.uptrail.service.OfficialHolidayData;
+import com.uptrail.model.TrainingEntitlement;
+import com.uptrail.repo.TrainingEntitlementRepo;
+import com.uptrail.service.EntitlementDefaults;
+import com.uptrail.model.Role;
+import com.uptrail.model.User;
+import com.uptrail.repo.UserRepo;
+import com.uptrail.model.ApprovalHierarchy;
+import com.uptrail.model.Designation;
+import com.uptrail.repo.ApprovalHierarchyRepo;
 import com.uptrail.shared.time.BusinessClock;
 
 /**
@@ -46,9 +44,9 @@ public class SampleOrganisation {
     private static final String DOMAIN = "@example.com";
 
     /** Staff keyed by username, in creation order. */
-    public static final class Staff extends LinkedHashMap<String, Employee> {
-        public Employee get(String username) {
-            Employee employee = super.get(username);
+    public static final class Staff extends LinkedHashMap<String, User> {
+        public User get(String username) {
+            User employee = super.get(username);
             if (employee == null) {
                 throw new IllegalArgumentException("Unknown sample user " + username);
             }
@@ -56,7 +54,7 @@ public class SampleOrganisation {
         }
     }
 
-    private record Person(String username, String fullName, String department, Designation designation,
+    private record Person(String username, String name, String department, Designation designation,
             Set<Role> roles, String manager, boolean active, boolean nextYearAccount) {
     }
 
@@ -70,7 +68,7 @@ public class SampleOrganisation {
             new Person("priya", "Priya Nair", "Data and Analytics", Designation.MANAGEMENT,
                     EnumSet.of(Role.MANAGER), "grace", true, true),
             new Person("nurul", "Nurul Huda", "Human Resources", Designation.ADMINISTRATIVE,
-                    EnumSet.of(Role.ADMIN, Role.EMPLOYEE), "grace", true, true),
+                    EnumSet.of(Role.ADMIN, Role.STAFF), "grace", true, true),
             staff("siti", "Siti Rahman", "Software Engineering", Designation.PROFESSIONAL, "daniel"),
             staff("marcus", "Marcus Lee", "Software Engineering", Designation.PROFESSIONAL, "daniel"),
             staff("weiling", "Wei Ling Chua", "Software Engineering", Designation.PROFESSIONAL, "daniel"),
@@ -78,7 +76,7 @@ public class SampleOrganisation {
             staff("hannah", "Hannah Goh", "Software Engineering", Designation.ADMINISTRATIVE, "daniel"),
             staff("farid", "Farid Ismail", "Software Engineering", Designation.PROFESSIONAL, "daniel"),
             new Person("jasmine", "Jasmine Teo", "Software Engineering", Designation.PROFESSIONAL,
-                    EnumSet.of(Role.EMPLOYEE), "daniel", true, false),
+                    EnumSet.of(Role.STAFF), "daniel", true, false),
             staff("kelvin", "Kelvin Ng", "Software Engineering", Designation.PROFESSIONAL, "daniel"),
             staff("meiling", "Mei Ling Ho", "Data and Analytics", Designation.PROFESSIONAL, "priya"),
             staff("rahul", "Rahul Sharma", "Data and Analytics", Designation.PROFESSIONAL, "priya"),
@@ -87,24 +85,24 @@ public class SampleOrganisation {
             staff("aisha", "Aisha Yusof", "Data and Analytics", Designation.PROFESSIONAL, "priya"),
             staff("clara", "Clara Wee", "Data and Analytics", Designation.PROFESSIONAL, "priya"),
             new Person("benjamin", "Benjamin Ong", "Data and Analytics", Designation.PROFESSIONAL,
-                    EnumSet.of(Role.EMPLOYEE), "priya", false, false),
+                    EnumSet.of(Role.STAFF), "priya", false, false),
             new Person("ethan", "Ethan Koh", "Data and Analytics", Designation.PROFESSIONAL,
-                    EnumSet.of(Role.EMPLOYEE), null, true, true));
+                    EnumSet.of(Role.STAFF), null, true, true));
 
-    private static Person staff(String username, String fullName, String department, Designation designation,
+    private static Person staff(String username, String name, String department, Designation designation,
             String manager) {
-        return new Person(username, fullName, department, designation, EnumSet.of(Role.EMPLOYEE), manager, true,
+        return new Person(username, name, department, designation, EnumSet.of(Role.STAFF), manager, true,
                 true);
     }
 
-    private final EmployeeRepository employees;
-    private final UserAccountRepository accounts;
-    private final ApprovalAssignmentRepository assignments;
-    private final TrainingAccountRepository trainingAccounts;
-    private final TrainingCalendarYearRepository calendarYears;
-    private final PublicHolidayRepository holidays;
-    private final TrainingProviderRepository providers;
-    private final CatalogueCourseRepository catalogue;
+    private final UserRepo employees;
+    private final UserRepo accounts;
+    private final ApprovalHierarchyRepo assignments;
+    private final TrainingEntitlementRepo trainingAccounts;
+    private final TrainingCalendarYearRepo calendarYears;
+    private final ExcludedDaysRepo holidays;
+    private final TrainingProviderRepo providers;
+    private final CatalogueCourseRepo catalogue;
     private final OfficialHolidayData officialHolidays;
     private final EntitlementDefaults defaults;
     private final PasswordEncoder passwordEncoder;
@@ -112,10 +110,10 @@ public class SampleOrganisation {
     private final TransactionTemplate transactions;
     private final String samplePassword;
 
-    public SampleOrganisation(EmployeeRepository employees, UserAccountRepository accounts,
-            ApprovalAssignmentRepository assignments, TrainingAccountRepository trainingAccounts,
-            TrainingCalendarYearRepository calendarYears, PublicHolidayRepository holidays,
-            TrainingProviderRepository providers, CatalogueCourseRepository catalogue,
+    public SampleOrganisation(UserRepo employees, UserRepo accounts,
+            ApprovalHierarchyRepo assignments, TrainingEntitlementRepo trainingAccounts,
+            TrainingCalendarYearRepo calendarYears, ExcludedDaysRepo holidays,
+            TrainingProviderRepo providers, CatalogueCourseRepo catalogue,
             OfficialHolidayData officialHolidays, EntitlementDefaults defaults, PasswordEncoder passwordEncoder,
             BusinessClock clock, TransactionTemplate transactions,
             @Value("${uptrail.sample-data.password}") String samplePassword) {
@@ -138,7 +136,7 @@ public class SampleOrganisation {
     public Staff seed() {
         return transactions.execute(status -> {
             Staff staff = createStaff();
-            createCalendars(staff.get("alex").getId());
+            createCalendars(staff.get("alex").getUserId());
             createAccounts(staff);
             createCatalogue();
             return staff;
@@ -151,11 +149,11 @@ public class SampleOrganisation {
         Staff staff = new Staff();
         int number = 1001;
         for (Person person : PEOPLE) {
-            String email = person.fullName().toLowerCase().replace(' ', '.') + DOMAIN;
-            Employee employee = employees.save(Employee.create("S" + number++, person.fullName(), email,
-                    person.department(), person.designation(), now));
-            UserAccount account = UserAccount.create(employee.getId(), person.username(), passwordHash,
-                    person.roles(), now);
+            String email = person.name().toLowerCase().replace(' ', '.') + DOMAIN;
+            User employee = employees.save(User.create("S" + number++, person.name(), email,
+                    person.department(), person.designation(), person.username(), passwordHash,
+                    person.roles(), now));
+            User account = employee;
             if (!person.active()) {
                 employee.deactivate(now);
                 account.disable(now);
@@ -165,8 +163,8 @@ public class SampleOrganisation {
         }
         for (Person person : PEOPLE) {
             if (person.manager() != null) {
-                assignments.save(ApprovalAssignment.assign(staff.get(person.username()).getId(),
-                        staff.get(person.manager()).getId(), now));
+                assignments.save(ApprovalHierarchy.assign(staff.get(person.username()).getUserId(),
+                        staff.get(person.manager()).getUserId(), now));
             }
         }
         return staff;
@@ -179,7 +177,7 @@ public class SampleOrganisation {
                     TrainingCalendarYear.draft(year, OfficialHolidayData.SOURCE_NOTE, now));
             List<OfficialHolidayData.Entry> entries = officialHolidays.forYear(year);
             for (OfficialHolidayData.Entry entry : entries) {
-                holidays.save(PublicHoliday.create(entry.date(), entry.name(), OfficialHolidayData.SOURCE_NOTE, now));
+                holidays.save(ExcludedDays.create(entry.date(), entry.name(), OfficialHolidayData.SOURCE_NOTE, now));
             }
             calendarYear.confirm(adminId, entries.size(), OfficialHolidayData.SOURCE_NOTE, now);
         }
@@ -189,16 +187,16 @@ public class SampleOrganisation {
         var now = clock.now();
         int year = clock.currentYear();
         for (Person person : PEOPLE) {
-            boolean applicant = person.roles().contains(Role.EMPLOYEE) || person.roles().contains(Role.MANAGER);
+            boolean applicant = person.roles().contains(Role.STAFF) || person.roles().contains(Role.MANAGER);
             if (!applicant || !person.active()) {
                 continue;
             }
-            Employee employee = staff.get(person.username());
+            User employee = staff.get(person.username());
             EntitlementDefaults.Allowance allowance = defaults.forDesignation(person.designation());
-            trainingAccounts.save(TrainingAccount.open(employee.getId(), year, allowance.units(),
+            trainingAccounts.save(TrainingEntitlement.open(employee.getUserId(), year, allowance.units(),
                     allowance.budget(), now));
             if (person.nextYearAccount()) {
-                trainingAccounts.save(TrainingAccount.open(employee.getId(), year + 1, allowance.units(),
+                trainingAccounts.save(TrainingEntitlement.open(employee.getUserId(), year + 1, allowance.units(),
                         allowance.budget(), now));
             }
         }

@@ -19,7 +19,7 @@
           <select class="form-select" id="employeeId" name="employeeId" required>
             <option value="">Choose a staff member</option>
             <option th:each="r : ${reports}" th:value="${r.id}" th:selected="${r.id == employeeId}"
-                    th:text="${r.fullName} + ' · ' + ${r.department} + (${r.active} ? '' : ' (inactive)')">Name</option>
+                    th:text="${r.name} + ' · ' + ${r.department} + (${r.active} ? '' : ' (inactive)')">Name</option>
           </select>
         </div>
         <div class="ut-filter">
@@ -35,7 +35,7 @@
   </div>
 
   <div class="ut-card" th:if="${view != null}">
-    <div class="ut-card-header"><h2 th:text="${selected != null} ? ${selected.fullName} : 'History'">Name</h2></div>
+    <div class="ut-card-header"><h2 th:text="${selected != null} ? ${selected.name} : 'History'">Name</h2></div>
     <div class="ut-table-wrap">
       <table class="ut-table">
         <thead>

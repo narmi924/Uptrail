@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.springframework.mock.web.MockHttpSession;
 
-import com.uptrail.application.service.ApplicationCommandService.Decision;
-import com.uptrail.application.service.ApplicationCommandService.SubmitResult;
-import com.uptrail.entitlement.service.EntitlementService.Balance;
+import com.uptrail.service.CourseApplicationService.Decision;
+import com.uptrail.service.CourseApplicationService.SubmitResult;
+import com.uptrail.service.EntitlementService.Balance;
 import com.uptrail.shared.error.BusinessException;
 import com.uptrail.shared.error.ErrorCode;
 import com.uptrail.shared.error.NotFoundException;
@@ -222,7 +222,7 @@ class ApplicationLifecycleIT extends AbstractApplicationIT {
     @Test
     void approvalIsRefusedWhenTheHolidayCalendarChangedAfterSubmission() {
         SubmitResult result = submit(employee, external(MON_12_OCT, MON_12_OCT.plusDays(1), "600.00"));
-        jdbc.update("INSERT INTO public_holiday (holiday_date, name, source_note, updated_at) "
+        jdbc.update("INSERT INTO excluded_days (holiday_date, name, source_note, updated_at) "
                 + "VALUES ('2026-10-13', 'Fixture extra holiday', 'FIXTURE', NOW(6))");
 
         assertThatThrownBy(() -> commands.decide(manager.actor(), result.applicationId(), Decision.APPROVE, "OK",
@@ -239,20 +239,20 @@ class ApplicationLifecycleIT extends AbstractApplicationIT {
         Person other = fixtures.employee("other");
         MockHttpSession mine = staffSession(employee);
 
-        mvc.perform(get("/employee/applications/" + result.applicationId()).session(mine))
+        mvc.perform(get("/staff/applications/" + result.applicationId()).session(mine))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Spring Application Development")))
                 .andExpect(content().string(Matchers.containsString("Delete application")));
-        mvc.perform(get("/employee/applications/" + result.applicationId() + "/edit").session(mine))
+        mvc.perform(get("/staff/applications/" + result.applicationId() + "/edit").session(mine))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Save changes")))
                 .andExpect(content().string(Matchers.containsString("value=\"600.00\"")));
-        mvc.perform(get("/employee/applications").session(mine))
+        mvc.perform(get("/staff/applications").session(mine))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Showing 1–1 of 1 applications")));
-        mvc.perform(get("/employee/applications/" + result.applicationId()).session(staffSession(other)))
+        mvc.perform(get("/staff/applications/" + result.applicationId()).session(staffSession(other)))
                 .andExpect(status().isNotFound());
-        mvc.perform(post("/employee/applications/" + result.applicationId() + "/delete").session(staffSession(other))
+        mvc.perform(post("/staff/applications/" + result.applicationId() + "/delete").session(staffSession(other))
                         .with(csrf()).param("expectedVersion", String.valueOf(version(result.applicationId()))))
                 .andExpect(status().isNotFound());
         assertThat(statusOf(result.applicationId())).isEqualTo("APPLIED");
@@ -271,12 +271,12 @@ class ApplicationLifecycleIT extends AbstractApplicationIT {
 
         mvc.perform(get("/manager/approvals").session(session))
                 .andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString(employee.employee().getFullName())))
+                .andExpect(content().string(Matchers.containsString(employee.employee().getName())))
                 .andExpect(content().string(Matchers.containsString("1 waiting")));
         mvc.perform(get("/manager/applications/" + result.applicationId()).session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Your other staff in this period")))
-                .andExpect(content().string(Matchers.containsString(colleague.employee().getFullName())))
+                .andExpect(content().string(Matchers.containsString(colleague.employee().getName())))
                 .andExpect(content().string(Matchers.containsString("Pending reservations")));
 
         mvc.perform(post("/manager/applications/" + result.applicationId() + "/decision").session(session).with(csrf())

@@ -40,14 +40,14 @@
     </div>
   </div>
 
-  <div class="ut-card" th:if="${app.reviewComment != null or app.cancelReason != null or app.completionComment != null}">
+  <div class="ut-card" th:if="${app.decisionReason != null or app.cancelReason != null or app.completionComment != null}">
     <div class="ut-card-header"><h2>Decision and outcome</h2></div>
     <div class="ut-card-body">
       <dl class="ut-dl">
-        <th:block th:if="${app.reviewComment != null}">
+        <th:block th:if="${app.decisionReason != null}">
           <dt>Decided by</dt>
           <dd th:text="${app.reviewerName} + ' on ' + ${@formats.dateTime(app.reviewedAt)}">Manager</dd>
-          <dt>Manager's reason</dt><dd th:text="${app.reviewComment}">Reason</dd>
+          <dt>Manager's reason</dt><dd th:text="${app.decisionReason}">Reason</dd>
         </th:block>
         <th:block th:if="${app.cancelReason != null}">
           <dt>Cancellation reason</dt><dd th:text="${app.cancelReason}">Reason</dd>

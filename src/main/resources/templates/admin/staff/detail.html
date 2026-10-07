@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/base :: page(${detail.staff.fullName}, 'staff', ~{::#page})}">
+      th:replace="~{layout/base :: page(${detail.staff.name}, 'staff', ~{::#page})}">
 <body>
 <div id="page" th:with="s=${detail.staff}">
   <div class="ut-breadcrumb"><a th:href="@{/admin/staff}">Staff</a></div>
   <div class="ut-page-header">
     <div>
-      <div class="mono text-muted-ut" th:text="${s.staffNo}">S1001</div>
-      <h1 th:text="${s.fullName}">Name</h1>
+      <div class="mono text-muted-ut" th:text="${s.staffId}">S1001</div>
+      <h1 th:text="${s.name}">Name</h1>
       <div class="ut-facts">
         <div><div class="ut-fact-label">Status</div>
           <span th:replace="~{fragments/messages :: status(${s.active} ? 'active' : 'inactive', ${s.active} ? 'Active' : 'Inactive')}"></span></div>
         <div><div class="ut-fact-label">Username</div><div class="ut-fact-value" th:text="${s.username}">user</div></div>
-        <div><div class="ut-fact-label">Roles</div><div class="ut-fact-value" th:text="${s.rolesLabel()}">Employee</div></div>
+        <div><div class="ut-fact-label">Roles</div><div class="ut-fact-value" th:text="${s.rolesLabel()}">User</div></div>
         <div><div class="ut-fact-label">Approver</div><div class="ut-fact-value" th:text="${s.approverName != null} ? ${s.approverName} : 'Not configured'">Manager</div></div>
         <div><div class="ut-fact-label">Staff reporting to them</div><div class="ut-fact-value" th:text="${detail.directReports}">0</div></div>
         <div><div class="ut-fact-label">Waiting for their decision</div>
@@ -29,8 +29,8 @@
           <form method="post" th:action="@{/admin/staff/{id}/profile(id=${s.id})}">
             <input type="hidden" name="version" th:value="${detail.version}">
             <div class="row g-3">
-              <div class="col-md-6"><label class="form-label" for="fullName">Full name</label>
-                <input class="form-control" id="fullName" name="fullName" maxlength="120" th:value="${s.fullName}" required></div>
+              <div class="col-md-6"><label class="form-label" for="name">Full name</label>
+                <input class="form-control" id="name" name="name" maxlength="120" th:value="${s.name}" required></div>
               <div class="col-md-6"><label class="form-label" for="email">Email</label>
                 <input class="form-control" id="email" name="email" type="email" maxlength="254" th:value="${s.email}" required></div>
               <div class="col-md-6"><label class="form-label" for="department">Department</label>
@@ -51,7 +51,7 @@
           <form method="post" th:action="@{/admin/staff/{id}/roles(id=${s.id})}">
             <div class="form-check form-check-inline" th:each="r : ${roles}">
               <input class="form-check-input" type="checkbox" name="roles" th:id="${'role-' + r}" th:value="${r}" th:checked="${s.roles.contains(r)}">
-              <label class="form-check-label" th:for="${'role-' + r}" th:text="${r.label()}">Employee</label>
+              <label class="form-check-label" th:for="${'role-' + r}" th:text="${r.label()}">User</label>
             </div>
             <p class="ut-help mt-2 mb-0">Removing the manager role requires moving their team and waiting items first. The last active administrator keeps the administrator role. Saving ends the person's open sessions.</p>
             <div class="ut-form-actions"><button class="btn btn-secondary" type="submit">Save roles</button></div>
@@ -68,7 +68,7 @@
             <select class="form-select mb-2" id="managerId" name="managerId">
               <option value="">No approver (cannot submit)</option>
               <option th:each="m : ${managers}" th:if="${m.id != s.id}" th:value="${m.id}"
-                      th:text="${m.fullName} + ' · ' + ${m.department}" th:selected="${m.id == s.approverId}">Manager</option>
+                      th:text="${m.name} + ' · ' + ${m.department}" th:selected="${m.id == s.approverId}">Manager</option>
             </select>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="reassignPending" name="reassignPending" value="true" checked>
@@ -114,7 +114,7 @@
 
       <div class="ut-card">
         <div class="ut-card-body">
-          <a th:href="@{/admin/entitlements(q=${s.staffNo})}">Training entitlement</a>
+          <a th:href="@{/admin/entitlements(q=${s.staffId})}">Training entitlement</a>
         </div>
       </div>
     </div>

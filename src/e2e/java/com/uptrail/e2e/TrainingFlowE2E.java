@@ -42,7 +42,7 @@ import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.FilePayload;
 import com.microsoft.playwright.options.Media;
-import com.uptrail.catalogue.service.HolidayCalendarService;
+import com.uptrail.service.HolidayCalendarService;
 import com.uptrail.shared.time.BusinessClock;
 import com.uptrail.support.MySqlTestDatabase;
 
@@ -61,6 +61,7 @@ import com.uptrail.support.MySqlTestDatabase;
         "uptrail.mail.capture-dir=target/e2e-mail"
 })
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@org.springframework.test.context.ActiveProfiles("rest-enhanced")
 class TrainingFlowE2E {
 
     private static final Path SCREENS = Paths.get("target", "e2e");
@@ -142,11 +143,11 @@ class TrainingFlowE2E {
     }
 
     private void signIn(String username) {
-        page.navigate(url("/login"));
+        page.navigate(url("/employee/login"));
         page.locator("#username").fill(username);
         page.locator("#password").fill(password);
         page.locator("button[type=submit]").click();
-        page.waitForURL(Pattern.compile(".*/(employee|manager)/.*"));
+        page.waitForURL(Pattern.compile(".*/(staff|manager)/.*"));
     }
 
     private void signInAdmin(String username) {
@@ -154,7 +155,7 @@ class TrainingFlowE2E {
         page.locator("#username").fill(username);
         page.locator("#password").fill(password);
         page.locator("button[type=submit]").click();
-        page.waitForURL(Pattern.compile(".*/admin/dashboard"));
+        page.waitForURL(Pattern.compile(".*/admin/home"));
     }
 
     /** A Wednesday at least three weeks ahead that is not a public holiday. */
@@ -174,7 +175,7 @@ class TrainingFlowE2E {
     @Order(1)
     void anEmployeeAppliesWithTheLiveEligibilityCheck() {
         signIn("farid");
-        page.navigate(url("/employee/applications/new"));
+        page.navigate(url("/staff/applications/new"));
         page.locator("#catalogue-search").fill("Cloud");
         page.locator("#catalogue-results button[data-index]").first().click();
         expect(page.locator("#courseTitle")).hasValue("Cloud Architecture Foundations");
@@ -188,7 +189,7 @@ class TrainingFlowE2E {
 
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Submit application")).click();
 
-        page.waitForURL(Pattern.compile(".*/employee/applications/\\d+"));
+        page.waitForURL(Pattern.compile(".*/staff/applications/\\d+"));
         expect(page.locator("h1")).hasText("Cloud Architecture Foundations");
         expect(page.locator(".ut-page-header")).containsText("Applied");
     }
@@ -214,10 +215,10 @@ class TrainingFlowE2E {
     @Order(3)
     void theEmployeeClaimsTheFeeOfACompletedCourse() {
         signIn("farid");
-        page.navigate(url("/employee/claims"));
+        page.navigate(url("/staff/claims"));
         page.locator("tr").filter(new Locator.FilterOptions().setHasText("Test Automation Essentials"))
                 .getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("Claim fee")).click();
-        page.waitForURL(Pattern.compile(".*/employee/claims/new.*"));
+        page.waitForURL(Pattern.compile(".*/staff/claims/new.*"));
         page.locator("#amount").fill("400.00");
         page.locator("#paidByEmployee").check();
         page.locator("#receipt").setInputFiles(new FilePayload("receipt.pdf", "application/pdf", pdf("receipt")));
@@ -226,7 +227,7 @@ class TrainingFlowE2E {
         screenshot("claim-form");
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Submit claim")).click();
 
-        page.waitForURL(Pattern.compile(".*/employee/claims/\\d+"));
+        page.waitForURL(Pattern.compile(".*/staff/claims/\\d+"));
         expect(page.locator("[role=status]")).containsText("Claim submitted");
         expect(page.locator(".ut-page-header")).containsText("Submitted");
         expect(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("receipt.pdf"))).isVisible();
@@ -265,7 +266,7 @@ class TrainingFlowE2E {
         page.waitForURL(Pattern.compile(".*/admin/reimbursements"));
         expect(page.locator("[role=status]")).containsText("SIM-");
         Map<String, Object> ledger = jdbc.queryForMap("SELECT COUNT(*) AS n, SUM(reimbursed_amount_delta) AS total "
-                + "FROM training_ledger l JOIN course_claim c ON c.id = l.claim_id JOIN course_application a "
+                + "FROM training_ledger l JOIN course_fee_application c ON c.id = l.claim_id JOIN course_application a "
                 + "ON a.id = c.application_id WHERE a.course_title = 'Test Automation Essentials'");
         assertThat(((Number) ledger.get("n")).intValue()).isEqualTo(1);
         assertThat(ledger.get("total").toString()).isEqualTo("400.00");
@@ -295,8 +296,8 @@ class TrainingFlowE2E {
     void pagesFitAPhoneScreenAndReportsPrintWithoutNavigation() {
         page.setViewportSize(390, 844);
         signIn("daniel");
-        for (String path : List.of("/employee/dashboard", "/employee/applications", "/employee/claims",
-                "/employee/entitlement", "/manager/approvals", "/manager/claims", "/manager/reports", "/calendar")) {
+        for (String path : List.of("/staff/home", "/staff/applications", "/staff/claims",
+                "/staff/entitlement", "/manager/approvals", "/manager/claims", "/manager/reports", "/calendar")) {
             page.navigate(url(path));
             int width = ((Number) page.evaluate("document.documentElement.scrollWidth")).intValue();
             assertThat(width).as("page width of " + path).isLessThanOrEqualTo(390);

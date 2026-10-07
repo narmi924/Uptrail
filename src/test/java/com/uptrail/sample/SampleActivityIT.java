@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.uptrail.admin.service.LedgerReconciliationService;
+import com.uptrail.service.LedgerReconciliationService;
 import com.uptrail.support.AbstractMySqlIT;
 
 /**
@@ -44,11 +44,11 @@ class SampleActivityIT extends AbstractMySqlIT {
                 + "AND YEAR(a.start_date) = 2026", Long.class)).isEqualTo(1);
 
         assertThat(claimCount).isEqualTo(5);
-        assertThat(jdbc.queryForList("SELECT DISTINCT status FROM course_claim", String.class))
+        assertThat(jdbc.queryForList("SELECT DISTINCT status FROM course_fee_application", String.class))
                 .containsExactlyInAnyOrder("SUBMITTED", "APPROVED", "REJECTED", "REIMBURSED");
-        assertThat(jdbc.queryForObject("SELECT MAX(revision) FROM course_claim", Integer.class)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("SELECT MAX(revision) FROM course_fee_application", Integer.class)).isEqualTo(2);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM claim_document", Long.class)).isEqualTo(12);
-        assertThat(jdbc.queryForObject("SELECT reimbursement_reference FROM course_claim WHERE status = 'REIMBURSED'",
+        assertThat(jdbc.queryForObject("SELECT reimbursement_reference FROM course_fee_application WHERE status = 'REIMBURSED'",
                 String.class)).startsWith("SIM-");
 
         LedgerReconciliationService.Result result = reconciliation.check();
