@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ import com.uptrail.shared.time.BusinessClock;
  */
 @RestController
 @RequestMapping("/api/v1/calendar")
+@ConditionalOnProperty(prefix = "uptrail.web", name = "rest-enabled", havingValue = "true", matchIfMissing = true)
 public class CalendarApiController {
 
     public record CalendarEntry(String employeeName, String courseTitle, CategoryCode category, String categoryName,

@@ -69,6 +69,8 @@ logging:
     correlation: "[%X{correlationId:-}] "
 
 uptrail:
+  web:
+    rest-enabled: ${UPTRAIL_REST_ENABLED:true}
   base-url: ${UPTRAIL_BASE_URL:http://localhost:8080}
   documents:
     root: ${UPTRAIL_DOCUMENTS_ROOT:var/documents}

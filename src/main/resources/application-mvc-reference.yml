@@ -1,0 +1,5 @@
+# MVC-first reference: ordinary HTML forms and server-side calendar navigation.
+# Remove this profile when adding the optional REST enhancements.
+uptrail:
+  web:
+    rest-enabled: false

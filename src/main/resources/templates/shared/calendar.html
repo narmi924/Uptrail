@@ -32,8 +32,9 @@
             <option th:each="c : ${categories}" th:value="${c.code}" th:text="${c.displayName}" th:selected="${c.code == category}">Internal</option>
           </select>
         </div>
-        <noscript><button class="btn btn-secondary" type="submit">Show</button></noscript>
-        <div class="ms-auto" role="group" aria-label="View">
+        <button class="btn btn-secondary" type="submit" th:unless="${restEnabled}">Show</button>
+        <noscript th:if="${restEnabled}"><button class="btn btn-secondary" type="submit">Show</button></noscript>
+        <div class="ms-auto" role="group" aria-label="View" th:if="${restEnabled}">
           <button type="button" class="btn btn-secondary" data-calendar-view="grid" aria-pressed="true">Month</button>
           <button type="button" class="btn btn-secondary" data-calendar-view="list" aria-pressed="false">List</button>
         </div>
@@ -49,25 +50,17 @@
   <div class="ut-card">
     <div class="ut-card-header"><h2 id="calendar-title" th:text="${monthLabel}">October 2026</h2>
       <span class="small-ut text-muted-ut" id="calendar-count"></span></div>
-    <div class="ut-card-body" id="calendar" th:attr="data-api=@{/api/v1/calendar},data-month=${month},data-category=${category},data-today=${today}"
+    <div class="ut-card-body" id="calendar" th:attr="data-api=${restEnabled} ? @{/api/v1/calendar} : null,data-month=${month},data-category=${category},data-today=${today}"
          aria-live="polite">
-      <noscript>
-        <table class="ut-table">
-          <thead><tr><th>Staff member</th><th>Course</th><th>Category</th><th>Dates</th></tr></thead>
-          <tbody>
-          <tr th:each="e : ${data.entries}">
-            <td th:text="${e.employeeName}">Name</td>
-            <td th:text="${e.courseTitle}">Course</td>
-            <td th:text="${e.categoryName}">Category</td>
-            <td th:text="${@formats.period(e.startDate, e.startSession.name(), e.endDate, e.endSession.name())}">dates</td>
-          </tr>
-          <tr class="ut-empty" th:if="${#lists.isEmpty(data.entries)}"><td colspan="4">No approved courses this month.</td></tr>
-          </tbody>
-        </table>
+      <th:block th:unless="${restEnabled}">
+        <table th:replace="~{fragments/calendar :: entries(${data})}"></table>
+      </th:block>
+      <noscript th:if="${restEnabled}">
+        <table th:replace="~{fragments/calendar :: entries(${data})}"></table>
       </noscript>
     </div>
   </div>
-  <script defer th:src="@{/js/calendar.js}"></script>
+  <script defer th:src="@{/js/calendar.js}" th:if="${restEnabled}"></script>
 </div>
 </body>
 </html>
